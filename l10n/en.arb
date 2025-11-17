@@ -1,0 +1,87 @@
+{
+  "@@locale": "en",
+
+  "app_name": "Farm Manager",
+  "welcomeTitle": "Welcome to Farm Manager",
+  "welcomeSubtitle": "Keep livestock records, request vet services, and manage your farm offline.",
+  "selectLanguage": "Select Language",
+  "continueBtn": "Continue",
+
+  "login": "Login",
+  "loginSubtitle": "Welcome back! Please enter your credentials.",
+  "username": "Username / Email / Phone",
+  "enterUsername": "Please enter your username, email or phone",
+  "password": "Password",
+  "enterPassword": "Please enter your password",
+  "forgotPassword": "Forgot Password?",
+  "noAccount": "Don't have an account?",
+  "signUp": "Sign Up",
+
+  "register": "Create Account",
+  "registerSubtitle": "Fill in your details to get started.",
+  "firstname": "First Name",
+  "lastname": "Last Name",
+  "phoneNumber": "Phone Number",
+  "email": "Email (Optional for Farmer)",
+  "confirmPassword": "Confirm Password",
+  "haveAccount": "Already have an account?",
+
+  "sendResetLink": "Send Reset Link",
+  "resetLinkSent": "Reset link sent!",
+  "forgotPasswordDesc": "Enter your email and we'll send you a reset link.",
+
+  "selectRole": "Choose Your Role",
+  "farmer": "Farmer",
+  "vet": "Veterinarian",
+  "researcher": "Researcher",
+
+  "dashboard": "Dashboard",
+  "livestock": "Livestock",
+  "addLivestock": "Add Livestock",
+  "healthReport": "Health Report",
+  "breedingRecord": "Breeding Record",
+  "syncData": "Sync Data",
+  "offlineData": "Offline Data",
+  "syncingRecords": "Syncing records...",
+
+  "vetRequests": "Vet Requests",
+  "serviceRequests": "Service Requests",
+  "prescription": "Prescription",
+  "vetDashboard": "Vet Dashboard",
+
+  "analytics": "Analytics",
+  "researcherDashboard": "Researcher Dashboard",
+  "submitDataRequest": "Submit Data Request",
+  "chart": "Chart",
+
+  "profile": "Profile",
+  "notifications": "Notifications",
+  "settings": "Settings",
+  "updateLanguage": "Update Language",
+  "logout": "Logout",
+
+  "error": "Error",
+  "networkError": "No internet connection",
+  "serverError": "Server error. Please try again.",
+  "invalidCredentials": "Invalid credentials",
+  "passwordMismatch": "Passwords do not match",
+  "emailInvalid": "Please enter a valid email",
+  "fieldRequired": "This field is required",
+
+  "success": "Success",
+  "loginSuccess": "Login successful",
+  "registerSuccess": "Registration successful",
+  "dataSynced": "Data synced successfully",
+  "requestSent": "Request sent",
+
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "november": "November",
+  "dateFormat": "17 Nov 2025",
+
+  "help": "Help",
+  "about": "About",
+  "version": "Version 1.1",
+  "developer": "Developed by Japango",
+  "contact": "Contact Support"
+}

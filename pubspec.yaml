@@ -1,0 +1,42 @@
+name: farm_manager_app
+description: Livestock records + Vet request + Offline sync
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  flutter_bloc: ^9.1.0
+  get_it: ^9.0.5
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  go_router: ^17.0.0
+  dio: ^5.9.0
+
+  # INTERNET CHECKER THAT NEVER FAILS
+  connectivity_plus: ^6.0.5
+  internet_connection_checker: ^3.0.1   # ← STABLE & WORKS
+
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.2
+  intl: ^0.20.2
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.12
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/images/

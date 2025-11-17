@@ -1,0 +1,559 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_sw.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('sw')
+  ];
+
+  /// No description provided for @app_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm Manager'**
+  String get app_name;
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Farm Manager'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep livestock records, request vet services, and manage your farm offline.'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @continueBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueBtn;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Please enter your credentials.'**
+  String get loginSubtitle;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username / Email / Phone'**
+  String get username;
+
+  /// No description provided for @enterUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your username, email or phone'**
+  String get enterUsername;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get enterPassword;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// No description provided for @noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get noAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get register;
+
+  /// No description provided for @registerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in your details to get started.'**
+  String get registerSubtitle;
+
+  /// No description provided for @firstname.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstname;
+
+  /// No description provided for @lastname.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastname;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumber;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (Optional for Farmer)'**
+  String get email;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @haveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get haveAccount;
+
+  /// No description provided for @sendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get sendResetLink;
+
+  /// No description provided for @resetLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset link sent!'**
+  String get resetLinkSent;
+
+  /// No description provided for @forgotPasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we\'ll send you a reset link.'**
+  String get forgotPasswordDesc;
+
+  /// No description provided for @selectRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Your Role'**
+  String get selectRole;
+
+  /// No description provided for @farmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Farmer'**
+  String get farmer;
+
+  /// No description provided for @vet.
+  ///
+  /// In en, this message translates to:
+  /// **'Veterinarian'**
+  String get vet;
+
+  /// No description provided for @researcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Researcher'**
+  String get researcher;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No description provided for @livestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Livestock'**
+  String get livestock;
+
+  /// No description provided for @addLivestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Livestock'**
+  String get addLivestock;
+
+  /// No description provided for @healthReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Report'**
+  String get healthReport;
+
+  /// No description provided for @breedingRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Breeding Record'**
+  String get breedingRecord;
+
+  /// No description provided for @syncData.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Data'**
+  String get syncData;
+
+  /// No description provided for @offlineData.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Data'**
+  String get offlineData;
+
+  /// No description provided for @syncingRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing records...'**
+  String get syncingRecords;
+
+  /// No description provided for @vetRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Vet Requests'**
+  String get vetRequests;
+
+  /// No description provided for @serviceRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Requests'**
+  String get serviceRequests;
+
+  /// No description provided for @prescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription'**
+  String get prescription;
+
+  /// No description provided for @vetDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Vet Dashboard'**
+  String get vetDashboard;
+
+  /// No description provided for @analytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get analytics;
+
+  /// No description provided for @researcherDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Researcher Dashboard'**
+  String get researcherDashboard;
+
+  /// No description provided for @submitDataRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Data Request'**
+  String get submitDataRequest;
+
+  /// No description provided for @chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart'**
+  String get chart;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @updateLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Language'**
+  String get updateLanguage;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// No description provided for @networkError.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get networkError;
+
+  /// No description provided for @serverError.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again.'**
+  String get serverError;
+
+  /// No description provided for @invalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid credentials'**
+  String get invalidCredentials;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordMismatch;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get emailInvalid;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
+  /// No description provided for @success.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get success;
+
+  /// No description provided for @loginSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Login successful'**
+  String get loginSuccess;
+
+  /// No description provided for @registerSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful'**
+  String get registerSuccess;
+
+  /// No description provided for @dataSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Data synced successfully'**
+  String get dataSynced;
+
+  /// No description provided for @requestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get requestSent;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @november.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get november;
+
+  /// No description provided for @dateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'17 Nov 2025'**
+  String get dateFormat;
+
+  /// No description provided for @help.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1.1'**
+  String get version;
+
+  /// No description provided for @developer.
+  ///
+  /// In en, this message translates to:
+  /// **'Developed by Japango'**
+  String get developer;
+
+  /// No description provided for @contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Support'**
+  String get contact;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'sw'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'sw':
+      return AppLocalizationsSw();
+  }
+
+  throw FlutterError(
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
+}
