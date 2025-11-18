@@ -30,9 +30,12 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUser(userModel);
       await localDataSource.cacheToken(response.accessToken);
       
+      // Ensure the user entity reflects the token if needed
       return Right(userModel.toEntity().copyWith(token: response.accessToken));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure());
+      return Left(ServerFailure('An unexpected error occurred during login.'));
     }
   }
 
@@ -44,6 +47,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? email,
     required String password,
     required String passwordConfirmation,
+    required String role,
   }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure());
@@ -57,11 +61,34 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
         passwordConfirmation: passwordConfirmation,
+        role: role,
       );
       await localDataSource.cacheUser(userModel);
       return Right(userModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure());
+      return Left(ServerFailure('An unexpected error occurred during registration.'));
+    }
+  }
+
+  // NEW: Assign Role Implementation
+  @override
+  Future<Either<Failure, UserEntity>> assignRole({required String role}) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
+
+    try {
+      final userModel = await remoteDataSource.assignRole(role: role);
+      // Cache the fully updated user model
+      await localDataSource.cacheUser(userModel); 
+      
+      return Right(userModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred while assigning role.'));
     }
   }
 }

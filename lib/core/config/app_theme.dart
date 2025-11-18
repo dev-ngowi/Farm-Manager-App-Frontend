@@ -1,13 +1,14 @@
+// lib/core/config/app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF196944);   // Deep green
-  static const Color secondary = Color(0xFFd88c3e); // Warm orange
-  static const Color surface = Colors.white;       // Base white
+  static const Color primary = Color(0xFF196944);     // Deep Green
+  static const Color secondary = Color(0xFFd88c3e);   // Warm Orange
+  static const Color surface = Colors.white;         // Base white
   static const Color onPrimary = Colors.white;
   static const Color onSecondary = Colors.white;
   static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
+  static const Color textSecondary = Color(0xFF757575); // ← Fixed: ilikuwa haipo
 }
 
 class AppTheme {
@@ -91,11 +92,25 @@ class AppTheme {
           color: AppColors.textPrimary,
         ),
         bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+        bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary), // ← Fixed
         labelLarge: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.secondary,
         ),
+      ),
+    );
+  }
+
+  // Optional Dark Theme (haijatumika sasa, lakini inafaa baadaye)
+  static ThemeData dark(BuildContext context) {
+    return light(context).copyWith(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF1E1E1E),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

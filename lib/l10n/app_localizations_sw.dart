@@ -62,16 +62,37 @@ class AppLocalizationsSw extends AppLocalizations {
   String get firstname => 'Jina la Kwanza';
 
   @override
+  String get firstnameRequired => 'Jina la kwanza linahitajika';
+
+  @override
   String get lastname => 'Jina la Mwisho';
+
+  @override
+  String get lastnameRequired => 'Jina la mwisho linahitajika';
 
   @override
   String get phoneNumber => 'Namba ya Simu';
 
   @override
-  String get email => 'Barua Pepe (Hiari)';
+  String get phoneRequired => 'Namba ya simu inahitajika';
+
+  @override
+  String get validPhone => 'Ingiza namba sahihi ya TZ (07xxxxxxxx)';
+
+  @override
+  String get email => 'Barua Pepe (Hiari kwa Mkulima)';
+
+  @override
+  String get validEmail => 'Tafadhali ingiza barua pepe sahihi';
+
+  @override
+  String get passwordLength => 'Nywila iwe na angalau herufi 6';
 
   @override
   String get confirmPassword => 'Thibitisha Nywila';
+
+  @override
+  String get passwordMatch => 'Nywila hazilingani';
 
   @override
   String get haveAccount => 'Tayari una akaunti?';
@@ -90,13 +111,34 @@ class AppLocalizationsSw extends AppLocalizations {
   String get selectRole => 'Chagua Jukumu Lako';
 
   @override
+  String get selectRoleSubtitle => 'Tafadhali chagua utakavyotumia app hii';
+
+  @override
   String get farmer => 'Mkulima';
+
+  @override
+  String get farmerDesc => 'Simamia mifugo yako na omba huduma ya daktari';
 
   @override
   String get vet => 'Daktari wa Mifugo';
 
   @override
+  String get vetDesc => 'Toa huduma na simamia miadi';
+
+  @override
   String get researcher => 'Mtafiti';
+
+  @override
+  String get researcherDesc => 'Fikia data isiyojulikana kwa utafiti';
+
+  @override
+  String get welcome => 'Karibu!';
+
+  @override
+  String get roleSelected => 'Jukumu limehifadhiwa';
+
+  @override
+  String get continueToApp => 'Endelea kwenye App';
 
   @override
   String get dashboard => 'Dashibodi';
@@ -174,15 +216,6 @@ class AppLocalizationsSw extends AppLocalizations {
   String get invalidCredentials => 'Maelezo si sahihi';
 
   @override
-  String get passwordMismatch => 'Nywila hazilingani';
-
-  @override
-  String get emailInvalid => 'Tafadhali ingiza barua pepe sahihi';
-
-  @override
-  String get fieldRequired => 'Sehemu hii inahitajika';
-
-  @override
   String get success => 'Imefanikiwa';
 
   @override
@@ -190,6 +223,12 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get registerSuccess => 'Usajili umefanikiwa';
+
+  @override
+  String get registrationComplete => 'Akaunti imeundwa kikamilifu!';
+
+  @override
+  String get chooseYourRole => 'Sasa chagua jukumu lako ili uendelee';
 
   @override
   String get dataSynced => 'Data imesambazwa';
@@ -223,4 +262,25 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get contact => 'Wasiliana na Msaada';
+
+  @override
+  String get creatingAccount => 'Unda akaunti yako';
+
+  @override
+  String get emailAlreadyRegistered => 'Barua Pepe hii tayari imeshatumika';
+
+  @override
+  String get validationError => 'Tatizo la usahihi wa data';
+
+  @override
+  String get registrationSuccess => 'Umefanikiwa kufungua Account';
+
+  @override
+  String get roleAssigned => 'Umefanikiwa kupata jukumu';
+
+  @override
+  String get noInternet => 'Hakuna muunganisho wa intaneti';
+
+  @override
+  String get appTagline => 'Rekodi Mifugo Yako Salama';
 }

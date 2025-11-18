@@ -61,16 +61,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firstname => 'First Name';
 
   @override
+  String get firstnameRequired => 'First name is required';
+
+  @override
   String get lastname => 'Last Name';
+
+  @override
+  String get lastnameRequired => 'Last name is required';
 
   @override
   String get phoneNumber => 'Phone Number';
 
   @override
+  String get phoneRequired => 'Phone number is required';
+
+  @override
+  String get validPhone => 'Enter valid TZ phone (07xxxxxxxx)';
+
+  @override
   String get email => 'Email (Optional for Farmer)';
 
   @override
+  String get validEmail => 'Please enter a valid email';
+
+  @override
+  String get passwordLength => 'Password must be at least 6 characters';
+
+  @override
   String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get passwordMatch => 'Passwords do not match';
 
   @override
   String get haveAccount => 'Already have an account?';
@@ -89,13 +110,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectRole => 'Choose Your Role';
 
   @override
+  String get selectRoleSubtitle => 'Please select how you will use the app';
+
+  @override
   String get farmer => 'Farmer';
+
+  @override
+  String get farmerDesc => 'Manage your livestock and request vet services';
 
   @override
   String get vet => 'Veterinarian';
 
   @override
-  String get researcher => 'Researcher';
+  String get vetDesc => 'Provide services and manage appointments';
+
+  @override
+  String get researcher => ' Researcher';
+
+  @override
+  String get researcherDesc => 'Access anonymized data for research';
+
+  @override
+  String get welcome => 'Welcome!';
+
+  @override
+  String get roleSelected => 'Role saved successfully';
+
+  @override
+  String get continueToApp => 'Continue to App';
 
   @override
   String get dashboard => 'Dashboard';
@@ -173,15 +215,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidCredentials => 'Invalid credentials';
 
   @override
-  String get passwordMismatch => 'Passwords do not match';
-
-  @override
-  String get emailInvalid => 'Please enter a valid email';
-
-  @override
-  String get fieldRequired => 'This field is required';
-
-  @override
   String get success => 'Success';
 
   @override
@@ -189,6 +222,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerSuccess => 'Registration successful';
+
+  @override
+  String get registrationComplete => 'Account created successfully!';
+
+  @override
+  String get chooseYourRole => 'Now choose your role to continue';
 
   @override
   String get dataSynced => 'Data synced successfully';
@@ -222,4 +261,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contact => 'Contact Support';
+
+  @override
+  String get creatingAccount => 'Creating Account';
+
+  @override
+  String get emailAlreadyRegistered => 'Email is Already Registered';
+
+  @override
+  String get validationError => 'Validation Error';
+
+  @override
+  String get registrationSuccess => 'Successfully Registered';
+
+  @override
+  String get roleAssigned => 'Role Set Successfully';
+
+  @override
+  String get noInternet => 'No internet connection';
+
+  @override
+  String get appTagline => 'Keep your farm safe';
 }

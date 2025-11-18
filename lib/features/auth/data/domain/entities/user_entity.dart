@@ -1,5 +1,6 @@
-// lib/features/auth/domain/entities/user_entity.dart
-class UserEntity {
+import 'package:equatable/equatable.dart';
+
+class UserEntity extends Equatable {
   final int id;
   final String firstname;
   final String lastname;
@@ -9,7 +10,7 @@ class UserEntity {
   final String role;
   final String token;
 
-  UserEntity({
+  const UserEntity({
     required this.id,
     required this.firstname,
     required this.lastname,
@@ -20,30 +21,38 @@ class UserEntity {
     required this.token,
   });
 
-  UserEntity toEntity() {
-  return UserEntity(
-    id: id,
-    firstname: firstname,
-    lastname: lastname,
-    email: email,
-    phoneNumber: phoneNumber,
-    username: username,
-    role: role,
-    token: '', // token comes from login response
-  );
-}
+  // copyWith method, necessary for immutability when updating fields (like the token)
+  UserEntity copyWith({
+    int? id,
+    String? firstname,
+    String? lastname,
+    String? email,
+    String? phoneNumber,
+    String? username,
+    String? role,
+    String? token,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      firstname: firstname ?? this.firstname,
+      lastname: lastname ?? this.lastname,
+      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      username: username ?? this.username,
+      role: role ?? this.role,
+      token: token ?? this.token,
+    );
+  }
 
-// Also add copyWith if not exist
-UserEntity copyWith({String? token}) {
-  return UserEntity(
-    id: id,
-    firstname: firstname,
-    lastname: lastname,
-    email: email,
-    phoneNumber: phoneNumber,
-    username: username,
-    role: role,
-    token: token ?? '',
-  );
-}
+  @override
+  List<Object?> get props => [
+        id,
+        firstname,
+        lastname,
+        email,
+        phoneNumber,
+        username,
+        role,
+        token,
+      ];
 }

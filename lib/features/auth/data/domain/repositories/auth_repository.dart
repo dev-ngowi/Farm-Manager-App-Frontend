@@ -1,4 +1,3 @@
-// lib/features/auth/domain/repositories/auth_repository.dart
 import 'package:dartz/dartz.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
 import '../entities/user_entity.dart';
@@ -13,5 +12,11 @@ abstract class AuthRepository {
     String? email,
     required String password,
     required String passwordConfirmation,
+    required String role,
+  });
+
+  // NEW: Assign user role method signature
+  Future<Either<Failure, UserEntity>> assignRole({
+    required String role,
   });
 }

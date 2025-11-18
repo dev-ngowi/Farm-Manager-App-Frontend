@@ -1,4 +1,4 @@
-// lib/features/auth/presentation/pages/login_page.dart
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -32,20 +32,22 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _handleLoginSuccess() async {
-    final savedRole = await _storage.read(key: 'user_role');
-    if (mounted) {
-      if (savedRole != null) {
-        final route = switch (savedRole) {
-          'farmer' => '/farmer',
-          'vet' => '/vet',
-          'researcher' => '/researcher',
-          _ => '/farmer',
-        };
-        context.go(route);
-      } else {
-        context.go('/role-selection');
-      }
+  Future<void> _handleLoginSuccess(String? userRole) async {
+    if (!mounted) return;
+
+    // Check if user needs to select a role
+    if (userRole == null || userRole.isEmpty || userRole.toLowerCase() == 'unassigned') {
+      // User has no role assigned, redirect to role selection
+      context.go('/role-selection');
+    } else {
+      // User has a role, redirect to appropriate dashboard
+      final route = switch (userRole.toLowerCase()) {
+        'farmer' => '/farmer/dashboard',
+        'vet' => '/vet/dashboard',
+        'researcher' => '/researcher/dashboard',
+        _ => '/farmer/dashboard', // Default fallback
+      };
+      context.go(route);
     }
   }
 
@@ -132,7 +134,8 @@ class _LoginPageState extends State<LoginPage> {
                   BlocConsumer<AuthBloc, AuthState>(
                     listener: (context, state) {
                       if (state is AuthSuccess) {
-                        _handleLoginSuccess();
+                        // Pass the user's role to determine navigation
+                        _handleLoginSuccess(state.user.role);
                       } else if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(state.message)),

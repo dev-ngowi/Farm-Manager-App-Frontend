@@ -200,11 +200,23 @@ abstract class AppLocalizations {
   /// **'First Name'**
   String get firstname;
 
+  /// No description provided for @firstnameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'First name is required'**
+  String get firstnameRequired;
+
   /// No description provided for @lastname.
   ///
   /// In en, this message translates to:
   /// **'Last Name'**
   String get lastname;
+
+  /// No description provided for @lastnameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name is required'**
+  String get lastnameRequired;
 
   /// No description provided for @phoneNumber.
   ///
@@ -212,17 +224,47 @@ abstract class AppLocalizations {
   /// **'Phone Number'**
   String get phoneNumber;
 
+  /// No description provided for @phoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is required'**
+  String get phoneRequired;
+
+  /// No description provided for @validPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid TZ phone (07xxxxxxxx)'**
+  String get validPhone;
+
   /// No description provided for @email.
   ///
   /// In en, this message translates to:
   /// **'Email (Optional for Farmer)'**
   String get email;
 
+  /// No description provided for @validEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get validEmail;
+
+  /// No description provided for @passwordLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordLength;
+
   /// No description provided for @confirmPassword.
   ///
   /// In en, this message translates to:
   /// **'Confirm Password'**
   String get confirmPassword;
+
+  /// No description provided for @passwordMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordMatch;
 
   /// No description provided for @haveAccount.
   ///
@@ -254,11 +296,23 @@ abstract class AppLocalizations {
   /// **'Choose Your Role'**
   String get selectRole;
 
+  /// No description provided for @selectRoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select how you will use the app'**
+  String get selectRoleSubtitle;
+
   /// No description provided for @farmer.
   ///
   /// In en, this message translates to:
   /// **'Farmer'**
   String get farmer;
+
+  /// No description provided for @farmerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your livestock and request vet services'**
+  String get farmerDesc;
 
   /// No description provided for @vet.
   ///
@@ -266,11 +320,41 @@ abstract class AppLocalizations {
   /// **'Veterinarian'**
   String get vet;
 
+  /// No description provided for @vetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide services and manage appointments'**
+  String get vetDesc;
+
   /// No description provided for @researcher.
   ///
   /// In en, this message translates to:
-  /// **'Researcher'**
+  /// **' Researcher'**
   String get researcher;
+
+  /// No description provided for @researcherDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Access anonymized data for research'**
+  String get researcherDesc;
+
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome!'**
+  String get welcome;
+
+  /// No description provided for @roleSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Role saved successfully'**
+  String get roleSelected;
+
+  /// No description provided for @continueToApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to App'**
+  String get continueToApp;
 
   /// No description provided for @dashboard.
   ///
@@ -422,24 +506,6 @@ abstract class AppLocalizations {
   /// **'Invalid credentials'**
   String get invalidCredentials;
 
-  /// No description provided for @passwordMismatch.
-  ///
-  /// In en, this message translates to:
-  /// **'Passwords do not match'**
-  String get passwordMismatch;
-
-  /// No description provided for @emailInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter a valid email'**
-  String get emailInvalid;
-
-  /// No description provided for @fieldRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'This field is required'**
-  String get fieldRequired;
-
   /// No description provided for @success.
   ///
   /// In en, this message translates to:
@@ -457,6 +523,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration successful'**
   String get registerSuccess;
+
+  /// No description provided for @registrationComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created successfully!'**
+  String get registrationComplete;
+
+  /// No description provided for @chooseYourRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Now choose your role to continue'**
+  String get chooseYourRole;
 
   /// No description provided for @dataSynced.
   ///
@@ -523,6 +601,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact Support'**
   String get contact;
+
+  /// No description provided for @creatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating Account'**
+  String get creatingAccount;
+
+  /// No description provided for @emailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is Already Registered'**
+  String get emailAlreadyRegistered;
+
+  /// No description provided for @validationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Validation Error'**
+  String get validationError;
+
+  /// No description provided for @registrationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully Registered'**
+  String get registrationSuccess;
+
+  /// No description provided for @roleAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Set Successfully'**
+  String get roleAssigned;
+
+  /// No description provided for @noInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get noInternet;
+
+  /// No description provided for @appTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your farm safe'**
+  String get appTagline;
 }
 
 class _AppLocalizationsDelegate

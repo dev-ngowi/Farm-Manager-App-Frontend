@@ -1,12 +1,10 @@
-// lib/features/auth/domain/usecases/register_usecase.dart
 import 'package:dartz/dartz.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
+import '../repositories/auth_repository.dart';
 
 class RegisterUseCase {
   final AuthRepository repository;
-
   RegisterUseCase(this.repository);
 
   Future<Either<Failure, UserEntity>> call({
@@ -16,6 +14,7 @@ class RegisterUseCase {
     String? email,
     required String password,
     required String passwordConfirmation,
+    required String role,
   }) {
     return repository.register(
       firstname: firstname,
@@ -24,6 +23,7 @@ class RegisterUseCase {
       email: email,
       password: password,
       passwordConfirmation: passwordConfirmation,
+      role: role,
     );
   }
 }
