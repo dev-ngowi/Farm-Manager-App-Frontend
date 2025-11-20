@@ -282,4 +282,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appTagline => 'Keep your farm safe';
+
+  @override
+  String get processing => 'Processing';
+
+  @override
+  String get ward => 'Ward';
+
+  @override
+  String get saveLocation => 'Save Location';
+
+  @override
+  String get captureGps => 'Capture GPS';
+
+  @override
+  String get gpsCaptured => 'GPS Captured';
+
+  @override
+  String get district => 'District';
+
+  @override
+  String get region => 'Region';
+
+  @override
+  String get locationSubtitle => 'Location Subtitle';
+
+  @override
+  String get setYourLocation => 'Set your location';
+
+  @override
+  String get yesAdd => 'Yes Add';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get addNewWard => 'Add new ward';
+
+  @override
+  String get notFoundPrompt => 'Not Found Prompt';
+
+  @override
+  String get enterWardName => 'Enter Ward Name';
+
+  @override
+  String get wardName => 'Ward name';
+
+  @override
+  String get wardNameRequired => 'Ward name is Required';
+
+  @override
+  String get districtId => 'District id';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get nowCaptureGps => '✓ Now capture GPS';
+
+  @override
+  String get skipForNow => 'Skip for now →';
+
+  @override
+  String get enterNewWardName => 'Enter new ward name:';
+
+  @override
+  String get wardExample => 'Example: Kilakala';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get pleaseEnterWardName => 'Please enter ward name';
+
+  @override
+  String get addedSuccessfully => 'has been added';
+
+  @override
+  String get locationSavedSuccess =>
+      'Congratulations! Location saved successfully 🎉';
+
+  @override
+  String get unknownError => 'An unknown error occurred';
+
+  @override
+  String get errorOccurred => 'An error occurred';
+
+  @override
+  String get addingNewWard => 'Adding new ward...';
+
+  @override
+  String get loadingDistricts => 'Loading districts...';
+
+  @override
+  String get loadingWards => 'Loading wards...';
 }

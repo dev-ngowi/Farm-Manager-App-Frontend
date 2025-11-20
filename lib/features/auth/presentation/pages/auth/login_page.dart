@@ -1,14 +1,17 @@
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_state.dart';
+// lib/features/auth/presentation/pages/auth/login_page.dart
+
+import 'package:farm_manager_app/features/auth/presentation/pages/location/location_manager_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/core/di/locator.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
+import 'role_selection_page.dart'; 
 
 class LoginPage extends StatefulWidget {
   static const String routeName = '/login';
@@ -23,7 +26,6 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  final _storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
@@ -32,29 +34,43 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _handleLoginSuccess(String? userRole) async {
+  // Helper function to handle post-login navigation based on state
+  void _handleLoginSuccess(AuthState state) {
     if (!mounted) return;
 
-    // Check if user needs to select a role
+    final user = (state is AuthSuccess) ? state.user : null;
+    final userRole = user?.role;
+    final hasLocation = user?.hasLocation == true;
+    
+    // 1. Check if user needs to select a role
     if (userRole == null || userRole.isEmpty || userRole.toLowerCase() == 'unassigned') {
-      // User has no role assigned, redirect to role selection
-      context.go('/role-selection');
-    } else {
-      // User has a role, redirect to appropriate dashboard
-      final route = switch (userRole.toLowerCase()) {
-        'farmer' => '/farmer/dashboard',
-        'vet' => '/vet/dashboard',
-        'researcher' => '/researcher/dashboard',
-        _ => '/farmer/dashboard', // Default fallback
-      };
-      context.go(route);
+      context.go(RoleSelectionPage.routeName);
+      return;
+    } 
+    
+    // 2. Check if user needs to set a location
+    if (!hasLocation) {
+      context.go(LocationManagerPage.routeName);
+      return;
     }
+    
+    // 3. Fully configured, redirect to appropriate dashboard
+    final route = switch (userRole.toLowerCase()) {
+      'farmer' => '/farmer/dashboard',
+      'vet' => '/vet/dashboard',
+      'researcher' => '/researcher/dashboard',
+      _ => '/farmer/dashboard', // Default fallback
+    };
+    context.go(route);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    // NOTE: Using BlocProvider.value here assumes AuthBloc is provided higher up (e.g., main.dart)
+    // If AuthBloc is NOT provided higher up, use the create: method as before.
+    // For this example, I'll stick to the previous implementation which assumes AuthBloc is in DI container.
     return BlocProvider(
       create: (_) => getIt<AuthBloc>(),
       child: Scaffold(
@@ -134,8 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                   BlocConsumer<AuthBloc, AuthState>(
                     listener: (context, state) {
                       if (state is AuthSuccess) {
-                        // Pass the user's role to determine navigation
-                        _handleLoginSuccess(state.user.role);
+                        _handleLoginSuccess(state);
                       } else if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(state.message)),

@@ -1,33 +1,35 @@
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_state.dart';
+// lib/features/auth/presentation/pages/auth/role_selection_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
+import 'package:farm_manager_app/features/auth/presentation/pages/location/location_manager_page.dart';
 
 class RoleSelectionPage extends StatelessWidget {
   static const String routeName = '/role-selection';
   const RoleSelectionPage({super.key});
 
   void _assignRole(BuildContext context, String role) {
-    // Triggers the BLoC to call the 'api/v1/assign-user-role' endpoint
     context.read<AuthBloc>().add(AssignRoleSubmitted(role: role));
   }
 
-  // Helper to navigate to dashboard based on the assigned role
-  void _navigateToDashboard(BuildContext context, String role) {
-    final roleLower = role.toLowerCase();
-    if (roleLower == 'farmer') {
-      context.go('/farmer/dashboard');
-    } else if (roleLower == 'vet') {
-      context.go('/vet/dashboard');
-    } else if (roleLower == 'researcher') {
-      context.go('/researcher/dashboard');
-    } else {
-      // Fallback if the role is unexpected or empty
-      context.go('/login'); 
-    }
+  // Navigation after successful role assignment
+  void _navigateToNextStep(BuildContext context) {
+    // Next step is always Location Setup if the role was just assigned.
+    context.go(LocationManagerPage.routeName);
+  }
+
+  String _getSwahiliRole(String role) {
+    return switch (role) {
+      'Farmer' => 'Mkulima',
+      'Vet' => 'Daktari wa Mifugo',
+      'Researcher' => 'Mtafiti',
+      _ => role,
+    };
   }
 
   @override
@@ -39,46 +41,53 @@ class RoleSelectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/login'),
+        ),
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          // --- SUCCESS HANDLING: Role successfully assigned ---
-          // NOTE: AuthSuccess state should contain the new User object with the updated role
-          if (state is AuthSuccess) {
+          String? role;
+          String? message;
+
+          if (state is RoleAssigned) {
+            role = state.role;
+            message = "Hongera! Sasa wewe ni ${_getSwahiliRole(role)} 🎉";
+            
+            // 1. Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(l10n.roleAssigned ?? "Role set successfully!"),
-                backgroundColor: AppColors.primary,
+                content: Text(message, style: const TextStyle(fontWeight: FontWeight.bold)),
+                backgroundColor: role == 'Vet' ? AppColors.secondary : AppColors.primary,
                 duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
               ),
             );
-            _navigateToDashboard(context, state.user.role);
-          } 
-          
-          // --- ERROR HANDLING ---
-          else if (state is AuthError) {
             
-            String displayMessage = state.message;
-            
-            if (state.message.contains('Invalid role selected')) {
-                 displayMessage = l10n.validationError ?? "Invalid role selected. Please try again.";
-            } 
-            else if (state.message.contains('No internet connection')) {
-                 displayMessage = l10n.networkError ?? "No internet connection. Please check your network.";
-            }
-            
+            // 2. Navigate to the next required step
+            _navigateToNextStep(context);
+
+          } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(displayMessage),
-                backgroundColor: AppColors.secondary,
-                duration: const Duration(seconds: 4),
+                content: Text(state.message),
+                backgroundColor: Colors.red.shade600,
+                duration: const Duration(seconds: 5),
               ),
             );
           }
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
-
+          
+          // Determine the user's role and if a role is already set
+          final currentRole = state is RoleAssigned
+              ? state.role
+              : (state is AuthSuccess ? state.user.role : null);
+              
+          final hasRole = currentRole != null && currentRole != 'unassigned';
+          
           return SafeArea(
             child: Stack(
               children: [
@@ -87,7 +96,9 @@ class RoleSelectionPage extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        l10n.selectRole ?? "Chagua Jukumu Lako",
+                        hasRole 
+                          ? "Jukumu Lako Limechaguliwa" 
+                          : l10n.selectRole ?? "Chagua Jukumu Lako",
                         style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -96,7 +107,9 @@ class RoleSelectionPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        l10n.selectRoleSubtitle ?? "Tafadhali chagua utakavyotumia app hii",
+                        hasRole
+                            ? "Sasa unaweza kuendelea na hatua inayofuata ya kuweka eneo la shamba/huduma."
+                            : l10n.selectRoleSubtitle ?? "Tafadhali chagua utakavyotumia app hii",
                         style: Theme.of(context).textTheme.bodyLarge,
                         textAlign: TextAlign.center,
                       ),
@@ -107,25 +120,31 @@ class RoleSelectionPage extends StatelessWidget {
                             _RoleCard(
                               title: l10n.farmer ?? "Mkulima",
                               subtitle: "Farmer",
-                              icon: Icons.agriculture_outlined,
+                              icon: Icons.agriculture_rounded,
                               color: AppColors.primary,
-                              onTap: isLoading ? null : () => _assignRole(context, "Farmer"),
+                              isSelected: currentRole == "Farmer",
+                              isDisabled: isLoading || hasRole, // Disabled if loading OR already has a role
+                              onTap: () => _assignRole(context, "Farmer"),
                             ),
                             const SizedBox(height: 24),
                             _RoleCard(
                               title: l10n.vet ?? "Daktari wa Mifugo",
                               subtitle: "Veterinarian",
-                              icon: Icons.local_hospital_outlined,
+                              icon: Icons.local_hospital_rounded,
                               color: AppColors.secondary,
-                              onTap: isLoading ? null : () => _assignRole(context, "Vet"),
+                              isSelected: currentRole == "Vet",
+                              isDisabled: isLoading || hasRole,
+                              onTap: () => _assignRole(context, "Vet"),
                             ),
                             const SizedBox(height: 24),
                             _RoleCard(
                               title: l10n.researcher ?? "Mtafiti",
                               subtitle: "Researcher",
-                              icon: Icons.science_outlined,
+                              icon: Icons.science_rounded,
                               color: const Color(0xFF6A1B9A),
-                              onTap: isLoading ? null : () => _assignRole(context, "Researcher"),
+                              isSelected: currentRole == "Researcher",
+                              isDisabled: isLoading || hasRole,
+                              onTap: () => _assignRole(context, "Researcher"),
                             ),
                           ],
                         ),
@@ -134,25 +153,21 @@ class RoleSelectionPage extends StatelessWidget {
                   ),
                 ),
                 if (isLoading)
-                  // Loading Overlay
                   Container(
                     color: Colors.black.withOpacity(0.7),
                     child: Center(
                       child: Card(
-                        elevation: 15,
+                        elevation: 20,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         child: Padding(
                           padding: const EdgeInsets.all(40),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CircularProgressIndicator(
-                                color: AppColors.primary,
-                                strokeWidth: 6,
-                              ),
+                              const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 6),
                               const SizedBox(height: 24),
                               Text(
-                                l10n.creatingAccount ?? "Inaunda akaunti yako...",
+                                l10n.processing ?? "Inakamilisha...",
                                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
                               ),
                             ],
@@ -174,27 +189,32 @@ class _RoleCard extends StatelessWidget {
   final String title, subtitle;
   final IconData icon;
   final Color color;
-  final VoidCallback? onTap;
+  final bool isSelected;
+  final bool isDisabled;
+  final VoidCallback onTap;
 
   const _RoleCard({
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.color,
-    this.onTap,
+    required this.isSelected,
+    required this.isDisabled,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: onTap == null ? 0.6 : 1.0,
+      opacity: isDisabled ? 0.5 : 1.0,
       child: Card(
-        elevation: 14,
-        shadowColor: color.withOpacity(0.3),
+        elevation: isSelected ? 20 : 14,
+        shadowColor: color.withOpacity(0.4),
+        color: isSelected ? color.withOpacity(0.1) : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
-          onTap: onTap,
+          onTap: isDisabled ? null : onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
             child: Row(
@@ -215,7 +235,10 @@ class _RoleCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, color: color, size: 34),
+                if (isSelected)
+                  Icon(Icons.check_circle, color: color, size: 48)
+                else if (!isDisabled)
+                  Icon(Icons.arrow_forward_ios, color: color, size: 34),
               ],
             ),
           ),

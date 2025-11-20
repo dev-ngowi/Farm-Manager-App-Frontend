@@ -1,12 +1,12 @@
 // ... (imports)
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/core/di/locator.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {

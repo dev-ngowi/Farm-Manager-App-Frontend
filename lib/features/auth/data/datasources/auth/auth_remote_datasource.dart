@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../../../core/error/failure.dart';
-import '../models/login_response_model.dart';
-import '../models/user_model.dart';
+import '../../../../../core/error/failure.dart';
+import '../../models/login_response_model.dart';
+import '../../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<LoginResponseModel> login(String login, String password);
@@ -115,42 +115,78 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel> assignRole({required String role}) async {
     final token = await _storage.read(key: 'access_token');
-    
-    if (token == null) {
-      throw ServerException('Authentication token missing. Please log in.');
+
+    if (token == null || token.isEmpty) {
+      throw ServerException('Unauthorised. Please login again.');
     }
 
     try {
-      // Endpoint used for assigning role post-login/registration
       final response = await dio.post(
         '/assign-role',
         data: {'role': role},
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
           },
         ),
       );
 
-      if (response.statusCode == 200) {
-        final userJson = response.data['user'] as Map<String, dynamic>;
-        
-        // Update the locally stored role after successful assignment
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // 1. Ensure response data is a valid map before processing
+        if (response.data == null || response.data is! Map<String, dynamic>) {
+          print('AssignRole Error: Invalid response format or data is null: ${response.data}');
+          throw ServerException('Invalid response format from assign-role API.');
+        }
+
+        final jsonResponse = response.data as Map<String, dynamic>;
+
+        // 2. Safely access the user object, checking for both 'data' (expected) and 'user' (received) keys
+        final userData = jsonResponse['data'] ?? jsonResponse['user']; 
+
+        if (userData == null || userData is! Map<String, dynamic>) {
+          print('AssignRole Error: Missing or invalid "data" or "user" field in response: ${jsonResponse}');
+          // Use the server's own message if it explains why the role wasn't assigned (e.g., "Tayari umechagua...")
+          final serverMessage = jsonResponse['message'] as String? ?? 'User data missing from role assignment response.';
+          throw ServerException(serverMessage);
+        }
+
+        final userJson = userData as Map<String, dynamic>;
+
+        // Ensure role is up-to-date in local storage
         await _storage.write(key: 'user_role', value: role);
-        
+
+        // Optional: update full name if returned
+        if (userJson['full_name'] != null) {
+          await _storage.write(key: 'user_name', value: userJson['full_name']);
+        }
+
         return UserModel.fromJson(userJson);
       } else {
-        throw ServerException(response.data['message'] ?? 'Failed to assign role.');
+        // Handling non-successful status codes
+        final errorMsg = response.data?['message'] ?? 'Failed to assign role';
+        throw ServerException(errorMsg);
       }
     } on DioException catch (e) {
-      String message = 'Server Error Occurred during role assignment.';
+      String errorMessage = 'Failed to assign role. Please try again.';
+
       if (e.response != null) {
-        message = e.response?.data['message'] ?? message;
+        final data = e.response?.data;
+        if (data is Map<String, dynamic>) {
+          errorMessage = data['message'] ??
+              data['error'] ??
+              (data['errors'] is Map
+                  ? (data['errors'] as Map).values.first[0]
+                  : 'Validation error');
+        }
       }
-      throw ServerException(message);
-    } catch (e) {
-      throw ServerException('An unexpected error occurred during role assignment.');
+
+      print('Dio Error during assignRole: $errorMessage');
+      throw ServerException(errorMessage);
+    } catch (e, s) {
+      print('Unexpected error in assignRole: $e\n$s');
+      throw ServerException('An unexpected error occurred. Please try again.');
     }
   }
 }

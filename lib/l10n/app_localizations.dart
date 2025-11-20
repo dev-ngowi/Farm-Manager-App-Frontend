@@ -643,6 +643,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep your farm safe'**
   String get appTagline;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get processing;
+
+  /// No description provided for @ward.
+  ///
+  /// In en, this message translates to:
+  /// **'Ward'**
+  String get ward;
+
+  /// No description provided for @saveLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Location'**
+  String get saveLocation;
+
+  /// No description provided for @captureGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture GPS'**
+  String get captureGps;
+
+  /// No description provided for @gpsCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Captured'**
+  String get gpsCaptured;
+
+  /// No description provided for @district.
+  ///
+  /// In en, this message translates to:
+  /// **'District'**
+  String get district;
+
+  /// No description provided for @region.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get region;
+
+  /// No description provided for @locationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Subtitle'**
+  String get locationSubtitle;
+
+  /// No description provided for @setYourLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your location'**
+  String get setYourLocation;
+
+  /// No description provided for @yesAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes Add'**
+  String get yesAdd;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @addNewWard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new ward'**
+  String get addNewWard;
+
+  /// No description provided for @notFoundPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Found Prompt'**
+  String get notFoundPrompt;
+
+  /// No description provided for @enterWardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Ward Name'**
+  String get enterWardName;
+
+  /// No description provided for @wardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Ward name'**
+  String get wardName;
+
+  /// No description provided for @wardNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Ward name is Required'**
+  String get wardNameRequired;
+
+  /// No description provided for @districtId.
+  ///
+  /// In en, this message translates to:
+  /// **'District id'**
+  String get districtId;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @nowCaptureGps.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Now capture GPS'**
+  String get nowCaptureGps;
+
+  /// No description provided for @skipForNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now →'**
+  String get skipForNow;
+
+  /// No description provided for @enterNewWardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new ward name:'**
+  String get enterNewWardName;
+
+  /// No description provided for @wardExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Kilakala'**
+  String get wardExample;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @pleaseEnterWardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter ward name'**
+  String get pleaseEnterWardName;
+
+  /// No description provided for @addedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'has been added'**
+  String get addedSuccessfully;
+
+  /// No description provided for @locationSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! Location saved successfully 🎉'**
+  String get locationSavedSuccess;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred'**
+  String get unknownError;
+
+  /// No description provided for @errorOccurred.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred'**
+  String get errorOccurred;
+
+  /// No description provided for @addingNewWard.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding new ward...'**
+  String get addingNewWard;
+
+  /// No description provided for @loadingDistricts.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading districts...'**
+  String get loadingDistricts;
+
+  /// No description provided for @loadingWards.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading wards...'**
+  String get loadingWards;
 }
 
 class _AppLocalizationsDelegate

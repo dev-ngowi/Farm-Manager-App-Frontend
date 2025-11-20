@@ -1,4 +1,7 @@
+// lib/features/auth/data/domain/entities/user_entity.dart
+
 import 'package:equatable/equatable.dart';
+import 'package:farm_manager_app/features/auth/data/domain/entities/location_entity.dart'; // Import LocationEntity
 
 class UserEntity extends Equatable {
   final int id;
@@ -8,7 +11,11 @@ class UserEntity extends Equatable {
   final String phoneNumber;
   final String username;
   final String role;
-  final String token;
+  final String? token; // Token can be null if user is fetched without a new login
+  final bool hasLocation;
+  final int? primaryLocationId;
+  final List<LocationEntity>? locations;
+  
 
   const UserEntity({
     required this.id,
@@ -18,10 +25,13 @@ class UserEntity extends Equatable {
     required this.phoneNumber,
     required this.username,
     required this.role,
-    required this.token,
+    this.token, // Changed to not be required in constructor
+    this.primaryLocationId, 
+    this.locations,
+    required this.hasLocation,
   });
 
-  // copyWith method, necessary for immutability when updating fields (like the token)
+  // copyWith method
   UserEntity copyWith({
     int? id,
     String? firstname,
@@ -31,6 +41,9 @@ class UserEntity extends Equatable {
     String? username,
     String? role,
     String? token,
+    int? primaryLocationId, 
+    List<LocationEntity>? locations, 
+    bool? hasLocation, // 💡 FIX: Added 'hasLocation' to copyWith parameters
   }) {
     return UserEntity(
       id: id ?? this.id,
@@ -41,6 +54,9 @@ class UserEntity extends Equatable {
       username: username ?? this.username,
       role: role ?? this.role,
       token: token ?? this.token,
+      primaryLocationId: primaryLocationId ?? this.primaryLocationId,
+      locations: locations ?? this.locations, 
+      hasLocation: hasLocation ?? this.hasLocation, // 💡 FIX: Used null-aware assignment
     );
   }
 
@@ -54,5 +70,8 @@ class UserEntity extends Equatable {
         username,
         role,
         token,
+        primaryLocationId,
+        locations,
+        hasLocation,
       ];
 }

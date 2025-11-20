@@ -283,4 +283,102 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get appTagline => 'Rekodi Mifugo Yako Salama';
+
+  @override
+  String get processing => 'Inakamilishwa';
+
+  @override
+  String get ward => 'Kata';
+
+  @override
+  String get saveLocation => 'Hifadhi Eneo';
+
+  @override
+  String get captureGps => 'Pata Mahali nlipo';
+
+  @override
+  String get gpsCaptured => 'Mahali nlipo kumehifadhiwa';
+
+  @override
+  String get district => 'Wilaya';
+
+  @override
+  String get region => 'Mkoa';
+
+  @override
+  String get locationSubtitle =>
+      'Hii itatusaidia kukuletea huduma bora za mifugo karibu nawe';
+
+  @override
+  String get setYourLocation => 'Weka Eneo Lako';
+
+  @override
+  String get yesAdd => 'Ndio Ongeza';
+
+  @override
+  String get no => 'Hapana';
+
+  @override
+  String get addNewWard => 'Ongeza Kata Mpya';
+
+  @override
+  String get notFoundPrompt => 'haijapatikana. Je, ungependa kuiongeza?';
+
+  @override
+  String get enterWardName =>
+      'Ingiza jina la Kata mpya kwa Wilaya iliyochaguliwa';
+
+  @override
+  String get wardName => 'Jina la Kata';
+
+  @override
+  String get wardNameRequired => 'Jina la kata linahitajika';
+
+  @override
+  String get districtId => 'Numbari ya Wilaya';
+
+  @override
+  String get save => 'Hifadhi';
+
+  @override
+  String get nowCaptureGps => '✓ Sasa bonyeza kupata GPS';
+
+  @override
+  String get skipForNow => 'Ruka kwa sasa →';
+
+  @override
+  String get enterNewWardName => 'Jaza jina la kata mpya:';
+
+  @override
+  String get wardExample => 'Mfano: Kilakala';
+
+  @override
+  String get cancel => 'Ghairi';
+
+  @override
+  String get add => 'Ongeza';
+
+  @override
+  String get pleaseEnterWardName => 'Tafadhali jaza jina la kata';
+
+  @override
+  String get addedSuccessfully => 'imeongezwa';
+
+  @override
+  String get locationSavedSuccess => 'Hongera! Eneo limehifadhiwa 🎉';
+
+  @override
+  String get unknownError => 'Kosa lisilojulikana limetokea';
+
+  @override
+  String get errorOccurred => 'Kosa limetokea';
+
+  @override
+  String get addingNewWard => 'Inaongeza kata mpya...';
+
+  @override
+  String get loadingDistricts => 'Inapakia wilaya...';
+
+  @override
+  String get loadingWards => 'Inapakia kata...';
 }

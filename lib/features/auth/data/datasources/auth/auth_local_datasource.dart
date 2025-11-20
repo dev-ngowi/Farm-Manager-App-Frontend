@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/user_model.dart';
+import '../../models/user_model.dart';
 
 abstract class AuthLocalDataSource {
   Future<void> cacheToken(String token);

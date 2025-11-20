@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:farm_manager_app/core/di/locator.dart';
 import 'package:farm_manager_app/core/localization/language_provider.dart';
-import 'package:farm_manager_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'app.dart'; // App widget yako yenye MaterialApp + GoRouter + Theme
 
 void main() async {

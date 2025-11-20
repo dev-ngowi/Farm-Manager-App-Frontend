@@ -1,20 +1,26 @@
 // lib/core/networking/interceptors/connectivity_interceptor.dart
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class ConnectivityInterceptor extends Interceptor {
-  final Connectivity _connectivity = Connectivity();
+  final InternetConnectionChecker _checker = InternetConnectionChecker.instance;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final result = await _connectivity.checkConnectivity();
-    final bool isOffline = result == ConnectivityResult.none;
+    final bool isConnected = await _checker.hasConnection;
 
-    // Just tag the request – do NOT reject
-    options.extra['is_offline'] = isOffline;
+    if (!isConnected) {
+      return handler.reject(
+        DioException(
+          requestOptions: options,
+          message: 'No internet connection',
+          type: DioExceptionType.connectionError,
+        ),
+      );
+    }
 
-    // Always proceed
+    // Internet OK → continue
     handler.next(options);
   }
 }
