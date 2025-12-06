@@ -1,35 +1,29 @@
-// lib/features/auth/presentation/bloc/location/location_bloc.dart
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:farm_manager_app/features/auth/data/domain/entities/location_entity.dart';
 import 'package:farm_manager_app/features/auth/data/domain/repositories/location_repository.dart';
-import 'package:farm_manager_app/core/error/failure.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 part 'location_event.dart';
 part 'location_state.dart';
 
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final LocationRepository repository;
 
-  LocationBloc({required this.repository, required String initialUserRole})
-      : super(LocationInitial().copyWith(
-          userRole: initialUserRole,
-          showNewWardPrompt: false,
-          isCreatingWard: false,
-          isLoading: false, // Ensure base state includes isLoading
-        )) {
+  LocationBloc({required this.repository}) : super(const LocationInitial()) {
     on<LoadRegionsEvent>(_onLoadRegions);
     on<SelectRegionEvent>(_onSelectRegion);
     on<SelectDistrictEvent>(_onSelectDistrict);
     on<CreateNewWardEvent>(_onCreateNewWard);
     on<SelectWardEvent>(_onSelectWard);
+    on<DismissNewWardPromptEvent>(_onDismissNewWardPrompt);
     on<RequestLocationPermissionEvent>(_onRequestLocationPermission);
     on<SaveUserLocationEvent>(_onSaveUserLocation);
+    on<FetchUserLocationsEvent>(_onFetchUserLocations);
   }
 
-  // Helper function to remove duplicates from a list by ID
+  // Helper methods
   List<dynamic> _removeDuplicates(List<dynamic> items) {
     final uniqueItems = <int, dynamic>{};
     for (var item in items) {
@@ -41,7 +35,6 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     return uniqueItems.values.toList();
   }
 
-  // Helper function to safely cast/extract ID and name from dynamic object
   Map<String, dynamic> _extractWardData(dynamic ward) {
     if (ward is Map) {
       return {
@@ -55,148 +48,118 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     };
   }
 
+  // Event handlers
   Future<void> _onLoadRegions(
-    LoadRegionsEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    emit(LocationLoading(state.copyWith(
-      showNewWardPrompt: false,
-      isCreatingWard: false,
-      isLoading: true, // Use isLoading for network calls
-    )));
+      LoadRegionsEvent event, Emitter<LocationState> emit) async {
+    emit(const LocationLoading());
 
     final result = await repository.getRegions();
 
     result.fold(
-      (failure) => emit(LocationError(
-        failure.message,
-        state.copyWith(
-          showNewWardPrompt: false,
-          isCreatingWard: false,
-          isLoading: false,
-        ),
-      )),
+      (failure) => emit(LocationError(message: failure.message)),
       (regions) {
-        // ⭐ Remove duplicate regions
         final uniqueRegions = _removeDuplicates(regions);
-
-        emit(state.copyWith(
-          regions: uniqueRegions,
-          showNewWardPrompt: false,
-          isCreatingWard: false,
-          isLoading: false, // Done loading
-        ));
+        emit(LocationLoaded(regions: uniqueRegions));
       },
     );
   }
 
   Future<void> _onSelectRegion(
-    SelectRegionEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    // ⭐ Show loading state for districts
-    emit(state.copyWith(
-      selectedRegionId: event.regionId,
-      selectedDistrictId: null,
-      selectedWardId: null,
-      districts: const [],
-      wards: const [],
-      wardSearchText: '',
-      showNewWardPrompt: false,
+      SelectRegionEvent event, Emitter<LocationState> emit) async {
+    emit(LocationLoading(
+      regions: state.regions,
+      userLocations: state.userLocations,
       isLoadingDistricts: true,
-      isLoading: true, // Set general loading flag
     ));
 
     final result = await repository.getDistricts(event.regionId);
 
     result.fold(
       (failure) => emit(LocationError(
-        failure.message,
-        state.copyWith(isLoadingDistricts: false, isLoading: false),
+        message: failure.message,
+        regions: state.regions,
+        userLocations: state.userLocations,
       )),
       (districts) {
-        // ⭐ Remove duplicate districts
         final uniqueDistricts = _removeDuplicates(districts);
-
-        emit(state.copyWith(
+        emit(LocationLoaded(
+          regions: state.regions,
           districts: uniqueDistricts,
           selectedRegionId: event.regionId,
-          selectedDistrictId: null,
-          selectedWardId: null,
-          showNewWardPrompt: false,
-          isLoadingDistricts: false,
-          isLoading: false, // Done loading
+          userLocations: state.userLocations,
         ));
       },
     );
   }
 
   Future<void> _onSelectDistrict(
-    SelectDistrictEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    // ⭐ Show loading state for wards
-    emit(state.copyWith(
-      selectedDistrictId: event.districtId,
-      selectedWardId: null,
-      wards: const [],
-      wardSearchText: '',
-      showNewWardPrompt: false,
+      SelectDistrictEvent event, Emitter<LocationState> emit) async {
+    emit(LocationLoading(
+      regions: state.regions,
+      districts: state.districts,
+      selectedRegionId: state.selectedRegionId,
+      userLocations: state.userLocations,
       isLoadingWards: true,
-      isLoading: true, // Set general loading flag
     ));
 
-    // Load all wards for the selected district
     final result = await repository.getWards(event.districtId);
 
     result.fold(
       (failure) => emit(LocationError(
-        failure.message,
-        state.copyWith(isLoadingWards: false, isLoading: false),
+        message: failure.message,
+        regions: state.regions,
+        districts: state.districts,
+        selectedRegionId: state.selectedRegionId,
+        userLocations: state.userLocations,
       )),
       (wards) {
-        // ⭐ Remove duplicate wards
         final uniqueWards = _removeDuplicates(wards);
-
-        emit(state.copyWith(
+        emit(LocationLoaded(
+          regions: state.regions,
+          districts: state.districts,
           wards: uniqueWards,
+          selectedRegionId: state.selectedRegionId,
           selectedDistrictId: event.districtId,
-          selectedWardId: null,
-          showNewWardPrompt: false,
-          isLoadingWards: false,
-          isLoading: false, // Done loading
+          userLocations: state.userLocations,
         ));
       },
     );
   }
 
   Future<void> _onCreateNewWard(
-    CreateNewWardEvent event,
-    Emitter<LocationState> emit,
-  ) async {
+      CreateNewWardEvent event, Emitter<LocationState> emit) async {
     if (state.selectedDistrictId == null) {
       emit(LocationError(
-        "Please select a district first.",
-        state.copyWith(showNewWardPrompt: false),
+        message: "Please select a district first.",
+        regions: state.regions,
+        districts: state.districts,
+        selectedRegionId: state.selectedRegionId,
+        userLocations: state.userLocations,
       ));
       return;
     }
 
-    // Show loading overlay
-    emit(LocationLoading(state.copyWith(
+    emit(LocationLoading(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
+      userLocations: state.userLocations,
       isCreatingWard: true,
-      showNewWardPrompt: false,
-    )));
+    ));
 
-    final result = await repository.createWard(
-      event.wardName,
-      state.selectedDistrictId!,
-    );
+    final result = await repository.createWard(event.wardName, state.selectedDistrictId!);
 
     result.fold(
       (failure) => emit(LocationError(
-        failure.message,
-        state.copyWith(isCreatingWard: false, isLoading: false), // Stop loading on error
+        message: failure.message,
+        regions: state.regions,
+        districts: state.districts,
+        wards: state.wards,
+        selectedRegionId: state.selectedRegionId,
+        selectedDistrictId: state.selectedDistrictId,
+        userLocations: state.userLocations,
       )),
       (newWard) {
         final wardData = _extractWardData(newWard);
@@ -205,39 +168,36 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
 
         if (newWardId == null || newWardName == null) {
           emit(LocationError(
-            "Error: Could not get new ward ID.",
-            state.copyWith(isCreatingWard: false, isLoading: false),
+            message: "Error: Could not get new ward ID.",
+            regions: state.regions,
+            districts: state.districts,
+            wards: state.wards,
+            selectedRegionId: state.selectedRegionId,
+            selectedDistrictId: state.selectedDistrictId,
+            userLocations: state.userLocations,
           ));
           return;
         }
 
-        // Add the new ward to the wards list and select it
         final updatedWards = List<dynamic>.from(state.wards)
-          ..add({
-            'id': newWardId,
-            'ward_name': newWardName,
-          });
-
-        // ⭐ Remove any potential duplicates after adding
+          ..add({'id': newWardId, 'ward_name': newWardName});
         final uniqueWards = _removeDuplicates(updatedWards);
 
-        emit(state.copyWith(
-          selectedWardId: newWardId,
+        emit(LocationLoaded(
+          regions: state.regions,
+          districts: state.districts,
           wards: uniqueWards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: newWardId,
           wardSearchText: newWardName,
-          isCreatingWard: false, // Stop ward creating flag
-          showNewWardPrompt: false,
-          isLoading: false, // Stop general loading flag
+          userLocations: state.userLocations,
         ));
       },
     );
   }
 
-  void _onSelectWard(
-    SelectWardEvent event,
-    Emitter<LocationState> emit,
-  ) {
-    // Find the ward name from the wards list
+  void _onSelectWard(SelectWardEvent event, Emitter<LocationState> emit) {
     final selectedWard = state.wards.firstWhere(
       (ward) {
         final id = ward is Map ? ward['id'] as int : (ward as dynamic).id as int;
@@ -253,102 +213,255 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
           : (selectedWard as dynamic).ward_name as String;
     }
 
-    emit(state.copyWith(
+    emit(LocationLoaded(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
       selectedWardId: event.wardId,
       wardSearchText: wardName,
+      userLocations: state.userLocations,
+    ));
+  }
+
+  void _onDismissNewWardPrompt(
+      DismissNewWardPromptEvent event, Emitter<LocationState> emit) {
+    emit(LocationLoaded(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
+      selectedWardId: state.selectedWardId,
+      userLocations: state.userLocations,
       showNewWardPrompt: false,
     ));
   }
 
   Future<void> _onRequestLocationPermission(
-    RequestLocationPermissionEvent event,
-    Emitter<LocationState> emit,
-  ) async {
-    // ⭐ Use LocationLoading to ensure the save button is disabled immediately
-    emit(LocationLoading(state.copyWith(
-      isLoading: true,
-      showNewWardPrompt: false,
-    )));
+      RequestLocationPermissionEvent event, Emitter<LocationState> emit) async {
+    emit(LocationLoading(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
+      selectedWardId: state.selectedWardId,
+      wardSearchText: state.wardSearchText,
+      userLocations: state.userLocations,
+    ));
 
     var permissionStatus = await Permission.location.request();
 
     if (permissionStatus.isGranted) {
       try {
         Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-
-        // ⭐ Set isLoading to false when captured
-        emit(LocationGpsCaptured(
-          state,
-          position.latitude,
-          position.longitude,
-        ).copyWith(isLoading: false)); 
-
+            desiredAccuracy: LocationAccuracy.high);
+        emit(LocationLoaded(
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          wardSearchText: state.wardSearchText,
+          userLocations: state.userLocations,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          hasGps: true,
+        ));
       } on LocationServiceDisabledException {
         emit(LocationError(
-          "Please enable GPS/Location services on your device.",
-          state.copyWith(isLoading: false),
+          message: "Please enable GPS/Location services on your device.",
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          userLocations: state.userLocations,
         ));
       } catch (e) {
         emit(LocationError(
-          "GPS Error: ${e.toString()}",
-          state.copyWith(isLoading: false),
+          message: "GPS Error: ${e.toString()}",
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          userLocations: state.userLocations,
         ));
       }
     } else {
       emit(LocationError(
-        "Location permission is required to capture GPS.",
-        state.copyWith(isLoading: false),
+        message: "Location permission is required to capture GPS.",
+        regions: state.regions,
+        districts: state.districts,
+        wards: state.wards,
+        selectedRegionId: state.selectedRegionId,
+        selectedDistrictId: state.selectedDistrictId,
+        selectedWardId: state.selectedWardId,
+        userLocations: state.userLocations,
       ));
     }
   }
 
+  /// FULLY FIXED: Now returns the complete LocationEntity
   Future<void> _onSaveUserLocation(
     SaveUserLocationEvent event,
     Emitter<LocationState> emit,
   ) async {
-    // 1. Guard against subsequent calls while loading or successful
-    if (state.isLoading || state is LocationSuccess) {
-        // Log.warning('Attempted duplicate submission while loading or succeeded.');
-        return;
-    }
-    
-    // 2. Perform comprehensive null check and assign to local variables
     final int? regionId = state.selectedRegionId;
     final int? districtId = state.selectedDistrictId;
     final int? wardId = state.selectedWardId;
     final double? latitude = state.latitude;
     final double? longitude = state.longitude;
+    final String userRole = state.userRole;
 
-    if (regionId == null ||
-        districtId == null ||
-        wardId == null ||
-        latitude == null ||
-        longitude == null) { // Removed !state.hasGps as null checks cover it
+    if (regionId == null || districtId == null || wardId == null ||
+        latitude == null || longitude == null) {
+      final missingFields = <String>[];
+      if (regionId == null) missingFields.add('region');
+      if (districtId == null) missingFields.add('district');
+      if (wardId == null) missingFields.add('ward');
+      if (latitude == null || longitude == null) missingFields.add('GPS');
+
       emit(LocationError(
-        "Please select complete location and capture GPS first.",
-        state.copyWith(showNewWardPrompt: false),
+        message: "Please complete all steps: ${missingFields.join(', ')}",
+        regions: state.regions,
+        districts: state.districts,
+        wards: state.wards,
+        selectedRegionId: state.selectedRegionId,
+        selectedDistrictId: state.selectedDistrictId,
+        selectedWardId: state.selectedWardId,
+        userLocations: state.userLocations,
       ));
       return;
     }
 
-    // 3. Set isLoading to true to disable the button immediately
-    emit(LocationLoading(state.copyWith(isLoading: true)));
+    emit(LocationLoading(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
+      selectedWardId: state.selectedWardId,
+      wardSearchText: state.wardSearchText,
+      userLocations: state.userLocations,
+      latitude: state.latitude,
+      longitude: state.longitude,
+      hasGps: state.hasGps,
+    ));
 
     final result = await repository.saveUserLocation(
-      regionId: regionId, // Use safe local variable
-      districtId: districtId, // Use safe local variable
-      wardId: wardId, // Use safe local variable
-      latitude: latitude, // Use safe local variable
-      longitude: longitude, // Use safe local variable
+      regionId: regionId,
+      districtId: districtId,
+      wardId: wardId,
+      latitude: latitude,
+      longitude: longitude,
     );
 
     result.fold(
-      // 4. Set isLoading to false on failure so user can re-try
-      (failure) => emit(LocationError(failure.message, state.copyWith(isLoading: false))),
-      // 5. On success, emit LocationSuccess
-      (_) => emit(LocationSuccess(current: state, userRole: state.userRole)),
+      (failure) => emit(LocationError(
+        message: failure.message,
+        regions: state.regions,
+        districts: state.districts,
+        wards: state.wards,
+        selectedRegionId: state.selectedRegionId,
+        selectedDistrictId: state.selectedDistrictId,
+        selectedWardId: state.selectedWardId,
+        userLocations: state.userLocations,
+      )),
+      (savedLocationEntity) {
+        print('Location saved successfully! ID: ${savedLocationEntity.locationId}');
+        print('   → ${savedLocationEntity.displayName}');
+
+        emit(LocationLoaded(
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          wardSearchText: state.wardSearchText,
+          userLocations: state.userLocations,
+          latitude: state.latitude,
+          longitude: state.longitude,
+          hasGps: state.hasGps,
+          userRole: userRole,
+          locationSaved: true,
+          savedLocation: savedLocationEntity, // THIS IS THE KEY!
+        ));
+      },
     );
+  }
+
+  Future<void> _onFetchUserLocations(
+    FetchUserLocationsEvent event,
+    Emitter<LocationState> emit,
+  ) async {
+    emit(LocationLoading(
+      regions: state.regions,
+      districts: state.districts,
+      wards: state.wards,
+      selectedRegionId: state.selectedRegionId,
+      selectedDistrictId: state.selectedDistrictId,
+      selectedWardId: state.selectedWardId,
+      wardSearchText: state.wardSearchText,
+      userLocations: state.userLocations,
+      latitude: state.latitude,
+      longitude: state.longitude,
+      hasGps: state.hasGps,
+      isLoadingLocations: true,
+    ));
+
+    try {
+      final result = await repository.getUserLocations(event.token);
+
+      result.fold(
+        (failure) => emit(LocationError(
+          message: failure.message,
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          userLocations: state.userLocations,
+          latitude: state.latitude,
+          longitude: state.longitude,
+          hasGps: state.hasGps,
+        )),
+        (locations) => emit(UserLocationsLoaded(
+          regions: state.regions,
+          districts: state.districts,
+          wards: state.wards,
+          selectedRegionId: state.selectedRegionId,
+          selectedDistrictId: state.selectedDistrictId,
+          selectedWardId: state.selectedWardId,
+          wardSearchText: state.wardSearchText,
+          locations: locations,
+          latitude: state.latitude,
+          longitude: state.longitude,
+          hasGps: state.hasGps,
+        )),
+      );
+    } catch (e) {
+      emit(LocationError(
+        message: 'Failed to fetch locations: $e',
+        regions: state.regions,
+        districts: state.districts,
+        wards: state.wards,
+        selectedRegionId: state.selectedRegionId,
+        selectedDistrictId: state.selectedDistrictId,
+        selectedWardId: state.selectedWardId,
+        userLocations: state.userLocations,
+        latitude: state.latitude,
+        longitude: state.longitude,
+        hasGps: state.hasGps,
+      ));
+    }
   }
 }

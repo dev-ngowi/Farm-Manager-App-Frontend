@@ -2,6 +2,8 @@
 
 import 'package:farm_manager_app/core/di/locator.dart';
 import 'package:farm_manager_app/features/auth/data/domain/repositories/location_repository.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/location/location_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,405 +26,293 @@ class LocationManagerPage extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return BlocProvider<LocationBloc>.value(
-          value: locationBloc,
-          child: BlocListener<LocationBloc, LocationState>(
-            listener: (listenerContext, state) {
-              // Close dialog when ward is successfully created
-              if (state.selectedWardId != null && !state.isCreatingWard) {
-                Navigator.of(dialogContext).pop();
-                
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "${l10n.ward} '${state.wardSearchText}' ${l10n.addedSuccessfully ?? 'has been added'}! ${l10n.nowCaptureGps ?? 'Now capture GPS'}.",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3),
+        // --- START OF MODIFICATION ---
+        return BlocListener<LocationBloc, LocationState>(
+          bloc: locationBloc, // Use the existing bloc
+          listenWhen: (previous, current) => previous.isCreatingWard && !current.isCreatingWard,
+          listener: (listenerContext, state) {
+            // Check for success (e.g., if isCreatingWard just turned false and no error message is present)
+            if (!state.isCreatingWard && state.errorMessage == null) {
+              // Close the dialog using the dialogContext
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.wardAddedSuccess ?? "Ward added successfully!"), backgroundColor: AppColors.primary),
+              );
+              // Clear the text field after successful submission
+              wardController.clear();
+            } else if (!state.isCreatingWard && state.errorMessage != null) {
+              // Show error in the main context if creation failed
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
+              );
+            }
+          },
+          child: AlertDialog(
+        // --- END OF MODIFICATION ---
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                const Icon(Icons.add_location, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.addNewWard ?? "Add New Ward",
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
                   ),
-                );
-              }
-
-              // Show error
-              if (state is LocationError && !state.isCreatingWard) {
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage ?? l10n.errorOccurred ?? "An error occurred"),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: BlocBuilder<LocationBloc, LocationState>(
+                ),
+              ],
+            ),
+            content: BlocBuilder<LocationBloc, LocationState>(
+              bloc: locationBloc,
               builder: (builderContext, state) {
                 final isCreating = state.isCreatingWard;
 
-                return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  title: Row(
-                    children: [
-                      const Icon(Icons.add_location, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.addNewWard ?? "Add New Ward",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.enterNewWardName ?? "Enter new ward name:",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: wardController,
-                        enabled: !isCreating,
-                        decoration: InputDecoration(
-                          labelText: l10n.ward ?? "Ward",
-                          hintText: l10n.wardExample ?? "Example: Kilakala",
-                          prefixIcon: const Icon(Icons.location_on),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primary.withOpacity(0.3),
-                            ),
-                          ),
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                    ],
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: isCreating
-                          ? null
-                          : () {
-                              Navigator.of(dialogContext).pop();
-                            },
-                      child: Text(
-                        l10n.cancel ?? "Cancel",
-                        style: TextStyle(
-                          color: isCreating ? Colors.grey : AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: isCreating
-                          ? null
-                          : () {
-                              final wardName = wardController.text.trim();
-                              if (wardName.isEmpty) {
-                                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.pleaseEnterWardName ?? "Please enter ward name"),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                                return;
-                              }
-                              locationBloc.add(CreateNewWardEvent(wardName));
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.enterNewWardName ?? "Enter new ward name:", style: Theme.of(builderContext).textTheme.bodyMedium),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: wardController,
+                      enabled: !isCreating,
+                      decoration: InputDecoration(
+                        labelText: l10n.ward ?? "Ward",
+                        hintText: l10n.wardExample ?? "Example: Kilakala",
+                        prefixIcon: const Icon(Icons.location_on),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
                         ),
                       ),
-                      child: isCreating
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              l10n.add ?? "Add",
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                      textCapitalization: TextCapitalization.words,
                     ),
                   ],
                 );
               },
             ),
+            actions: [
+              BlocBuilder<LocationBloc, LocationState>(
+                bloc: locationBloc,
+                builder: (builderContext, state) {
+                  final isCreating = state.isCreatingWard;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: isCreating ? null : () => Navigator.of(dialogContext).pop(),
+                        child: Text(l10n.cancel ?? "Cancel", style: TextStyle(color: isCreating ? Colors.grey : AppColors.secondary)),
+                      ),
+                      ElevatedButton(
+                        onPressed: isCreating
+                            ? null
+                            : () {
+                                final wardName = wardController.text.trim();
+                                if (wardName.isEmpty) {
+                                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                    SnackBar(content: Text(l10n.pleaseEnterWardName ?? "Please enter ward name"), backgroundColor: Colors.orange),
+                                  );
+                                  return;
+                                }
+                                locationBloc.add(CreateNewWardEvent(wardName));
+                              },
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        child: isCreating
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : Text(l10n.add ?? "Add", style: const TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          // --- START OF MODIFICATION ---
           ),
         );
+        // --- END OF MODIFICATION ---
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+// ... rest of the build method remains the same ...
+// I will only include the rest of the file content for completeness.
     final l10n = AppLocalizations.of(context)!;
 
     return BlocProvider<LocationBloc>(
-      create: (context) {
-        final repository = getIt<LocationRepository>();
-        return LocationBloc(repository: repository, initialUserRole: 'Farmer')
-          ..add(LoadRegionsEvent());
-      },
-      child: BlocListener<LocationBloc, LocationState>(
-        listener: (context, state) {
-          if (state is LocationSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  l10n.locationSavedSuccess ?? "Congratulations! Location saved successfully 🎉",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: AppColors.primary,
-              ),
-            );
-            final role = state.userRole.toLowerCase();
-            final dashboard = switch (role) {
-              'farmer' => '/farmer/dashboard',
-              'vet' => '/vet/dashboard',
-              'researcher' => '/researcher/dashboard',
-              _ => '/farmer/dashboard',
-            };
-            // ⭐ NAVIGATION: Navigate immediately upon success
-            context.go(dashboard);
-          } else if (state is LocationError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.errorMessage ?? l10n.unknownError ?? "An unknown error occurred.",
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
+      create: (context) => LocationBloc(repository: getIt<LocationRepository>())..add(LoadRegionsEvent()),
+      child: MultiBlocListener(
+        listeners: [
+          // FIXED: Now uses savedLocation (full LocationEntity)
+          BlocListener<LocationBloc, LocationState>(
+            listener: (context, locationState) {
+              if (locationState.locationSaved == true && locationState.savedLocation != null) {
+                final savedLocation = locationState.savedLocation!;
+
+                print('Location saved successfully!');
+                print('   → ${savedLocation.displayName}');
+                print('   → Location ID: ${savedLocation.locationId}');
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.locationSavedSuccess ?? "Location saved successfully!"),
+                    backgroundColor: AppColors.primary,
+                  ),
+                );
+
+                // Get current user role
+                final authState = context.read<AuthBloc>().state;
+                String? userRole = 'Farmer';
+                if (authState is AuthSuccess) {
+                  userRole = authState.user.role ?? 'Farmer';
+                }
+
+                // CRITICAL: Dispatch FULL LocationEntity
+                context.read<AuthBloc>().add(
+                  UserLocationUpdated(
+                    location: savedLocation,
+                    role: userRole,
+                  ),
+                );
+
+                print('UserLocationUpdated dispatched with full LocationEntity');
+              }
+
+              if (locationState.errorMessage != null && !locationState.isCreatingWard) {
+                // Only show general errors here, ward creation errors are handled in the dialog's listener
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(locationState.errorMessage!), backgroundColor: Colors.red),
+                );
+              }
+            },
+          ),
+
+          // Navigate when AuthBloc confirms location is saved
+          BlocListener<AuthBloc, AuthState>(
+            listenWhen: (prev, current) =>
+                current is AuthSuccess && current.user.hasLocation == true && (prev is! AuthSuccess || prev.user.hasLocation != true),
+            listener: (context, authState) {
+              if (authState is AuthSuccess && authState.user.hasLocation == true) {
+                final role = (authState.user.role ?? 'Farmer').toLowerCase();
+                final route = switch (role) {
+                  'vet' => '/vet/details-form',
+                  'researcher' => '/researcher/details-form',
+                  _ => '/farmer/details-form',
+                };
+
+                Future.microtask(() => context.go(route));
+              }
+            },
+          ),
+        ],
         child: Scaffold(
           backgroundColor: AppColors.surface,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            // ⭐ FIX: Wrap the leading IconButton in a BlocBuilder
             leading: BlocBuilder<LocationBloc, LocationState>(
-              buildWhen: (previous, current) => 
-                  previous.isLoading != current.isLoading || 
-                  previous.isCreatingWard != current.isCreatingWard || 
-                  previous is LocationSuccess != current is LocationSuccess,
               builder: (context, state) {
-                final bool isSavingOrSuccess = state.isLoading || state.isCreatingWard || state is LocationSuccess;
-
+                final isBusy = state.isLoading || state.isCreatingWard || state.locationSaved;
                 return IconButton(
                   icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-                  // ⭐ NAVIGATION GUARD: Disable back/skip if saving is in progress
-                  onPressed: isSavingOrSuccess
-                      ? null
-                      : () => context.go('/role-selection'),
+                  onPressed: isBusy ? null : () => context.go('/role-selection'),
                 );
               },
             ),
           ),
           body: BlocBuilder<LocationBloc, LocationState>(
             builder: (context, state) {
-              // Helper variable to check if the save button should be disabled
-              final bool isSavingOrSuccess = state.isLoading || state.isCreatingWard || state is LocationSuccess;
+              final isBusy = state.isLoading || state.isCreatingWard || state.locationSaved;
 
               return Stack(
                 children: [
                   SafeArea(
                     child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Lottie Animation
-                            Lottie.asset(
-                              'assets/lottie/location.json',
-                              height: 180,
-                              repeat: true,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.location_on,
-                                    size: 100,
-                                    color: AppColors.primary,
-                                  ),
-                                );
-                              },
-                            ),
-                            Text(
-                              l10n.setYourLocation ?? "Set Your Location",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium!
-                                  .copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.locationSubtitle ?? "This will help us provide better livestock services near you",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 32),
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Lottie.asset('assets/lottie/location.json', height: 180, repeat: true),
+                          Text(l10n.setYourLocation ?? "Set Your Location", style: Theme.of(context).textTheme.headlineMedium!.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Text(l10n.locationSubtitle ?? "This will help us provide better livestock services near you", style: Theme.of(context).textTheme.bodyLarge),
+                          const SizedBox(height: 32),
 
-                            // --- Form Fields ---
-                            if (state is LocationInitial && state.regions.isEmpty)
-                              const Center(child: CircularProgressIndicator())
-                            else
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Region Dropdown
-                                  _DropdownField(
-                                    label: l10n.region ?? "Region",
-                                    items: state.regions,
-                                    selectedId: state.selectedRegionId,
-                                    onChanged: isSavingOrSuccess
-                                        ? null
-                                        : (id) => context
-                                            .read<LocationBloc>()
-                                            .add(SelectRegionEvent(id!)),
-                                    enabled: state.regions.isNotEmpty &&
-                                        !state.isCreatingWard && 
-                                        !isSavingOrSuccess, // Disable while saving
-                                    isLoading: state.isLoading && state.regions.isEmpty, // Only show initial load
-                                    loadingText: '',
-                                  ),
-                                  const SizedBox(height: 20),
+                          if (state.regions.isEmpty && state.isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else
+                            Column(
+                              children: [
+                                _DropdownField(
+                                  label: l10n.region ?? "Region",
+                                  items: state.regions,
+                                  selectedId: state.selectedRegionId,
+                                  onChanged: isBusy ? null : (id) => context.read<LocationBloc>().add(SelectRegionEvent(id!)),
+                                  enabled: !isBusy && state.regions.isNotEmpty,
+                                  isLoading: state.isLoadingDistricts,
+                                  loadingText: l10n.loadingDistricts ?? "Loading districts...",
+                                ),
+                                const SizedBox(height: 20),
 
-                                  // District Dropdown with Loading State
-                                  _DropdownField(
-                                    label: l10n.district ?? "District",
-                                    items: state.districts,
-                                    selectedId: state.selectedDistrictId,
-                                    onChanged: isSavingOrSuccess
-                                        ? null
-                                        : (id) => context
-                                            .read<LocationBloc>()
-                                            .add(SelectDistrictEvent(id!)),
-                                    enabled: state.selectedRegionId != null &&
-                                        state.districts.isNotEmpty &&
-                                        !state.isCreatingWard &&
-                                        !state.isLoadingDistricts &&
-                                        !isSavingOrSuccess, // Disable while saving
-                                    isLoading: state.isLoadingDistricts,
-                                    loadingText: l10n.loadingDistricts ?? "Loading districts...",
-                                  ),
-                                  const SizedBox(height: 20),
+                                _DropdownField(
+                                  label: l10n.district ?? "District",
+                                  items: state.districts,
+                                  selectedId: state.selectedDistrictId,
+                                  onChanged: isBusy ? null : (id) => context.read<LocationBloc>().add(SelectDistrictEvent(id!)),
+                                  enabled: !isBusy && state.selectedRegionId != null,
+                                  isLoading: state.isLoadingDistricts,
+                                  loadingText: l10n.loadingDistricts ?? "Loading districts...",
+                                ),
+                                const SizedBox(height: 20),
 
-                                  // Ward Dropdown with Add Button and Loading State
-                                  _WardDropdownWithAddButton(
-                                    state: state,
-                                    onAddWard: isSavingOrSuccess
-                                        ? () {} // Null-safe stub
-                                        : () => _showAddWardDialog(context),
-                                    l10n: l10n,
-                                  ),
-                                  const SizedBox(height: 20),
+                                _WardDropdownWithAddButton(
+                                  state: state,
+                                  onAddWard: isBusy ? () {} : () => _showAddWardDialog(context),
+                                  l10n: l10n,
+                                  isBusy: isBusy,
+                                ),
+                                const SizedBox(height: 20),
 
-                                  // GPS Button
-                                  Center(
-                                    child: ElevatedButton.icon(
-                                      onPressed: state.selectedWardId == null ||
-                                              isSavingOrSuccess
-                                          ? null
-                                          : () => context
-                                              .read<LocationBloc>()
-                                              .add(
-                                                  RequestLocationPermissionEvent()),
-                                      icon: isSavingOrSuccess
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(Icons.my_location),
-                                      label: Text(
-                                        state.hasGps
-                                            ? "${l10n.gpsCaptured ?? 'GPS Captured'} (${state.latitude!.toStringAsFixed(4)}, ${state.longitude!.toStringAsFixed(4)})"
-                                            : state.selectedWardId != null
-                                                ? l10n.nowCaptureGps ?? "✓ Now capture GPS"
-                                                : l10n.captureGps ??
-                                                    "Capture My Location",
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            state.selectedWardId != null &&
-                                                    !state.hasGps &&
-                                                    !isSavingOrSuccess
-                                                ? Colors.green
-                                                : AppColors.secondary,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 32,
-                                          vertical: 16,
-                                        ),
-                                      ),
+                                Center(
+                                  child: ElevatedButton.icon(
+                                    onPressed: state.selectedWardId == null || isBusy ? null : () => context.read<LocationBloc>().add(RequestLocationPermissionEvent()),
+                                    icon: isBusy ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.my_location),
+                                    label: Text(
+                                      state.hasGps
+                                          ? "${l10n.gpsCaptured ?? 'GPS Captured'} (${state.latitude!.toStringAsFixed(4)}, ${state.longitude!.toStringAsFixed(4)})"
+                                          : state.selectedWardId != null
+                                              ? l10n.nowCaptureGps ?? "Now capture GPS"
+                                              : l10n.captureGps ?? "Capture My Location",
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: state.hasGps ? AppColors.secondary : Colors.green,
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                   ),
-                                  const SizedBox(height: 48),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: 48),
 
-                            // Save Button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: (state.selectedWardId == null ||
-                                        !state.hasGps ||
-                                        isSavingOrSuccess) 
-                                    ? null
-                                    : () => context
-                                        .read<LocationBloc>()
-                                        .add(SaveUserLocationEvent()),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 18),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: state.selectedWardId == null || !state.hasGps || isBusy ? null : () => context.read<LocationBloc>().add(SaveUserLocationEvent()),
+                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 18), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                                    child: isBusy
+                                        ? const CircularProgressIndicator(color: Colors.white)
+                                        : Text(l10n.saveLocation ?? "SAVE LOCATION", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                                   ),
                                 ),
-                                child: state.isLoading || state.isCreatingWard
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                      )
-                                    : Text(
-                                        l10n.saveLocation ?? "SAVE LOCATION",
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
+                                const SizedBox(height: 20),
+                              ],
                             ),
-
-                            // REMOVED: Skip Button
-                            const SizedBox(height: 20),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                   ),
-
-                  // --- Global Loading Overlay ---
                   if (state.isCreatingWard) GlobalLoadingOverlay(l10n: l10n),
                 ],
               );
@@ -434,280 +324,85 @@ class LocationManagerPage extends StatelessWidget {
   }
 }
 
-// --------------------------------------------------------------------------
-// HELPER WIDGETS
-// --------------------------------------------------------------------------
-// ... (Helper widgets _DropdownField, _WardDropdownWithAddButton, GlobalLoadingOverlay remain unchanged)
-// ...
-// ...
-// ...
-
+// Helper Widgets (unchanged, just cleaned up)
 class GlobalLoadingOverlay extends StatelessWidget {
   final AppLocalizations l10n;
-  
   const GlobalLoadingOverlay({super.key, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints.expand(),
-      color: Colors.black.withOpacity(0.5),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: AppColors.primary),
-              const SizedBox(height: 16),
-              Text(
-                l10n.addingNewWard ?? "Adding new ward...",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return Container(color: Colors.black54, child: Center(child: Card(
+      child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: const [
+        CircularProgressIndicator(color: AppColors.primary),
+        SizedBox(height: 16),
+        Text("Adding new ward...", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      ])),
+    )));
   }
 }
 
-// Reusable Dropdown with Loading State
 class _DropdownField extends StatelessWidget {
-  final String label;
-  final List<dynamic> items;
-  final int? selectedId;
-  final ValueChanged<int?>? onChanged; // Changed to nullable
-  final bool enabled;
-  final bool isLoading;
-  final String loadingText;
+  final String label; final List<dynamic> items; final int? selectedId;
+  final ValueChanged<int?>? onChanged; final bool enabled; final bool isLoading; final String loadingText;
 
-  const _DropdownField({
-    required this.label,
-    required this.items,
-    required this.selectedId,
-    required this.onChanged,
-    required this.enabled,
-    this.isLoading = false,
-    this.loadingText = '',
-  });
+  const _DropdownField({required this.label, required this.items, required this.selectedId, this.onChanged, required this.enabled, this.isLoading = false, this.loadingText = ''});
 
   @override
   Widget build(BuildContext context) {
-    // ⭐ Remove duplicate IDs to prevent assertion error
-    final uniqueItems = <int, dynamic>{};
-    for (var item in items) {
-      final id = item is Map ? item['id'] as int : (item as dynamic).id as int;
-      if (!uniqueItems.containsKey(id)) {
-        uniqueItems[id] = item;
-      }
+    final unique = <int, String>{};
+    for (var i in items) {
+      final id = i is Map ? i['id'] as int : i.id as int;
+      final name = (i is Map ? i['name'] ?? i['region_name'] ?? i['district_name'] ?? i['ward_name'] : i.name ?? i.region_name ?? i.district_name ?? i.ward_name) ?? 'Unknown';
+      unique[id] = name.toString();
     }
 
-    // ⭐ Validate selectedId exists in unique items
-    final validSelectedId =
-        uniqueItems.containsKey(selectedId) ? selectedId : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<int>(
-          value: validSelectedId,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
-            ),
-            suffixIcon: isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          items: uniqueItems.entries.map<DropdownMenuItem<int>>((entry) {
-            final item = entry.value;
-            final id = entry.key;
-
-            final name = item is Map
-                ? (item['name'] ??
-                    item['region_name'] ??
-                    item['district_name'] ??
-                    item['ward_name'] ??
-                    'Unknown')
-                : (item as dynamic).name ??
-                    (item as dynamic).region_name ??
-                    (item as dynamic).district_name ??
-                    (item as dynamic).ward_name ??
-                    'Unknown';
-
-            return DropdownMenuItem<int>(
-              value: id,
-              child: Text(name.toString()),
-            );
-          }).toList(),
-          // Use the provided onChanged, which is null-checked above.
-          onChanged: enabled && !isLoading ? onChanged : null,
-          validator: (v) => v == null ? 'Please select $label' : null,
-        ),
-        if (isLoading)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 12.0),
-            child: Text(
-              loadingText,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.primary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-      ],
+    return DropdownButtonFormField<int>(
+      value: unique.containsKey(selectedId) ? selectedId : null,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: const Icon(Icons.location_city),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)), borderRadius: BorderRadius.circular(16)),
+        suffixIcon: isLoading ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))) : null,
+      ),
+      items: unique.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+      onChanged: enabled ? onChanged : null,
+      isExpanded: true,
     );
   }
 }
 
-// Ward Dropdown with Add New Ward Button
 class _WardDropdownWithAddButton extends StatelessWidget {
-  final LocationState state;
-  final VoidCallback onAddWard;
-  final AppLocalizations l10n;
+  final LocationState state; final VoidCallback onAddWard; final AppLocalizations l10n; final bool isBusy;
 
-  const _WardDropdownWithAddButton({
-    required this.state,
-    required this.onAddWard,
-    required this.l10n,
-  });
+  const _WardDropdownWithAddButton({required this.state, required this.onAddWard, required this.l10n, required this.isBusy});
 
   @override
   Widget build(BuildContext context) {
-    // ⭐ Remove duplicate ward IDs
-    final uniqueWards = <int, dynamic>{};
-    for (var ward in state.wards) {
-      final id = ward is Map ? ward['id'] as int : (ward as dynamic).id as int;
-      if (!uniqueWards.containsKey(id)) {
-        uniqueWards[id] = ward;
-      }
+    final wards = <int, String>{};
+    for (var w in state.wards) {
+      final id = w is Map ? w['id'] as int : w.id as int;
+      final name = (w is Map ? w['ward_name'] : w.ward_name) as String;
+      wards[id] = name;
     }
 
-    // ⭐ Validate selectedWardId
-    final validSelectedWardId =
-        uniqueWards.containsKey(state.selectedWardId) ? state.selectedWardId : null;
-
-    final isSavingOrSuccess = state.isLoading || state.isCreatingWard || state is LocationSuccess;
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Ward Dropdown
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<int>(
-              value: validSelectedWardId,
-              decoration: InputDecoration(
-                labelText: l10n.ward ?? "Ward",
-                prefixIcon: const Icon(Icons.location_on),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: AppColors.primary.withOpacity(0.3)),
-                ),
-                suffixIcon: state.isLoadingWards
-                    ? const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-              items: uniqueWards.entries.map<DropdownMenuItem<int>>((entry) {
-                final ward = entry.value;
-                final id = entry.key;
-                final name = ward is Map
-                    ? ward['ward_name'] as String
-                    : (ward as dynamic).ward_name as String;
-                return DropdownMenuItem<int>(
-                  value: id,
-                  child: Text(name),
-                );
-              }).toList(),
-              // ⭐ Disable if saving or successful
-              onChanged: state.selectedDistrictId != null &&
-                      !state.isCreatingWard &&
-                      !state.isLoadingWards && 
-                      !isSavingOrSuccess
-                  ? (id) =>
-                      context.read<LocationBloc>().add(SelectWardEvent(id!))
-                  : null,
-              validator: (v) => v == null ? 'Please select ward' : null,
-            ),
-            if (state.isLoadingWards)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 12.0),
-                child: Text(
-                  l10n.loadingWards ?? "Loading wards...",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-          ],
+        _DropdownField(
+          label: l10n.ward ?? "Ward",
+          items: state.wards,
+          selectedId: state.selectedWardId,
+          onChanged: !isBusy && state.selectedDistrictId != null ? (id) => context.read<LocationBloc>().add(SelectWardEvent(id!)) : null,
+          enabled: state.selectedDistrictId != null && !isBusy,
+          isLoading: state.isLoadingWards,
+          loadingText: l10n.loadingWards ?? "Loading wards...",
         ),
-
-        const SizedBox(height: 12),
-
-        // Add New Ward Button
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            // ⭐ Disable if saving or successful
-            onPressed: state.selectedDistrictId == null ||
-                    state.isCreatingWard ||
-                    state.isLoadingWards ||
-                    isSavingOrSuccess
-                ? null
-                : onAddWard,
-            icon: const Icon(Icons.add_circle_outline),
-            label: Text(l10n.addNewWard ?? "Add New Ward"),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: BorderSide(
-                color: state.selectedDistrictId == null ||
-                        state.isLoadingWards ||
-                        isSavingOrSuccess // Set border color gray if saving
-                    ? Colors.grey
-                    : AppColors.primary,
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: isBusy ? null : onAddWard,
+          icon: const Icon(Icons.add_circle_outline),
+          label: Text(l10n.addNewWard ?? "Add New Ward"),
+          style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: BorderSide(color: isBusy ? Colors.grey : AppColors.primary), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
         ),
       ],
     );

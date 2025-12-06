@@ -1,14 +1,17 @@
-// lib/core/config/app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF196944);     // Deep Green
-  static const Color secondary = Color(0xFFd88c3e);   // Warm Orange
-  static const Color surface = Colors.white;         // Base white
+  static const Color primary = Color(0xFF196944); // Deep Green
+  static const Color secondary = Color(0xFFd88c3e);
+  static const Color warning = Color.fromARGB(255, 230, 142, 11); // Warm Orange
+  static const Color surface = Colors.white; // Base white
   static const Color onPrimary = Colors.white;
   static const Color onSecondary = Colors.white;
   static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575); // ← Fixed: ilikuwa haipo
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color success =Color(0xFF388E3C); // Dark Green for Income/Success
+  static const Color error = Color(0xFFD32F2F); // Red for Expenses/Loss
+  static const Color info = Color.fromARGB(255, 102, 195, 238);
 }
 
 class AppTheme {
@@ -59,7 +62,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -92,7 +96,7 @@ class AppTheme {
           color: AppColors.textPrimary,
         ),
         bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
-        bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary), // ← Fixed
+        bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         labelLarge: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -102,7 +106,6 @@ class AppTheme {
     );
   }
 
-  // Optional Dark Theme (haijatumika sasa, lakini inafaa baadaye)
   static ThemeData dark(BuildContext context) {
     return light(context).copyWith(
       brightness: Brightness.dark,

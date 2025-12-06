@@ -28,32 +28,15 @@ class AuthSuccess extends AuthState {
 
   const AuthSuccess(this.user, {this.message});
 
-  // FIX: This getter is correct and will now work because primaryLocationId and locations are in UserEntity
-  bool get hasLocation => user.primaryLocationId != null || (user.locations?.isNotEmpty ?? false);
-
   @override
   List<Object?> get props => [user, message];
 }
 
-class RegistrationComplete extends AuthState {
-  final String? message;
-  const RegistrationComplete({this.message});
+class AuthNavigateToLogin extends AuthState {
+  final String message;
+
+  const AuthNavigateToLogin(this.message);
 
   @override
-  List<Object?> get props => [message];
-}
-
-class RoleAssigned extends AuthState {
-  final String role;
-  final UserEntity user; // Made non-final so we can update it later if needed
-  final String? message;
-
-  RoleAssigned({
-    required this.role,
-    required this.user,
-    this.message,
-  });
-
-  @override
-  List<Object?> get props => [role, user, message];
+  List<Object> get props => [message];
 }

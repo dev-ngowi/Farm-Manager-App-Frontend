@@ -18,5 +18,21 @@ abstract class AuthRepository {
   // NEW: Assign user role method signature
   Future<Either<Failure, UserEntity>> assignRole({
     required String role,
+    required String token,
   });
+
+  // Inside AuthRepository (interface)
+
+Future<Either<Failure, UserEntity>> submitVetDetails({
+  required String? token,
+  required String clinicName,
+  required String licenseNumber,
+  required String specialization,
+  required double consultationFee,
+  required int yearsExperience,
+  required int locationId,
+  required String certificateBase64,
+  required String licenseBase64,
+  required List<String> clinicPhotosBase64,
+});
 }

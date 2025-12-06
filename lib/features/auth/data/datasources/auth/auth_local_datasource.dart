@@ -7,6 +7,7 @@ abstract class AuthLocalDataSource {
   Future<String?> getToken();
   Future<UserModel?> getUser();
   Future<void> clear();
+
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {

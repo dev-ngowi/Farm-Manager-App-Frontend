@@ -10,9 +10,13 @@ class AssignRoleUseCase {
 
   AssignRoleUseCase(this.repository);
 
-  Future<Either<Failure, UserEntity>> call({required String role}) async {
+  Future<Either<Failure, UserEntity>> call({
+    required String role,
+    required String token,
+  }) async {
     try {
-      return await repository.assignRole(role: role);
+      // Pass both role and token to the repository
+      return await repository.assignRole(role: role, token: token);
     } catch (e) {
       return Left(ServerFailure('Failed to assign role: ${e.toString()}'));
     }

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
+import 'package:farm_manager_app/features/auth/data/domain/entities/location_entity.dart';
 
 abstract class LocationRepository {
   Future<Either<Failure, List<dynamic>>> getRegions();
@@ -7,7 +8,9 @@ abstract class LocationRepository {
   Future<Either<Failure, List<dynamic>>> getWards(int districtId);
   Future<Either<Failure, List<dynamic>>> searchWards(String query, int districtId);
   Future<Either<Failure, dynamic>> createWard(String wardName, int districtId);
-  Future<Either<Failure, void>> saveUserLocation({
+  Future<Either<Failure, List<LocationEntity>>> getUserLocations(String token);
+
+  Future<Either<Failure, LocationEntity>> saveUserLocation({
     required int regionId,
     required int districtId,
     required int wardId,

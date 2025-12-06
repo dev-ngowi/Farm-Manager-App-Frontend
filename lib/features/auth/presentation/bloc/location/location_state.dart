@@ -2,31 +2,41 @@
 
 part of 'location_bloc.dart';
 
-abstract class LocationState {
+
+abstract class LocationState extends Equatable {
   final List<dynamic> regions;
   final List<dynamic> districts;
   final List<dynamic> wards;
-  final List<dynamic> wardSearchResults;
+  final List<LocationEntity> userLocations;
+
   final int? selectedRegionId;
   final int? selectedDistrictId;
   final int? selectedWardId;
+
   final double? latitude;
   final double? longitude;
+
   final bool isLoading;
   final bool hasGps;
   final String? errorMessage;
+
   final String userRole;
   final String wardSearchText;
+
   final bool isCreatingWard;
   final bool showNewWardPrompt;
-  final bool isLoadingDistricts; // ⭐ NEW: Loading state for districts
-  final bool isLoadingWards; // ⭐ NEW: Loading state for wards
+  final bool isLoadingDistricts;
+  final bool isLoadingWards;
+  final bool isLoadingLocations;
+
+  final bool locationSaved;
+  final LocationEntity? savedLocation; // THIS WAS MISSING!
 
   const LocationState({
     this.regions = const [],
     this.districts = const [],
     this.wards = const [],
-    this.wardSearchResults = const [],
+    this.userLocations = const [],
     this.selectedRegionId,
     this.selectedDistrictId,
     this.selectedWardId,
@@ -39,15 +49,43 @@ abstract class LocationState {
     this.wardSearchText = '',
     this.isCreatingWard = false,
     this.showNewWardPrompt = false,
-    this.isLoadingDistricts = false, // ⭐ NEW: Initialize to false
-    this.isLoadingWards = false, // ⭐ NEW: Initialize to false
+    this.isLoadingDistricts = false,
+    this.isLoadingWards = false,
+    this.isLoadingLocations = false,
+    this.locationSaved = false,
+    this.savedLocation,
   });
+
+  @override
+  List<Object?> get props => [
+        regions,
+        districts,
+        wards,
+        userLocations,
+        selectedRegionId,
+        selectedDistrictId,
+        selectedWardId,
+        latitude,
+        longitude,
+        isLoading,
+        hasGps,
+        errorMessage,
+        userRole,
+        wardSearchText,
+        isCreatingWard,
+        showNewWardPrompt,
+        isLoadingDistricts,
+        isLoadingWards,
+        isLoadingLocations,
+        locationSaved,
+        savedLocation, // ADD THIS!
+      ];
 
   LocationState copyWith({
     List<dynamic>? regions,
     List<dynamic>? districts,
     List<dynamic>? wards,
-    List<dynamic>? wardSearchResults,
+    List<LocationEntity>? userLocations,
     int? selectedRegionId,
     int? selectedDistrictId,
     int? selectedWardId,
@@ -60,192 +98,217 @@ abstract class LocationState {
     String? wardSearchText,
     bool? isCreatingWard,
     bool? showNewWardPrompt,
-    bool? isLoadingDistricts, // ⭐ NEW: Add to copyWith
-    bool? isLoadingWards, // ⭐ NEW: Add to copyWith
+    bool? isLoadingDistricts,
+    bool? isLoadingWards,
+    bool? isLoadingLocations,
+    bool? locationSaved,
+    LocationEntity? savedLocation, // ADD THIS!
   }) {
     return LocationLoaded(
       regions: regions ?? this.regions,
       districts: districts ?? this.districts,
       wards: wards ?? this.wards,
-      wardSearchResults: wardSearchResults ?? this.wardSearchResults,
+      userLocations: userLocations ?? this.userLocations,
       selectedRegionId: selectedRegionId ?? this.selectedRegionId,
       selectedDistrictId: selectedDistrictId ?? this.selectedDistrictId,
-      selectedWardId: selectedWardId,
+      selectedWardId: selectedWardId ?? this.selectedWardId,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      isLoading: isLoading ?? false,
+      isLoading: isLoading ?? this.isLoading,
       hasGps: hasGps ?? this.hasGps,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage ?? this.errorMessage,
       userRole: userRole ?? this.userRole,
       wardSearchText: wardSearchText ?? this.wardSearchText,
       isCreatingWard: isCreatingWard ?? this.isCreatingWard,
       showNewWardPrompt: showNewWardPrompt ?? this.showNewWardPrompt,
-      isLoadingDistricts: isLoadingDistricts ?? this.isLoadingDistricts, // ⭐ NEW
-      isLoadingWards: isLoadingWards ?? this.isLoadingWards, // ⭐ NEW
+      isLoadingDistricts: isLoadingDistricts ?? this.isLoadingDistricts,
+      isLoadingWards: isLoadingWards ?? this.isLoadingWards,
+      isLoadingLocations: isLoadingLocations ?? this.isLoadingLocations,
+      locationSaved: locationSaved ?? this.locationSaved,
+      savedLocation: savedLocation ?? this.savedLocation, // ADD THIS!
     );
   }
 }
 
-class LocationInitial extends LocationState {}
+class LocationInitial extends LocationState {
+  const LocationInitial();
+
+  @override
+  List<Object?> get props => [...super.props];
+}
 
 class LocationLoading extends LocationState {
-  LocationLoading(LocationState current)
-      : super(
-          regions: current.regions,
-          districts: current.districts,
-          wards: current.wards,
-          wardSearchResults: current.wardSearchResults,
-          selectedRegionId: current.selectedRegionId,
-          selectedDistrictId: current.selectedDistrictId,
-          selectedWardId: current.selectedWardId,
-          latitude: current.latitude,
-          longitude: current.longitude,
-          hasGps: current.hasGps,
-          userRole: current.userRole,
-          wardSearchText: current.wardSearchText,
-          isCreatingWard: current.isCreatingWard,
-          showNewWardPrompt: current.showNewWardPrompt,
-          isLoadingDistricts: current.isLoadingDistricts, // ⭐ NEW
-          isLoadingWards: current.isLoadingWards, // ⭐ NEW
+  const LocationLoading({
+    List<dynamic> regions = const [],
+    List<dynamic> districts = const [],
+    List<dynamic> wards = const [],
+    List<LocationEntity> userLocations = const [],
+    int? selectedRegionId,
+    int? selectedDistrictId,
+    int? selectedWardId,
+    double? latitude,
+    double? longitude,
+    bool hasGps = false,
+    String userRole = 'Farmer',
+    String wardSearchText = '',
+    bool isCreatingWard = false,
+    bool showNewWardPrompt = false,
+    bool isLoadingDistricts = false,
+    bool isLoadingWards = false,
+    bool isLoadingLocations = false,
+    bool locationSaved = false,
+    LocationEntity? savedLocation,
+  }) : super(
+          regions: regions,
+          districts: districts,
+          wards: wards,
+          userLocations: userLocations,
+          selectedRegionId: selectedRegionId,
+          selectedDistrictId: selectedDistrictId,
+          selectedWardId: selectedWardId,
+          latitude: latitude,
+          longitude: longitude,
+          hasGps: hasGps,
+          userRole: userRole,
+          wardSearchText: wardSearchText,
+          isCreatingWard: isCreatingWard,
+          showNewWardPrompt: showNewWardPrompt,
+          isLoadingDistricts: isLoadingDistricts,
+          isLoadingWards: isLoadingWards,
+          isLoadingLocations: isLoadingLocations,
+          locationSaved: locationSaved,
+          savedLocation: savedLocation,
           isLoading: true,
           errorMessage: null,
         );
+
+  @override
+  List<Object?> get props => [...super.props];
 }
 
 class LocationLoaded extends LocationState {
-  LocationLoaded({
-    super.regions,
-    super.districts,
-    super.wards,
-    super.wardSearchResults,
+  const LocationLoaded({
+    super.regions = const [],
+    super.districts = const [],
+    super.wards = const [],
+    super.userLocations = const [],
     super.selectedRegionId,
     super.selectedDistrictId,
     super.selectedWardId,
     super.latitude,
     super.longitude,
-    super.hasGps,
-    super.isLoading,
+    super.hasGps = false,
+    super.isLoading = false,
     super.errorMessage,
-    super.userRole,
-    super.wardSearchText,
-    super.isCreatingWard,
-    super.showNewWardPrompt,
-    super.isLoadingDistricts, // ⭐ NEW
-    super.isLoadingWards, // ⭐ NEW
+    super.userRole = 'Farmer',
+    super.wardSearchText = '',
+    super.isCreatingWard = false,
+    super.showNewWardPrompt = false,
+    super.isLoadingDistricts = false,
+    super.isLoadingWards = false,
+    super.isLoadingLocations = false,
+    super.locationSaved = false,
+    super.savedLocation, // ADD THIS!
   });
 
   @override
-  LocationState copyWith({
-    List<dynamic>? regions,
-    List<dynamic>? districts,
-    List<dynamic>? wards,
-    List<dynamic>? wardSearchResults,
+  List<Object?> get props => [...super.props];
+}
+
+class UserLocationsLoaded extends LocationState {
+  const UserLocationsLoaded({
+    required List<LocationEntity> locations,
+    List<dynamic> regions = const [],
+    List<dynamic> districts = const [],
+    List<dynamic> wards = const [],
     int? selectedRegionId,
     int? selectedDistrictId,
     int? selectedWardId,
     double? latitude,
     double? longitude,
-    bool? isLoading,
-    bool? hasGps,
-    String? errorMessage,
-    String? userRole,
-    String? wardSearchText,
-    bool? isCreatingWard,
-    bool? showNewWardPrompt,
-    bool? isLoadingDistricts, // ⭐ NEW
-    bool? isLoadingWards, // ⭐ NEW
-  }) {
-    return LocationLoaded(
-      regions: regions ?? this.regions,
-      districts: districts ?? this.districts,
-      wards: wards ?? this.wards,
-      wardSearchResults: wardSearchResults ?? this.wardSearchResults,
-      selectedRegionId: selectedRegionId ?? this.selectedRegionId,
-      selectedDistrictId: selectedDistrictId ?? this.selectedDistrictId,
-      selectedWardId: selectedWardId,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      isLoading: isLoading ?? false,
-      hasGps: hasGps ?? this.hasGps,
-      errorMessage: errorMessage,
-      userRole: userRole ?? this.userRole,
-      wardSearchText: wardSearchText ?? this.wardSearchText,
-      isCreatingWard: isCreatingWard ?? this.isCreatingWard,
-      showNewWardPrompt: showNewWardPrompt ?? this.showNewWardPrompt,
-      isLoadingDistricts: isLoadingDistricts ?? this.isLoadingDistricts, // ⭐ NEW
-      isLoadingWards: isLoadingWards ?? this.isLoadingWards, // ⭐ NEW
-    );
-  }
-}
-
-class LocationGpsCaptured extends LocationState {
-  LocationGpsCaptured(LocationState current, double lat, double lng)
-      : super(
-          regions: current.regions,
-          districts: current.districts,
-          wards: current.wards,
-          wardSearchResults: current.wardSearchResults,
-          selectedRegionId: current.selectedRegionId,
-          selectedDistrictId: current.selectedDistrictId,
-          selectedWardId: current.selectedWardId,
-          userRole: current.userRole,
-          wardSearchText: current.wardSearchText,
-          isCreatingWard: current.isCreatingWard,
-          showNewWardPrompt: current.showNewWardPrompt,
-          isLoadingDistricts: current.isLoadingDistricts, // ⭐ NEW
-          isLoadingWards: current.isLoadingWards, // ⭐ NEW
-          latitude: lat,
-          longitude: lng,
-          hasGps: true,
+    bool hasGps = false,
+    String userRole = 'Farmer',
+    String wardSearchText = '',
+    bool isCreatingWard = false,
+    bool showNewWardPrompt = false,
+    bool isLoadingDistricts = false,
+    bool isLoadingWards = false,
+    bool locationSaved = false,
+    LocationEntity? savedLocation,
+  }) : super(
+          regions: regions,
+          districts: districts,
+          wards: wards,
+          userLocations: locations,
+          selectedRegionId: selectedRegionId,
+          selectedDistrictId: selectedDistrictId,
+          selectedWardId: selectedWardId,
+          latitude: latitude,
+          longitude: longitude,
+          hasGps: hasGps,
+          userRole: userRole,
+          wardSearchText: wardSearchText,
+          isCreatingWard: isCreatingWard,
+          showNewWardPrompt: showNewWardPrompt,
+          isLoadingDistricts: isLoadingDistricts,
+          isLoadingWards: isLoadingWards,
+          isLoadingLocations: false,
+          locationSaved: locationSaved,
+          savedLocation: savedLocation,
           isLoading: false,
           errorMessage: null,
         );
+
+  @override
+  List<Object?> get props => [...super.props];
 }
 
 class LocationError extends LocationState {
-  LocationError(String message, LocationState current)
-      : super(
-          regions: current.regions,
-          districts: current.districts,
-          wards: current.wards,
-          wardSearchResults: current.wardSearchResults,
-          selectedRegionId: current.selectedRegionId,
-          selectedDistrictId: current.selectedDistrictId,
-          selectedWardId: current.selectedWardId,
-          latitude: current.latitude,
-          longitude: current.longitude,
-          hasGps: current.hasGps,
-          userRole: current.userRole,
-          wardSearchText: current.wardSearchText,
-          isCreatingWard: current.isCreatingWard,
-          showNewWardPrompt: current.showNewWardPrompt,
-          isLoadingDistricts: current.isLoadingDistricts, // ⭐ NEW
-          isLoadingWards: current.isLoadingWards, // ⭐ NEW
+  const LocationError({
+    required String message,
+    List<dynamic> regions = const [],
+    List<dynamic> districts = const [],
+    List<dynamic> wards = const [],
+    List<LocationEntity> userLocations = const [],
+    int? selectedRegionId,
+    int? selectedDistrictId,
+    int? selectedWardId,
+    double? latitude,
+    double? longitude,
+    bool hasGps = false,
+    String userRole = 'Farmer',
+    String wardSearchText = '',
+    bool isCreatingWard = false,
+    bool showNewWardPrompt = false,
+    bool isLoadingDistricts = false,
+    bool isLoadingWards = false,
+    bool isLoadingLocations = false,
+    bool locationSaved = false,
+    LocationEntity? savedLocation,
+  }) : super(
+          regions: regions,
+          districts: districts,
+          wards: wards,
+          userLocations: userLocations,
+          selectedRegionId: selectedRegionId,
+          selectedDistrictId: selectedDistrictId,
+          selectedWardId: selectedWardId,
+          latitude: latitude,
+          longitude: longitude,
+          hasGps: hasGps,
           errorMessage: message,
-          isLoading: false,
-        );
-}
-
-class LocationSuccess extends LocationState {
-  LocationSuccess({required LocationState current, required String userRole})
-      : super(
-          regions: current.regions,
-          districts: current.districts,
-          wards: current.wards,
-          wardSearchResults: current.wardSearchResults,
-          selectedRegionId: current.selectedRegionId,
-          selectedDistrictId: current.selectedDistrictId,
-          selectedWardId: current.selectedWardId,
-          latitude: current.latitude,
-          longitude: current.longitude,
-          hasGps: current.hasGps,
           userRole: userRole,
-          wardSearchText: current.wardSearchText,
-          isCreatingWard: current.isCreatingWard,
-          showNewWardPrompt: current.showNewWardPrompt,
-          isLoadingDistricts: current.isLoadingDistricts,
-          isLoadingWards: current.isLoadingWards, 
+          wardSearchText: wardSearchText,
+          isCreatingWard: isCreatingWard,
+          showNewWardPrompt: showNewWardPrompt,
+          isLoadingDistricts: isLoadingDistricts,
+          isLoadingWards: isLoadingWards,
+          isLoadingLocations: isLoadingLocations,
+          locationSaved: locationSaved,
+          savedLocation: savedLocation,
           isLoading: false,
-          errorMessage: null,
         );
+
+  @override
+  List<Object?> get props => [...super.props, errorMessage];
 }
