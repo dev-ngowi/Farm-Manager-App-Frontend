@@ -488,7 +488,7 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   
                   // Specialization
                   DropdownButtonFormField<String>(
-                    value: _selectedSpecialization,
+                    initialValue: _selectedSpecialization,
                     decoration: const InputDecoration(
                       labelText: 'Primary Specialization',
                       prefixIcon: Icon(Icons.pets),
@@ -555,7 +555,7 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _selectedLocationId,
+                          initialValue: _selectedLocationId,
                           decoration: InputDecoration(
                             labelText: 'Primary Service Location',
                             prefixIcon: const Icon(Icons.location_on),

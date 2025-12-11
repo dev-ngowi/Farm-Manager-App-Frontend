@@ -179,6 +179,56 @@ class SubmitVetDetails extends AuthEvent {
 }
 
 // ========================================
+// SUBMIT RESEARCHER DETAILS EVENT
+// ========================================
+
+/// Event triggered when researcher submits their details
+class SubmitResearcherDetails extends AuthEvent {
+  final String affiliatedInstitution;
+  final String department;
+  final String researchPurpose;
+  final String researchFocusArea;
+  final String? academicTitle;
+  final String? orcidId;
+  final String? token;
+
+  const SubmitResearcherDetails({
+    required this.affiliatedInstitution,
+    required this.department,
+    required this.researchPurpose,
+    required this.researchFocusArea,
+    this.academicTitle,
+    this.orcidId,
+    this.token,
+  });
+
+  @override
+  List<Object?> get props => [
+        affiliatedInstitution,
+        department,
+        researchPurpose,
+        researchFocusArea,
+        academicTitle,
+        orcidId,
+        token,
+      ];
+}
+
+// ========================================
+// USER DETAILS UPDATED EVENT (New Fix)
+// ========================================
+
+/// 🎯 NEW: Event triggered by other BLoCs (e.g., ResearcherBloc) to update the core UserEntity
+/// after a profile submission API call.
+class UserDetailsUpdated extends AuthEvent {
+  final UserEntity user;
+  const UserDetailsUpdated(this.user);
+  
+  @override
+  List<Object> get props => [user];
+}
+
+// ========================================
 // USER LOCATION UPDATED EVENT - FULLY FIXED
 // ========================================
 
@@ -196,6 +246,9 @@ class UserLocationUpdated extends AuthEvent {
   @override
   List<Object?> get props => [location, role];
 }
+
+
+
 
 // ========================================
 // LOGOUT EVENT

@@ -207,6 +207,7 @@ class _PregnancyChecksPageState extends State<PregnancyChecksPage> {
                         ? "${l10n.noChecksYet}\n${l10n.recordFirstCheck}"
                         // Assuming you have defined l10n.noResultsFound
                         : l10n.noResultsFound, 
+                        iconColor: AppColors.iconPrimary,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

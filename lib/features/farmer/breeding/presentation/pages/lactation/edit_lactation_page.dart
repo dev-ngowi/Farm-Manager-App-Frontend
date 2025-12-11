@@ -1,4 +1,3 @@
-import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -222,7 +221,7 @@ class _EditLactationPageState extends State<EditLactationPage> {
                   border: const OutlineInputBorder(),
                   prefixIcon: Icon(Icons.check_circle, color: primaryColor),
                 ),
-                value: _status,
+                initialValue: _status,
                 items: ['Ongoing', 'Completed'].map((String status) {
                   return DropdownMenuItem<String>(
                     value: status,

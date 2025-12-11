@@ -1,7 +1,7 @@
 // lib/features/farmer/livestock/presentation/bloc/livestock_state.dart
 
 import 'package:equatable/equatable.dart';
-import 'package:farm_manager_app/core/error/failure.dart'; // Import the Failure class
+import 'package:farm_manager_app/core/error/failure.dart'; 
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/livestock.dart';
 
 abstract class LivestockState extends Equatable {
@@ -54,4 +54,19 @@ class LivestockAdded extends LivestockState {
 
   @override
   List<Object> get props => [newAnimal];
+}
+
+// ⭐ New State for successful Update
+class LivestockUpdated extends LivestockState {
+  final LivestockEntity animal;
+
+  const LivestockUpdated(this.animal);
+
+  @override
+  List<Object> get props => [animal];
+}
+
+// ⭐ New State for successful Delete
+class LivestockDeleted extends LivestockState {
+  const LivestockDeleted();
 }

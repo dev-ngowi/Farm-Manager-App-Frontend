@@ -74,6 +74,7 @@ class OffspringPage extends StatelessWidget {
           ? EmptyState(
               icon: Icons.child_friendly,
               message: "${l10n.noOffspringYet}\n${l10n.recordFirstOffspring}",
+              iconColor: AppColors.iconPrimary,
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),

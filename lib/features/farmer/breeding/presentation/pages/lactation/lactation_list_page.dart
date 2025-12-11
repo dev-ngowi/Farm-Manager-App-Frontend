@@ -92,6 +92,7 @@ class LactationsPage extends StatelessWidget {
           ? EmptyState(
               icon: Icons.local_drink,
               message: "${l10n.noLactationsYet}\n${l10n.recordFirstLactation}",
+              iconColor: AppColors.iconPrimary,
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),

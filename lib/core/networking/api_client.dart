@@ -9,6 +9,7 @@ import 'interceptors/auth_interceptor.dart';
 import 'interceptors/logging_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 import 'interceptors/connectivity_interceptor.dart';
+// Assuming AppException and subclasses are here
 
 /// A static class providing a centralized, robust API client 
 /// with Dio initialization, interceptors, and functional error handling 
@@ -145,7 +146,7 @@ class ApiClient {
   static Future<Either<AppException, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
-    Map<String, dynamic>? headers,
+    Map<String, dynamic>? headers, Map<String, dynamic>? queryParameters,
   }) async {
     return handleRequest(
       () => dio.get(
@@ -227,12 +228,14 @@ class ApiClient {
   static Future<Either<AppException, dynamic>> patch(
     String path, {
     dynamic data,
+    Map<String, dynamic>? query, // ⭐ ADDED query parameter
     Map<String, dynamic>? headers,
   }) async {
     return handleRequest(
       () => dio.patch(
         path,
         data: data,
+        queryParameters: query, // ⭐ PASS query parameter to dio.patch
         options: headers != null ? Options(headers: headers) : null,
       ),
     );

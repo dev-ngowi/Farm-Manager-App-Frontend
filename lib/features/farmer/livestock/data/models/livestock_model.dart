@@ -117,10 +117,10 @@ class LivestockModel extends LivestockEntity {
     );
   }
 
-  /// Converts form data into a snake_case JSON payload suitable for the API POST request.
+  /// Converts form data into a snake_case JSON payload suitable for the API POST/PATCH request.
   static Map<String, dynamic> toStoreJson({
     required int speciesId,
-    required int breedId,
+    required int? breedId, // ⭐ FIX: Changed to nullable int?
     required String tagNumber,
     String? name,
     required String sex,
@@ -131,8 +131,8 @@ class LivestockModel extends LivestockEntity {
     DateTime? purchaseDate,
     double? purchaseCost,
     String? source,
-    int? sireId,
-    int? damId,
+    int? sireId, // ⭐ Should also be nullable
+    int? damId, // ⭐ Should also be nullable
   }) {
     return {
       'species_id': speciesId,
@@ -152,6 +152,45 @@ class LivestockModel extends LivestockEntity {
       'sire_id': sireId, 
       'dam_id': damId, 
     }..removeWhere((key, value) => value == null && key != 'notes'); // Clean up nulls except for notes
+  }
+  
+  // Assuming you also have a toUpdateJson that calls a common serialization method, 
+  // ensure it also uses nullable types for breedId, sireId, and damId.
+  // The structure below assumes you call the above method (or a new internal toApiJson):
+
+  static Map<String, dynamic> toUpdateJson({
+    required int speciesId,
+    required int? breedId, // ⭐ FIX: Changed to nullable int?
+    required String tagNumber,
+    String? name,
+    required String sex,
+    required DateTime dateOfBirth,
+    required double weightAtBirthKg,
+    required String status,
+    String? notes, 
+    DateTime? purchaseDate,
+    double? purchaseCost,
+    String? source,
+    int? sireId, // ⭐ Should also be nullable
+    int? damId, // ⭐ Should also be nullable
+  }) {
+    // For simplicity, we call toStoreJson which is now corrected.
+    return toStoreJson(
+      speciesId: speciesId,
+      breedId: breedId,
+      tagNumber: tagNumber,
+      name: name,
+      sex: sex,
+      dateOfBirth: dateOfBirth,
+      weightAtBirthKg: weightAtBirthKg,
+      status: status,
+      notes: notes,
+      purchaseDate: purchaseDate,
+      purchaseCost: purchaseCost,
+      source: source,
+      sireId: sireId,
+      damId: damId,
+    );
   }
 
   @override

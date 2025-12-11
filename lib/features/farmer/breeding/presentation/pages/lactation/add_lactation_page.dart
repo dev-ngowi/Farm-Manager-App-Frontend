@@ -140,7 +140,7 @@ class _AddLactationPageState extends State<AddLactationPage> {
           fillColor: Colors.white,
           prefixIcon: Icon(Icons.pets, color: primaryColor),
         ),
-        value: _selectedDamId,
+        initialValue: _selectedDamId,
         hint: Text(l10n.selectDam),
         isExpanded: true,
         items: damIds.map((int id) {

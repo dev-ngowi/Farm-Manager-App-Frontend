@@ -2,22 +2,29 @@
 
 import 'package:farm_manager_app/core/error/failure.dart'; 
 import 'package:farm_manager_app/core/utils/validators.dart';
+// Note: Removed unused HeatCycle import
 import 'package:farm_manager_app/features/farmer/livestock/data/models/livestock_model.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/breed.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/species.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/entities/livestock.dart'; // Import for LivestockEntity
 import 'package:farm_manager_app/features/farmer/livestock/domain/repositories/livestock_repository.dart'; 
 import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_bloc.dart';
 import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_event.dart';
 import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_state.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-// Note: Changed import for l10n package structure
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class LivestockForm extends StatefulWidget {
   final LivestockRepository livestockRepository; 
-  const LivestockForm({super.key, required this.livestockRepository}); 
+  final LivestockEntity? animalToEdit;
+  
+  const LivestockForm({
+    super.key,
+    required this.livestockRepository,
+    this.animalToEdit, // New parameter for edit mode
+  }); 
 
   @override
   State<LivestockForm> createState() => _LivestockFormState();
@@ -58,15 +65,48 @@ class _LivestockFormState extends State<LivestockForm> {
 
   final List<String> _availableSexes = ['Male', 'Female', 'Unknown'];
   final List<String> _availableStatuses = ['Active', 'Sold', 'Dead', 'Stolen']; 
+  bool get isEditMode => widget.animalToEdit != null; 
 
   @override
   void initState() {
     super.initState();
-    _tagNumberController.text = _formData['tag_number'] as String;
-    _nameController.text = _formData['name'] as String? ?? '';
-    _formData['weight_at_birth_kg'] = double.tryParse(_birthWeightController.text) ?? 0.0;
     
-    // We call async function here
+    if (isEditMode) {
+      final animal = widget.animalToEdit!;
+      
+      // 1. Populate _formData from the animal to edit
+      _formData.addAll({
+        'species_id': animal.speciesId,
+        'breed_id': animal.breedId,
+        'tag_number': animal.tagNumber,
+        'name': animal.name,
+        'sex': animal.sex, 
+        'status': animal.status, 
+        'date_of_birth': animal.dateOfBirth, 
+        'weight_at_birth_kg': animal.weightAtBirthKg,
+        'sire_id': animal.sire?.animalId, // Use animalId if ParentEntity is available
+        'dam_id': animal.dam?.animalId,
+        'purchase_date': animal.purchaseDate,
+        'purchase_cost': animal.purchaseCost,
+        'source': animal.source,
+        'notes': animal.notes,
+      });
+      
+      // 2. Populate controllers
+      _nameController.text = animal.name ?? '';
+      _tagNumberController.text = animal.tagNumber;
+      // Handle potential null/conversion issues for numerical data
+      _birthWeightController.text = animal.weightAtBirthKg.toString();
+      _purchaseCostController.text = animal.purchaseCost?.toString() ?? '';
+      _sourceController.text = animal.source ?? '';
+      
+    } else {
+      // Existing initialization for add mode
+      _tagNumberController.text = _formData['tag_number'] as String;
+      _nameController.text = _formData['name'] as String? ?? '';
+      _formData['weight_at_birth_kg'] = double.tryParse(_birthWeightController.text) ?? 0.0;
+    }
+    
     _fetchDropdownData();
   }
 
@@ -96,39 +136,43 @@ class _LivestockFormState extends State<LivestockForm> {
     }
     
     final currentBreedId = _formData['breed_id'] as int?;
+    
+    // Check if the current selected breed is valid for the new species, otherwise reset
     if (currentBreedId != null && !_filteredBreedList.any((b) => b.id == currentBreedId)) {
-        _formData['breed_id'] = _filteredBreedList.isNotEmpty 
-            ? _filteredBreedList.first.id 
-            : null;
-    } else if (currentBreedId == null && _filteredBreedList.isNotEmpty) {
-      _formData['breed_id'] = _filteredBreedList.first.id;
+        setState(() {
+          _formData['breed_id'] = _filteredBreedList.isNotEmpty 
+              ? _filteredBreedList.first.id 
+              : null;
+        });
+    } else if (currentBreedId == null && _filteredBreedList.isNotEmpty && !isEditMode) {
+      // Set default breed only in Add mode if no breed is currently selected
+      setState(() {
+        _formData['breed_id'] = _filteredBreedList.first.id;
+      });
     } else if (_filteredBreedList.isEmpty) {
-      _formData['breed_id'] = null;
+      // No breeds for this species
+      setState(() {
+        _formData['breed_id'] = null;
+      });
     }
   }
 
   Future<void> _fetchDropdownData() async {
-    // ⭐ CRITICAL FIX: Do not access context/l10n synchronously here.
     setState(() => _isLoadingDropdowns = true);
     
     _validationError = null;
 
     final result = await widget.livestockRepository.getLivestockDropdowns();
 
-    // Check if widget is still mounted before accessing context or setting state
     if (!mounted) return;
-    
-    // Obtain l10n only when required (after async call)
     final l10n = AppLocalizations.of(context)!; 
 
     result.fold(
       (failure) {
-        // We are already in an async context, but running UI update via postFrameCallback is safer.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // ⭐ L10N FIX: Use l10n key
               content: Text('${l10n.failedLoadDropdown} ${FailureConverter.toMessage(failure)}'), 
               backgroundColor: Colors.red,
             ),
@@ -140,15 +184,16 @@ class _LivestockFormState extends State<LivestockForm> {
           _speciesList = dropdownData.species;
           _allBreedList = dropdownData.breeds;
           
-          if (_speciesList.isNotEmpty) {
+          if (!isEditMode && _speciesList.isNotEmpty) {
+            // Only set default species if not in edit mode
             _formData['species_id'] = _speciesList.first.id;
           }
           
+          // Filter breeds based on the selected species ID (which may be pre-filled in edit mode)
           _filterBreeds(_formData['species_id'] as int?);
-
-          if (_filteredBreedList.isNotEmpty) {
-            _formData['breed_id'] = _filteredBreedList.first.id;
-          }
+          
+          // Ensure that in edit mode, the selected breed_id is preserved if valid
+          // The _filterBreeds handles resetting the breed ID if it's invalid for the species.
         });
       },
     );
@@ -181,8 +226,8 @@ class _LivestockFormState extends State<LivestockForm> {
     }
   }
 
-  void _submitForm() {
-    // ⭐ CRITICAL STEP 1: Clear previous backend validation errors before attempting submission
+ void _submitForm() {
+    // Clear previous backend validation errors
     setState(() {
       _validationError = null;
     });
@@ -191,11 +236,15 @@ class _LivestockFormState extends State<LivestockForm> {
       _formKey.currentState!.save();
       
       _formData['weight_at_birth_kg'] = double.tryParse(_birthWeightController.text) ?? 0.0;
-      _formData['purchase_cost'] = double.tryParse(_purchaseCostController.text) ?? null;
+      // Handle optional purchase cost which can be null
+      _formData['purchase_cost'] = _purchaseCostController.text.trim().isEmpty 
+                                    ? null 
+                                    : double.tryParse(_purchaseCostController.text);
       
-      final payload = LivestockModel.toStoreJson(
+      // Use LivestockModel.toUpdateJson (which calls toApiJson) to create the payload.
+      final payload = LivestockModel.toUpdateJson( 
         speciesId: _formData['species_id'] as int,
-        breedId: _formData['breed_id'] as int,
+        breedId: _formData['breed_id'] as int?, 
         tagNumber: _formData['tag_number'] as String,
         name: _formData['name'] as String?,
         sex: _formData['sex'] as String,
@@ -210,13 +259,23 @@ class _LivestockFormState extends State<LivestockForm> {
         source: _formData['source'] as String?,
       );
 
-      context.read<LivestockBloc>().add(AddNewLivestock(payload));
+      if (isEditMode) {
+        // Dispatch Update Event
+        context.read<LivestockBloc>().add(
+          UpdateLivestock(
+            // Use the required ID from the widget for update
+            animalId: widget.animalToEdit!.animalId, 
+            animalData: payload,
+          ),
+        );
+      } else {
+        // Dispatch Add Event
+        context.read<LivestockBloc>().add(AddNewLivestock(payload));
+      }
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    // Get l10n here in build method where context is guaranteed to be valid
     final l10n = AppLocalizations.of(context)!; 
 
     if (_isLoadingDropdowns) {
@@ -225,11 +284,19 @@ class _LivestockFormState extends State<LivestockForm> {
 
     return BlocConsumer<LivestockBloc, LivestockState>(
       listener: (context, state) {
-        if (state is LivestockAdded) { 
+        // Listener for both Add and Edit modes
+        if (state is LivestockUpdated) { 
           ScaffoldMessenger.of(context).showSnackBar(
-            // ⭐ L10N FIX: Use l10n key
+            SnackBar(content: Text(l10n.animalUpdatedSuccess), backgroundColor: Colors.green),
+          );
+          // Navigate back after successful update
+          Navigator.of(context).pop(state.animal);
+        } else if (state is LivestockAdded) {
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.livestockRegisteredSuccess), backgroundColor: Colors.green),
           );
+          // Navigate back after successful add
+          Navigator.of(context).pop();
         } else if (state is LivestockError) {
           final failure = state.failure;
           
@@ -240,12 +307,10 @@ class _LivestockFormState extends State<LivestockForm> {
             });
             
             ScaffoldMessenger.of(context).showSnackBar(
-              // ⭐ L10N FIX: Use l10n key
               SnackBar(content: Text('${l10n.submissionFailed} ${FailureConverter.toMessage(failure)}'), backgroundColor: Colors.red),
             );
           } else {
              ScaffoldMessenger.of(context).showSnackBar(
-              // ⭐ L10N FIX: Use l10n key
               SnackBar(content: Text('${l10n.error} ${FailureConverter.toMessage(failure)}'), backgroundColor: Colors.red),
             );
           }
@@ -256,221 +321,200 @@ class _LivestockFormState extends State<LivestockForm> {
 
         return Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  // ⭐ L10N FIX: Use l10n key
-                  child: Text(l10n.essentialInfo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                
-                // Species ID Dropdown
-                DropdownButtonFormField<int>(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.species),
-                  value: _formData['species_id'] as int?,
-                  items: _speciesList.map((s) => DropdownMenuItem<int>(
-                    value: s.id, 
-                    child: Text(s.speciesName)
-                  )).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _formData['species_id'] = value;
-                      _filterBreeds(value);
-                      _formData['breed_id'] = _filteredBreedList.isNotEmpty ? _filteredBreedList.first.id : null;
-                    });
-                  },
-                  onSaved: (value) => _formData['species_id'] = value,
-                  // ⭐ L10N FIX: Use l10n key
-                  validator: (value) => value == null ? l10n.speciesRequired : null,
-                ),
-                const SizedBox(height: 12),
+          // Removed SingleChildScrollView here as the page wrapping it should handle it
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(l10n.essentialInfo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+              
+              // Species ID Dropdown
+              DropdownButtonFormField<int>(
+                decoration: InputDecoration(labelText: l10n.species),
+                initialValue: _formData['species_id'] as int?,
+                items: _speciesList.map((s) => DropdownMenuItem<int>(
+                  value: s.id, 
+                  child: Text(s.speciesName)
+                )).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _formData['species_id'] = value;
+                    _formData['breed_id'] = null; // Reset breed when species changes
+                    _filterBreeds(value);
+                  });
+                },
+                onSaved: (value) => _formData['species_id'] = value,
+                validator: (value) => value == null ? l10n.speciesRequired : null,
+              ),
+              const SizedBox(height: 12),
 
-                // Breed ID Dropdown
-                DropdownButtonFormField<int>(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.breed),
-                  value: _filteredBreedList.any((b) => b.id == _formData['breed_id'])
-                      ? _formData['breed_id'] as int?
-                      : null, 
-                  items: _filteredBreedList.map((b) => DropdownMenuItem<int>(
-                    value: b.id, 
-                    child: Text(b.breedName)
-                  )).toList(),
-                  onChanged: (value) => setState(() => _formData['breed_id'] = value),
-                  onSaved: (value) => _formData['breed_id'] = value,
-                  // ⭐ L10N FIX: Use l10n key
-                  validator: (value) => value == null ? l10n.breedRequired : null,
-                ),
-                const SizedBox(height: 12),
+              // Breed ID Dropdown
+              DropdownButtonFormField<int>(
+                decoration: InputDecoration(labelText: l10n.breed),
+                initialValue: _filteredBreedList.any((b) => b.id == _formData['breed_id'])
+                    ? _formData['breed_id'] as int?
+                    : null, // Ensure value is only set if it exists in the current list
+                items: _filteredBreedList.map((b) => DropdownMenuItem<int>(
+                  value: b.id, 
+                  child: Text(b.breedName)
+                )).toList(),
+                onChanged: _filteredBreedList.isEmpty ? null : (value) => setState(() => _formData['breed_id'] = value),
+                onSaved: (value) => _formData['breed_id'] = value,
+                // Validation only if there are breeds for the selected species
+                validator: (value) => _filteredBreedList.isNotEmpty && value == null ? l10n.breedRequired : null,
+              ),
+              const SizedBox(height: 12),
 
-                // Tag Number
-                TextFormField(
-                  controller: _tagNumberController,
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.tagNumber),
-                  keyboardType: TextInputType.text,
-                  onSaved: (value) => _formData['tag_number'] = value?.trim() ?? '',
-                  validator: (value) {
-                    // ⭐ L10N FIX: Use l10n key for local validation message
-                    final localError = Validators.validateRequired(value, l10n.tagNumberRequired);
-                    if (localError != null) return localError;
+              // Tag Number
+              TextFormField(
+                controller: _tagNumberController,
+                decoration: InputDecoration(labelText: l10n.tagNumber),
+                keyboardType: TextInputType.text,
+                onSaved: (value) => _formData['tag_number'] = value?.trim() ?? '',
+                validator: (value) {
+                  final localError = Validators.validateRequired(value, l10n.tagNumberRequired);
+                  if (localError != null) return localError;
 
-                    return _validationError?.getFieldError('tag_number');
-                  },
-                ),
-                const SizedBox(height: 12),
+                  // Check for backend validation errors
+                  return _validationError?.getFieldError('tag_number');
+                },
+              ),
+              const SizedBox(height: 12),
 
-                // Date of Birth
-                ListTile(
-                  // ⭐ L10N FIX: Use l10n key
-                  title: Text(l10n.dateOfBirth),
-                  subtitle: Text(DateFormat('dd MMM yyyy').format(_formData['date_of_birth'])),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () => _selectDate(context, 'date_of_birth', _formData['date_of_birth']),
-                ),
-                const SizedBox(height: 12),
+              // Date of Birth
+              ListTile(
+                title: Text(l10n.dateOfBirth),
+                subtitle: Text(DateFormat('dd MMM yyyy').format(_formData['date_of_birth'])),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () => _selectDate(context, 'date_of_birth', _formData['date_of_birth']),
+              ),
+              const SizedBox(height: 12),
 
-                // Birth Weight (kg)
-                TextFormField(
-                  controller: _birthWeightController,
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.weightAtBirth, suffixText: 'kg'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onSaved: (value) => _formData['weight_at_birth_kg'] = double.tryParse(value ?? '0.0'),
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateDouble(value, l10n.weightAtBirthRequired),
-                ),
-                const SizedBox(height: 12),
-                
-                // Sex Dropdown
-                DropdownButtonFormField<String>(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.sex),
-                  value: _formData['sex'] as String?,
-                  items: _availableSexes.map((e) => DropdownMenuItem(
-                    value: e, 
-                    // ⭐ L10N FIX: Localize the dropdown display value
-                    child: Text(_getLocalizedOption(context, e))
-                  )).toList(),
-                  onChanged: (value) => setState(() => _formData['sex'] = value),
-                  onSaved: (value) => _formData['sex'] = value,
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateRequired(value, l10n.sexRequired),
-                ),
-                const SizedBox(height: 12),
-                
-                // Status Dropdown
-                DropdownButtonFormField<String>(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.status),
-                  value: _formData['status'] as String?,
-                  items: _availableStatuses.map((e) => DropdownMenuItem(
-                    value: e, 
-                    // ⭐ L10N FIX: Localize the dropdown display value
-                    child: Text(_getLocalizedOption(context, e))
-                  )).toList(),
-                  onChanged: (value) => setState(() => _formData['status'] = value),
-                  onSaved: (value) => _formData['status'] = value,
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateRequired(value, l10n.statusRequired),
-                ),
-                const SizedBox(height: 30),
+              // Birth Weight (kg)
+              TextFormField(
+                controller: _birthWeightController,
+                decoration: InputDecoration(labelText: l10n.weightAtBirth, suffixText: 'kg'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                onSaved: (value) => _formData['weight_at_birth_kg'] = double.tryParse(value ?? '0.0'),
+                validator: (value) => Validators.validateDouble(value, l10n.weightAtBirthRequired),
+              ),
+              const SizedBox(height: 12),
+              
+              // Sex Dropdown
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: l10n.sex),
+                initialValue: _formData['sex'] as String?,
+                items: _availableSexes.map((e) => DropdownMenuItem(
+                  value: e, 
+                  child: Text(_getLocalizedOption(context, e))
+                )).toList(),
+                onChanged: (value) => setState(() => _formData['sex'] = value),
+                onSaved: (value) => _formData['sex'] = value,
+                validator: (value) => Validators.validateRequired(value, l10n.sexRequired),
+              ),
+              const SizedBox(height: 12),
+              
+              // Status Dropdown
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: l10n.status),
+                initialValue: _formData['status'] as String?,
+                items: _availableStatuses.map((e) => DropdownMenuItem(
+                  value: e, 
+                  child: Text(_getLocalizedOption(context, e))
+                )).toList(),
+                onChanged: (value) => setState(() => _formData['status'] = value),
+                onSaved: (value) => _formData['status'] = value,
+                validator: (value) => Validators.validateRequired(value, l10n.statusRequired),
+              ),
+              const SizedBox(height: 30),
 
 
-                // Optional Fields Group
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  // ⭐ L10N FIX: Use l10n key
-                  child: Text(l10n.optionalInfo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
+              // Optional Fields Group
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(l10n.optionalInfo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
 
-                // Name (Optional)
-                TextFormField(
-                  controller: _nameController,
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.nameOptional),
-                  keyboardType: TextInputType.text,
-                  onSaved: (value) => _formData['name'] = value?.trim().isEmpty == true ? null : value?.trim(),
-                ),
-                const SizedBox(height: 12),
+              // Name (Optional)
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: l10n.nameOptional),
+                keyboardType: TextInputType.text,
+                onSaved: (value) => _formData['name'] = value?.trim().isEmpty == true ? null : value?.trim(),
+              ),
+              const SizedBox(height: 12),
 
-                // Sire ID (Optional)
-                TextFormField(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.sireID),
-                  keyboardType: TextInputType.number,
-                  onSaved: (value) => _formData['sire_id'] = int.tryParse(value ?? ''),
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateIntegerOptional(value, l10n.sireID),
-                ),
-                const SizedBox(height: 12),
+              // Sire ID (Optional)
+              TextFormField(
+                // Pre-fill Sire ID in edit mode
+                initialValue: _formData['sire_id']?.toString(), 
+                decoration: InputDecoration(labelText: l10n.sireID),
+                keyboardType: TextInputType.number,
+                onSaved: (value) => _formData['sire_id'] = int.tryParse(value ?? ''),
+                validator: (value) => Validators.validateIntegerOptional(value, l10n.sireID),
+              ),
+              const SizedBox(height: 12),
 
-                // Dam ID (Optional)
-                TextFormField(
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.damID),
-                  keyboardType: TextInputType.number,
-                  onSaved: (value) => _formData['dam_id'] = int.tryParse(value ?? ''),
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateIntegerOptional(value, l10n.damID),
-                ),
-                const SizedBox(height: 12),
-                
-                // Purchase Date
-                ListTile(
-                  // ⭐ L10N FIX: Use l10n key
-                  title: Text(l10n.purchaseDateOptional),
-                  // ⭐ L10N FIX: Use l10n key
-                  subtitle: Text(_formData['purchase_date'] == null ? l10n.notSpecified : DateFormat('dd MMM yyyy').format(_formData['purchase_date'])),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () => _selectDate(context, 'purchase_date', _formData['purchase_date']),
-                ),
-                const SizedBox(height: 12),
+              // Dam ID (Optional)
+              TextFormField(
+                // Pre-fill Dam ID in edit mode
+                initialValue: _formData['dam_id']?.toString(),
+                decoration: InputDecoration(labelText: l10n.damID),
+                keyboardType: TextInputType.number,
+                onSaved: (value) => _formData['dam_id'] = int.tryParse(value ?? ''),
+                validator: (value) => Validators.validateIntegerOptional(value, l10n.damID),
+              ),
+              const SizedBox(height: 12),
+              
+              // Purchase Date
+              ListTile(
+                title: Text(l10n.purchaseDateOptional),
+                subtitle: Text(_formData['purchase_date'] == null ? l10n.notSpecified : DateFormat('dd MMM yyyy').format(_formData['purchase_date'])),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () => _selectDate(context, 'purchase_date', _formData['purchase_date']),
+              ),
+              const SizedBox(height: 12),
 
-                // Purchase Cost
-                TextFormField(
-                  controller: _purchaseCostController,
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.purchaseCostOptional, prefixText: '\$'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onSaved: (value) => _formData['purchase_cost'] = double.tryParse(value ?? ''),
-                  // ⭐ L10N FIX: Use l10n key for local validation message
-                  validator: (value) => Validators.validateDoubleOptional(value, l10n.purchaseCostOptional),
-                ),
-                const SizedBox(height: 12),
+              // Purchase Cost
+              TextFormField(
+                controller: _purchaseCostController,
+                decoration: InputDecoration(labelText: l10n.purchaseCostOptional, prefixText: '\$'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                onSaved: (value) => _formData['purchase_cost'] = double.tryParse(value ?? ''),
+                validator: (value) => Validators.validateDoubleOptional(value, l10n.purchaseCostOptional),
+              ),
+              const SizedBox(height: 12),
 
-                // Source
-                TextFormField(
-                  controller: _sourceController,
-                  // ⭐ L10N FIX: Use l10n key
-                  decoration: InputDecoration(labelText: l10n.sourceVendor),
-                  keyboardType: TextInputType.text,
-                  onSaved: (value) => _formData['source'] = value?.trim().isEmpty == true ? null : value?.trim(),
-                ),
-                const SizedBox(height: 30),
+              // Source
+              TextFormField(
+                controller: _sourceController,
+                decoration: InputDecoration(labelText: l10n.sourceVendor),
+                keyboardType: TextInputType.text,
+                onSaved: (value) => _formData['source'] = value?.trim().isEmpty == true ? null : value?.trim(),
+              ),
+              const SizedBox(height: 30),
 
-                // Submit Button
-                ElevatedButton(
-                  onPressed: isLoading ? null : _submitForm,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        // ⭐ L10N FIX: Use l10n key
-                        : Text(l10n.registerAnimal, style: const TextStyle(fontSize: 18)),
-                  ),
+              // Submit Button (Update for Edit Mode, Register for Add Mode)
+              ElevatedButton(
+                onPressed: isLoading ? null : _submitForm,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text(
+                          isEditMode ? l10n.updateAnimal : l10n.registerAnimal, 
+                          style: const TextStyle(fontSize: 18)
+                        ),
                 ),
-                const SizedBox(height: 50),
-              ],
-            ),
+              ),
+              const SizedBox(height: 50),
+            ],
           ),
         );
       },

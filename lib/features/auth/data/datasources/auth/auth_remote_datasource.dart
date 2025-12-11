@@ -308,9 +308,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       
       return userModel;
       
-    } on AuthException catch (e) {
+    } on AuthException {
       rethrow;
-    } on ServerException catch (e) {
+    } on ServerException {
       rethrow;
     } on DioException catch (e) {
       print('❌ DioException: ${e.response?.statusCode}');

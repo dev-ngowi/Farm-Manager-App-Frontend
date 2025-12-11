@@ -386,7 +386,7 @@ class _AddSemenPageState extends State<AddSemenPage> {
     bool isSubmitting,
   ) {
     return DropdownButtonFormField<DropdownEntity>(
-      value: _selectedBreed,
+      initialValue: _selectedBreed,
       decoration: InputDecoration(
         labelText: '${l10n.breed} *',
         prefixIcon: Icon(Icons.catching_pokemon, color: primaryColor),
@@ -424,7 +424,7 @@ class _AddSemenPageState extends State<AddSemenPage> {
       children: [
         // Dropdown for selecting owned bull (bull_id)
         DropdownButtonFormField<DropdownEntity>(
-          value: _selectedBull,
+          initialValue: _selectedBull,
           decoration: InputDecoration(
             labelText: l10n.internalBullId,
             prefixIcon: Icon(Icons.male, color: primaryColor),

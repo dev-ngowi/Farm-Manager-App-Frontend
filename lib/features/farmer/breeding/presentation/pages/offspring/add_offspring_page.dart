@@ -3,7 +3,7 @@ import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/bre
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart'; // Added for input formatting, though not strictly used in current TextFields
+// Added for input formatting, though not strictly used in current TextFields
 
 class AddOffspringPage extends StatefulWidget {
   static const String routeName = '/farmer/breeding/offspring/store';
@@ -104,7 +104,7 @@ class _AddOffspringPageState extends State<AddOffspringPage> {
           filled: true,
           fillColor: Colors.white, // Replaced AppColors.cardBackground
         ),
-        value: value,
+        initialValue: value,
         hint: Text(l10n.select),
         isExpanded: true,
         items: options.map((T option) {
@@ -272,7 +272,7 @@ class _AddOffspringPageState extends State<AddOffspringPage> {
                       _navelTreated = value;
                     });
                   },
-                  activeColor: primaryColor,
+                  activeThumbColor: primaryColor,
                   tileColor: Colors.grey.shade50, // Replaced AppColors.cardBackground
                 ),
               ),

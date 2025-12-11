@@ -78,6 +78,7 @@ class _HeatCyclesPageState extends State<HeatCyclesPage> {
                   EmptyState(
                     message: state.message,
                     icon: Icons.error_outline,
+                    iconColor: AppColors.error, 
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
@@ -101,6 +102,7 @@ class _HeatCyclesPageState extends State<HeatCyclesPage> {
               return EmptyState(
                 message: l10n.heatCycleEmptyStateMessage,
                 icon: Icons.whatshot,
+                iconColor: AppColors.iconPrimary,
               );
             }
 
@@ -191,6 +193,7 @@ class _HeatCyclesPageState extends State<HeatCyclesPage> {
           return EmptyState(
             message: l10n.heatCycleEmptyStateMessage,
             icon: Icons.whatshot,
+            iconColor: AppColors.iconPrimary, 
           );
         },
       ),

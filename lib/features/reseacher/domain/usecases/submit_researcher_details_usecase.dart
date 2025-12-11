@@ -1,6 +1,7 @@
+// lib/features/researcher/domain/usecases/submit_researcher_details_usecase.dart
 import 'package:dartz/dartz.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
-import 'package:farm_manager_app/core/usecases/usercase.dart';
+import 'package:farm_manager_app/core/usecases/usercase.dart'; // Note: Assuming 'usercase.dart' is the correct file path as provided
 import 'package:farm_manager_app/features/auth/data/domain/entities/user_entity.dart';
 import 'package:farm_manager_app/features/reseacher/domain/entities/researcher_details_entity.dart';
 import 'package:farm_manager_app/features/reseacher/domain/repositories/researcher_repository.dart';

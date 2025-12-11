@@ -1,248 +1,240 @@
-import 'package:farm_manager_app/core/config/app_theme.dart'; // Assumed correct theme path
-import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
-import 'package:farm_manager_app/features/farmer/breeding/presentation/widgets/empty_state.dart';
+// lib/features/farmer/insemination/presentation/pages/inseminations_page.dart
+
+import 'package:farm_manager_app/core/config/app_theme.dart';
+import 'package:farm_manager_app/core/di/locator.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_event.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_state.dart';
+// ⭐ NEW IMPORT: Import the AddInseminationPage to access its routeName
+import 'package:farm_manager_app/features/farmer/breeding/presentation/pages/insemination/add_insemination_page.dart'; 
+// ⭐ NEW IMPORT: Import the Detail Page to access its route name if possible (or rely on the path)
+// Assuming InseminationDetailPage is where the 'inseminationDetail' name is defined implicitly/explicitly
+
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // Needed for date formatting
 
-// --- Data Model Mockup (To align with Backend Response) ---
+class InseminationListPage extends StatelessWidget {
+  static const String routeName = '/farmer/inseminations';
 
-class InseminationData {
-  final int id;
-  final String damTagNumber; // from dam.tag_number
-  final String damName; // from dam.name
-  final String breedingMethod; // breeding_method
-  final String inseminationDate; // insemination_date
-  final String expectedDeliveryDate; // expected_delivery_date
-  final String status; // status
+  const InseminationListPage({super.key});
 
-  InseminationData({
-    required this.id,
-    required this.damTagNumber,
-    required this.damName,
-    required this.breedingMethod,
-    required this.inseminationDate,
-    required this.expectedDeliveryDate,
-    required this.status,
-  });
-
-  factory InseminationData.fromJson(Map<String, dynamic> json) {
-    String formatDate(String dateString) {
-      if (dateString.isEmpty) return 'N/A';
-      try {
-        final date = DateTime.parse(dateString);
-        return DateFormat('dd MMM yyyy').format(date);
-      } catch (e) {
-        return dateString;
-      }
-    }
-
-    return InseminationData(
-      id: json['id'] as int,
-      damTagNumber: json['dam']?['tag_number'] ?? 'N/A',
-      damName: json['dam']?['name'] ?? 'N/A',
-      breedingMethod: json['breeding_method'] as String,
-      inseminationDate: formatDate(json['insemination_date'] as String),
-      expectedDeliveryDate:
-          formatDate(json['expected_delivery_date'] as String),
-      status: json['status'] as String,
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<InseminationBloc>()..add(const LoadInseminationList()),
+      child: const InseminationListView(),
     );
   }
-
-  // Helper to create a searchable string from the object
-  String get searchableText => 
-      '${damName} ${damTagNumber} ${breedingMethod} ${status}';
 }
 
-// --- Main Page Widget (Stateful) ---
-
-class InseminationsPage extends StatefulWidget {
-  static const String routeName = '/farmer/breeding/inseminations';
-
-  const InseminationsPage({super.key});
+class InseminationListView extends StatefulWidget {
+  const InseminationListView({super.key});
 
   @override
-  State<InseminationsPage> createState() => _InseminationsPageState();
+  State<InseminationListView> createState() => _InseminationListViewState();
 }
 
-class _InseminationsPageState extends State<InseminationsPage> {
-  // Mock data definition to match backend structure
-  final List<Map<String, dynamic>> _mockRawBackendData = [
-    {
-      'id': 1, 'insemination_date': '2025-12-02', 'expected_delivery_date': '2026-09-11',
-      'breeding_method': 'AI', 'status': 'Pending',
-      'dam': {'animal_id': 101, 'tag_number': '101', 'name': 'Cow', 'species_id': 1},
-    },
-    {
-      'id': 2, 'insemination_date': '2025-11-25', 'expected_delivery_date': '2026-09-04',
-      'breeding_method': 'Natural', 'status': 'Confirmed Pregnant',
-      'dam': {'animal_id': 115, 'tag_number': '115', 'name': 'Cow', 'species_id': 1},
-    },
-    {
-      'id': 3, 'insemination_date': '2025-11-15', 'expected_delivery_date': '2026-08-24',
-      'breeding_method': 'AI', 'status': 'Failed',
-      'dam': {'animal_id': 503, 'tag_number': '503', 'name': 'Heifer', 'species_id': 1},
-    },
-    {
-      'id': 4, 'insemination_date': '2025-11-05', 'expected_delivery_date': '2026-04-01',
-      'breeding_method': 'AI', 'status': 'Delivered',
-      'dam': {'animal_id': 201, 'tag_number': '201', 'name': 'Goat', 'species_id': 2},
-    },
-  ];
-
-  late List<InseminationData> _allInseminations;
-  List<InseminationData> _filteredInseminations = [];
-  String _searchQuery = '';
+class _InseminationListViewState extends State<InseminationListView> {
+  final TextEditingController _searchController = TextEditingController();
+  Map<String, dynamic> _currentFilters = {};
+  bool _isSearching = false;
 
   @override
-  void initState() {
-    super.initState();
-    // Initialize the list once
-    _allInseminations = _mockRawBackendData.map((json) => InseminationData.fromJson(json)).toList();
-    _filteredInseminations = _allInseminations;
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
-
-  // --- Search Filtering Logic ---
-  void _filterInseminations(String query) {
-    final lowerCaseQuery = query.toLowerCase();
-    setState(() {
-      _searchQuery = query;
-      if (query.isEmpty) {
-        _filteredInseminations = _allInseminations;
-      } else {
-        _filteredInseminations = _allInseminations.where((item) {
-          // Check if any of the key fields contain the search query
-          return item.searchableText.toLowerCase().contains(lowerCaseQuery);
-        }).toList();
-      }
-    });
+  
+  void _reloadList() {
+    context.read<InseminationBloc>().add(LoadInseminationList(filters: _currentFilters));
   }
-
-  // Helper method updated to map all backend statuses to colors
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Confirmed Pregnant':
-      case 'Delivered':
-        return AppColors.success;
-      case 'Failed':
-      case 'Not Pregnant':
-        return AppColors.error;
-      case 'Pending':
-      default:
-        return AppColors.secondary;
+  
+  void _applySearch(String value) {
+    final searchText = value.trim();
+    
+    final newFilters = searchText.isEmpty 
+        ? <String, dynamic>{} 
+        : {'search': searchText};
+    
+    final currentSearch = _currentFilters['search'] ?? '';
+    
+    if (currentSearch != searchText) {
+      setState(() {
+        _currentFilters = newFilters;
+      });
+      context.read<InseminationBloc>().add(LoadInseminationList(filters: _currentFilters));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final primaryColor = BreedingColors.insemination;
-
+    
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(l10n.inseminations),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 1,
-      ),
-      body: Column(
-        children: <Widget>[
-          // --- Search Bar Widget ---
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              onChanged: _filterInseminations,
-              decoration: InputDecoration(
-                // Assuming you have defined l10n.searchInseminations
-                hintText: l10n.searchInseminations, 
-                prefixIcon: Icon(Icons.search, color: primaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: theme.cardColor,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        // CONDITIONAL LEADING ICON for search/back navigation
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchController.clear();
+                    _applySearch(''); // Clear search filter and reload
+                  });
+                },
+              )
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/farmer/dashboard'); 
+                  }
+                },
               ),
-            ),
-          ),
-          
-          // --- Filtered List View ---
-          Expanded(
-            child: _filteredInseminations.isEmpty
-                ? EmptyState(
-                    icon: Icons.vaccines,
-                    message: _searchQuery.isEmpty
-                        ? "${l10n.noInseminationsYet}\n${l10n.recordFirstInsemination}"
-                        // Assuming you have defined l10n.noResultsFound
-                        : l10n.noResultsFound, 
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _filteredInseminations.length,
-                    itemBuilder: (context, i) {
-                      final item = _filteredInseminations[i];
-                      final status = item.status;
-                      final statusColor = _getStatusColor(status);
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          leading: CircleAvatar(
-                            backgroundColor: primaryColor.withOpacity(0.2),
-                            child: Icon(Icons.vaccines, color: primaryColor),
-                          ),
-                          title: Text(
-                            "${item.damName} #${item.damTagNumber}",
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("${l10n.method}: ${item.breedingMethod}",
-                                  style: theme.textTheme.bodyMedium),
-                              Text("${l10n.date}: ${item.inseminationDate}",
-                                  style: theme.textTheme.bodyMedium),
-                              Text("${l10n.dueDate}: ${item.expectedDeliveryDate}",
-                                  style: theme.textTheme.bodyMedium),
-                            ],
-                          ),
-                          trailing: Chip(
-                            label: Text(
-                              status,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: statusColor.computeLuminance() > 0.5
-                                    ? Colors.black87
-                                    : Colors.white,
-                              ),
-                            ),
-                            backgroundColor: statusColor.withOpacity(0.2),
-                            side: BorderSide(color: statusColor, width: 1),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 2),
-                          ),
-                          // FIX: Accessing static routeName via the class name
-                          onTap: () => context.push('${InseminationsPage.routeName}/${item.id}'),
-                        ),
-                      );
-                    },
-                  ),
-          ),
+        
+        // CONDITIONAL TITLE/SEARCH FIELD
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: l10n.searchByAnimalTag ?? 'Search by Animal Tag or Date',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
+                ),
+                style: const TextStyle(color: AppColors.primary),
+                onSubmitted: _applySearch, 
+                onChanged: _applySearch,
+              )
+            : Text(l10n.inseminationRecords, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+        
+        // ACTION BUTTONS (Search/Clear)
+        actions: [
+          _isSearching
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: AppColors.primary),
+                  onPressed: () {
+                    _searchController.clear();
+                    _applySearch(''); 
+                  },
+                )
+              : IconButton(
+                  icon: const Icon(Icons.search, color: AppColors.primary),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+                ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text(l10n.recordInsemination),
-        onPressed: () => context.push('${InseminationsPage.routeName}/add'),
+      
+      // BlocConsumer to handle list data and post-CRUD notifications
+      body: BlocConsumer<InseminationBloc, InseminationState>(
+        listener: (context, state) {
+          if (state is InseminationUpdated) { 
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.inseminationUpdatedSuccess ?? 'Insemination updated successfully.')), 
+            );
+            _reloadList(); 
+          } else if (state is InseminationDeleted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.inseminationDeletedSuccess ?? 'Insemination deleted successfully.')), 
+            );
+            _reloadList();
+          } else if (state is InseminationAdded) { 
+            // This listener might catch a success from another page's pop(result)
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.inseminationAddedSuccess ?? 'Insemination record added.')), 
+            );
+            _reloadList();
+          } else if (state is InseminationError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${l10n.error}: ${state.message}')),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is InseminationLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is InseminationError) {
+            return Center(child: Text('${l10n.error} ${state.message}'));
+          }
+          
+          if (state is InseminationListLoaded) {
+            final records = state.records;
+            
+            if (records.isEmpty) {
+              final message = _currentFilters.isNotEmpty 
+                  ? l10n.noResultsFound ?? 'No records match your current search or filters.'
+                  : l10n.noInseminationRecords ?? 'No insemination records found.';
+              return Center(child: Text(message));
+            }
+            
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: records.length,
+              itemBuilder: (context, index) {
+                final record = records[index];
+                
+                // ⭐ FIX: Accessing Dam/Animal details from InseminationEntity
+                final tagNumber = record.dam.tagNumber;
+                final date = DateFormat('dd MMM yyyy').format(record.inseminationDate);
+                final status = record.status;
+                
+                final avatarText = tagNumber.isEmpty ? '?' : tagNumber.substring(0, 1);
+                
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: Text(avatarText, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    ),
+                    // ⭐ FIX: Displaying the dam's name and tag number
+                    title: Text('${record.dam.name} (${tagNumber})', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text('${l10n.date}: ${date} • ${l10n.status}: ${status}'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+                    
+                    onTap: () async {
+                      // ⭐ FIX: Use the named route 'inseminationDetail' as defined in your GoRouter config
+                      // You need to pass the route parameter 'id'
+                      final result = await context.pushNamed(
+                        'inseminationDetail', // Name from GoRouter config
+                        pathParameters: {'id': record.id.toString()}, // Pass the ID
+                      );
+                      
+                      if (result != null) {
+                          _reloadList();
+                      }
+                    },
+                  ),
+                );
+              },
+            );
+          }
+          
+          return Center(child: Text(l10n.pressToAdd ?? 'Press the add button to record a new insemination.'));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.secondary,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () async {
+          // ⭐ FIX: Use context.pushNamed with the AddInseminationPage's static routeName
+          await context.pushNamed(AddInseminationPage.routeName);
+          _reloadList();
+        },
       ),
     );
   }

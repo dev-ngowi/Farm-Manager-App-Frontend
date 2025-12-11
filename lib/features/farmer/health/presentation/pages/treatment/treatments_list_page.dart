@@ -204,6 +204,7 @@ class _TreatmentsListPageState extends State<TreatmentsListPage> {
                     message: _searchQuery.isEmpty
                         ? l10n.noTreatmentsFound
                         : l10n.noResultsFound, 
+                        iconColor: AppColors.iconPrimary,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

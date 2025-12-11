@@ -13,17 +13,16 @@ class ApiEndpoints {
   static const String userLocations = '/locations/user-locations';
   static const String addLocation = '/locations/add';
   static String updateLocation(int locationId) => '/locations/$locationId';
-  static String deleteUserLocation(int userLocationId) => 
+  static String deleteUserLocation(int userLocationId) =>
       '/locations/user-locations/$userLocationId';
-  static String setPrimaryLocation(int userLocationId) => 
+  static String setPrimaryLocation(int userLocationId) =>
       '/locations/user-locations/$userLocationId/set-primary';
   static const String regions = '/locations/regions';
-  static String districtsByRegion(int regionId) => 
+  static String districtsByRegion(int regionId) =>
       '/locations/regions/$regionId/districts';
-  static String wardsByDistrict(int districtId) => 
+  static String wardsByDistrict(int districtId) =>
       '/locations/districts/$districtId/wards';
-  static String streetsByWard(int wardId) => 
-      '/locations/wards/$wardId/streets';
+  static String streetsByWard(int wardId) => '/locations/wards/$wardId/streets';
 
   static const String farmerRegister = '/farmer/register';
   static const String farmerProfile = '/farmer/profile';
@@ -36,13 +35,13 @@ class ApiEndpoints {
   static const String vetProfile = '/vet/profile';
   static const String vetUpdateProfile = '/vet/profile';
   static const String vetDashboard = '/vet/dashboard';
-  
+
   static const VetEndpoints vet = VetEndpoints();
-  
+
   // ========================================
   // RESEARCHER ENDPOINTS 🔬
   // ========================================
-  static const ResearcherEndpoints researcher = ResearcherEndpoints(); // NEW INSTANCE
+  static const ResearcherEndpoints researcher = ResearcherEndpoints();
 
   static const String cattle = '/cattle';
   static const String addCattle = '/cattle';
@@ -50,13 +49,13 @@ class ApiEndpoints {
   static String updateCattle(int cattleId) => '/cattle/$cattleId';
   static String deleteCattle(int cattleId) => '/cattle/$cattleId';
 
-  static String cattleHealthRecords(int cattleId) => 
+  static String cattleHealthRecords(int cattleId) =>
       '/cattle/$cattleId/health-records';
-  static String addHealthRecord(int cattleId) => 
+  static String addHealthRecord(int cattleId) =>
       '/cattle/$cattleId/health-records';
 
   static const String notifications = '/notifications';
-  static String markNotificationRead(int notificationId) => 
+  static String markNotificationRead(int notificationId) =>
       '/notifications/$notificationId/read';
   static const String markAllNotificationsRead = '/notifications/mark-all-read';
 
@@ -66,36 +65,51 @@ class ApiEndpoints {
   static const String heatCycles = '/breeding/heat-cycles';
   static String heatCycleDetails(dynamic id) => '/breeding/heat-cycles/$id';
   static String updateHeatCycle(dynamic id) => '/breeding/heat-cycles/$id';
-  // Note: Store (POST) uses the base heatCycles string
 
   // ========================================
   // SEMEN INVENTORY ENDPOINTS (under /breeding prefix) 🧪❄️
   // ========================================
-  static const String semenInventory = '/breeding/semen'; // GET/POST for list/create
-  static const String availableSemen = '/breeding/semen/available'; // GET for available
-  static const String semenDropdowns = '/breeding/semen/dropdowns'; 
+  static const String semenInventory = '/breeding/semen';
+  static const String availableSemen = '/breeding/semen/available';
+  static const String semenDropdowns = '/breeding/semen/dropdowns';
   static String semenDetail(dynamic id) => '/breeding/semen/$id';
+
+  // ========================================
+  // INSEMINATION ENDPOINTS (under /breeding prefix) 🧬
+  // ========================================
+  static const String inseminations =
+      '/breeding/inseminations'; // GET list & POST create
+  static String inseminationDetails(dynamic id) =>
+      '/breeding/inseminations/$id'; // GET show
+  static String updateInsemination(dynamic id) =>
+      '/breeding/inseminations/$id'; // PUT update
+  static String deleteInsemination(dynamic id) =>
+      '/breeding/inseminations/$id'; // DELETE
+
+// Available resources for dropdowns (used in Flutter insemination form)
+  static const String availableAnimals = '/breeding/inseminations/animals/available';
+  // static const String availableSemen = '/breeding/inseminations/semen/available';
+  static const String availableDams = '/breeding/inseminations/dams/available';
+  static const String availableSires = '/breeding/inseminations/sires/available';
 }
 
 class FarmerEndpoints {
   const FarmerEndpoints();
-  
-  // Farmer Registration & Profile
+
   String get register => '/farmer/register';
   String get profile => '/farmer/profile';
   String get updateProfile => '/farmer/profile';
   String get dashboard => '/farmer/dashboard';
-  
-  // Livestock Manager 
-  String get livestock => '/livestock'; 
-  String get livestockSummary => '/livestock/summary'; 
-  String get livestockDropdowns => '/livestock/dropdowns'; 
+
+  String get livestock => '/livestock';
+  String get livestockSummary => '/livestock/summary';
+  String get livestockDropdowns => '/livestock/dropdowns';
   String livestockDetails(dynamic animalId) => '/livestock/$animalId';
 }
 
 class VetEndpoints {
   const VetEndpoints();
-  
+
   String get register => '/vet/register';
   String get profile => '/vet/profile';
   String get updateProfile => '/vet/profile';
@@ -103,11 +117,14 @@ class VetEndpoints {
 }
 
 // ----------------------------------------------------
-// NEW CLASS FOR RESEARCHER ENDPOINTS
+// RESEARCHER ENDPOINTS (UPDATED)
 // ----------------------------------------------------
 class ResearcherEndpoints {
   const ResearcherEndpoints();
-  String get profileShow => '/researcher/profile'; 
-  String get profileUpdate => '/researcher/profile'; 
-  String get researchPurposes => '/researcher/purposes'; 
+  String get profileShow => '/researcher/profile';
+  String get profileUpdate => '/researcher/profile';
+  String get researchPurposes => '/researcher/purposes';
+
+  // === NEW ENDPOINT for ResearcherAwaitingApprovalPage ===
+  String get statusCheck => '/researcher/status';
 }

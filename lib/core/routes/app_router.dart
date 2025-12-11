@@ -1,11 +1,17 @@
+// lib/app_router.dart
+
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/forgot_password_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/login_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/register_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/role_selection_page.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/entities/insemination_entity.dart';
 import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/farmer_dashboard_page.dart';
 import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/farmerDetailed/farmer_details_form_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/location/location_manager_page.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/entities/livestock.dart';
+import 'package:farm_manager_app/features/farmer/livestock/presentation/pages/edit_livestock_page.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/pages/dashboard/reseacher_dashboard_page.dart';
+import 'package:farm_manager_app/features/reseacher/presentation/pages/reseacher_await_approval_page.dart';
 import 'package:farm_manager_app/features/vet/presentation/pages/vet_dashboard_page.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/HeatCycle/heat_cycle_bloc.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/pages/HeatCycle/add_heat_cycle_page.dart';
@@ -68,6 +74,8 @@ import 'package:farm_manager_app/features/reseacher/presentation/blocs/researche
 // Other Role Imports
 import 'package:farm_manager_app/features/reseacher/presentation/pages/reseacher_detailes_form_page.dart';
 import 'package:farm_manager_app/features/vet/presentation/pages/details/vet_details_form_page.dart';
+import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -91,7 +99,12 @@ class AppRoutes {
   static const String locationManager = '/location-manager';
   static const String farmerDetailsForm = '/farmer-details';
   static const String vetDetailsForm = '/vet-details';
-  static const String ResearcherDetailsFormPage = '/researcher-details';
+  static const String researcherDetailsForm =
+      '/researcher-details'; // Renamed for consistency
+  static const String researcherAwaitingApproval =
+      '/researcher/awaiting-approval';
+  static const String vetAwaitingApproval =
+      '/vet/awaiting-approval'; // 🎯 NEW Route
 
   // Farmer Main Routes (Sidebar Menu)
   static const String farmerDashboard = '/farmer/dashboard';
@@ -100,6 +113,7 @@ class AppRoutes {
   static const String livestock = '/farmer/livestock';
   static const String livestockDetail = '/farmer/livestock/detail/:animalId';
   static const String addLivestock = '/farmer/livestock/add';
+  static const String editLivestock = '/farmer/livestock/edit/:animalId';
 
   // Breeding Module Routes (Base: /farmer/breeding)
   static const String breeding = '/farmer/breeding'; // Breeding Dashboard base
@@ -132,9 +146,11 @@ final GoRouter router = GoRouter(
 
     final isLoggedIn = authState is AuthSuccess;
     final UserEntity? user = authState is AuthSuccess ? authState.user : null;
-    final role = user?.role?.toLowerCase();
+    final role = user?.role.toLowerCase();
     final hasLocation = user?.hasLocation == true;
     final hasCompletedDetails = user?.hasCompletedDetails == true;
+    // 🎯 NEW: Get the approval status flag
+    final hasDetailsApproved = user?.hasDetailsApproved == true;
 
     final publicRoutes = [
       AppRoutes.splash,
@@ -149,7 +165,9 @@ final GoRouter router = GoRouter(
       AppRoutes.locationManager,
       AppRoutes.farmerDetailsForm,
       AppRoutes.vetDetailsForm,
-      AppRoutes.ResearcherDetailsFormPage,
+      AppRoutes.researcherDetailsForm, // Using corrected constant
+      AppRoutes.researcherAwaitingApproval,
+      AppRoutes.vetAwaitingApproval, // 🎯 NEW CONFIG ROUTE
     ];
 
     print('🔀 Router Redirect Check:');
@@ -158,6 +176,7 @@ final GoRouter router = GoRouter(
     print('   Role: $role');
     print('   Has Location: $hasLocation');
     print('   Has Details: $hasCompletedDetails');
+    print('   Has Details Approved: $hasDetailsApproved'); // 🎯 NEW Log
 
     // 1. Allow splash always
     if (targetPath == AppRoutes.splash || authState is AuthInitial) {
@@ -192,25 +211,62 @@ final GoRouter router = GoRouter(
           : AppRoutes.locationManager;
     }
 
-    // 5. Details not completed (Third step)
+    // 5. Details not completed or Awaiting Approval (Third and Fourth steps)
+
+    // Determine the details form route
     final detailsRoute = switch (role) {
       'farmer' => AppRoutes.farmerDetailsForm,
       'vet' => AppRoutes.vetDetailsForm,
-      'researcher' => AppRoutes.ResearcherDetailsFormPage,
+      'researcher' => AppRoutes.researcherDetailsForm,
       _ => AppRoutes.farmerDetailsForm,
     };
 
-    if (targetPath == detailsRoute) {
-      print('   → Allowing access to details form: $detailsRoute');
-      return null;
+    // Determine the awaiting approval route
+    final awaitingRoute = switch (role) {
+      'vet' => AppRoutes.vetAwaitingApproval,
+      'researcher' => AppRoutes.researcherAwaitingApproval,
+      _ => null, // Farmer does not have an approval stage
+    };
+
+    // --- Core Details/Approval Logic ---
+    if (!hasCompletedDetails) {
+      // User must fill details
+      if (targetPath != detailsRoute) {
+        print('   → Redirecting to details form: $detailsRoute');
+        return detailsRoute;
+      }
+      return null; // Allow access to the details form
     }
 
-    if (hasLocation && !hasCompletedDetails) {
-      print('   → Redirecting to details form: $detailsRoute');
-      return detailsRoute;
+    // Now hasCompletedDetails is TRUE
+
+    // Handle Awaiting Approval or Final Dashboard for Vet/Researcher
+    if (awaitingRoute != null) {
+      if (!hasDetailsApproved) {
+        // Details completed, but not approved
+        if (targetPath != awaitingRoute) {
+          print('   → Redirecting to Awaiting Approval: $awaitingRoute');
+          return awaitingRoute;
+        }
+        return null; // Allow access to Awaiting Approval page
+      } else {
+        // Details completed AND approved
+        if (targetPath == detailsRoute || targetPath == awaitingRoute) {
+          // Redirect away from config pages to dashboard
+          final dashboard = switch (role) {
+            'vet' => AppRoutes.vetDashboard,
+            'researcher' => AppRoutes.researcherDashboard,
+            _ => AppRoutes.farmerDashboard,
+          };
+          print('   → Details Approved, redirecting to dashboard: $dashboard');
+          return dashboard;
+        }
+      }
     }
 
-    // 6. Fully configured → redirect config pages to dashboard
+    // 6. User fully configured (or farmer/approved vet/researcher)
+
+    // Standard dashboard redirect for other roles (Farmer, Approved Vet/Researcher)
     final dashboard = switch (role) {
       'farmer' => AppRoutes.farmerDashboard,
       'vet' => AppRoutes.vetDashboard,
@@ -219,7 +275,7 @@ final GoRouter router = GoRouter(
     };
 
     if (publicRoutes.contains(targetPath) ||
-        configRoutes.contains(targetPath)) {
+        configRoutes.contains(targetPath) && targetPath != dashboard) {
       print('   → User fully configured, redirecting to dashboard: $dashboard');
       return dashboard;
     }
@@ -252,17 +308,35 @@ final GoRouter router = GoRouter(
     GoRoute(
         path: AppRoutes.farmerDetailsForm,
         builder: (_, __) => const FarmerDetailsFormPage()),
+
+    // VET DETAILS
     GoRoute(
       path: AppRoutes.vetDetailsForm,
       builder: (_, __) => const VetDetailsFormPage(),
     ),
+    // GoRoute(
+    //   path: AppRoutes.vetAwaitingApproval, // 🎯 NEW ROUTE
+    //   name: 'vet-awaiting-approval',
+    //   builder: (_, __) => const VetAwaitingApprovalPage(), // Placeholder page
+    // ),
+
+    // RESEARCHER DETAILS
     GoRoute(
-      path: AppRoutes.ResearcherDetailsFormPage,
+      path: AppRoutes.researcherDetailsForm, // Using corrected constant
       builder: (_, __) => BlocProvider<ResearcherBloc>(
         create: (context) => GetIt.instance<ResearcherBloc>(),
         child: const ResearcherDetailsFormPage(),
       ),
     ),
+    GoRoute(
+      path: AppRoutes.researcherAwaitingApproval,
+      name: 'researcher-awaiting-approval',
+      builder: (_, __) => BlocProvider<ResearcherBloc>(
+        create: (context) => GetIt.instance<ResearcherBloc>(),
+        child: const ResearcherAwaitingApprovalPage(),
+      ),
+    ),
+
     // Farmer Dashboard & Features
     GoRoute(
       path: AppRoutes.farmerDashboard,
@@ -270,7 +344,6 @@ final GoRouter router = GoRouter(
       builder: (_, __) => const FarmerDashboardScreen(),
     ),
 
-    // 1. Livestock Routes
     GoRoute(
       path: AppRoutes.livestock,
       name: 'livestock',
@@ -279,14 +352,31 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: 'detail/:animalId',
           name: 'livestock-detail',
-          builder: (context, state) => LivestockDetailPage(
-            animalId: state.pathParameters['animalId']!,
-          ),
+          builder: (context, state) {
+            // Ensure animalId is parsed as an int if needed, though here it's passed as a String
+            final animalId = state.pathParameters['animalId']!;
+            return LivestockDetailPage(
+              animalId: animalId,
+            );
+          },
         ),
         GoRoute(
           path: 'add',
           name: 'add-livestock',
           builder: (context, state) => const AddLivestockPage(),
+        ),
+        // ⭐ NEW: Edit Livestock Route
+        GoRoute(
+          path: 'edit/:animalId',
+          name: 'edit-livestock',
+          builder: (context, state) {
+            final animalId = state.pathParameters['animalId']!;
+            final animal = state.extra as LivestockEntity?;
+            return EditLivestockPage(
+              animalId: animalId,
+              animal: animal,
+            );
+          },
         ),
       ],
     ),
@@ -339,39 +429,50 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
-        // Inseminations Module
+     // Inseminations Module
+GoRoute(
+  path: 'inseminations',
+  name: InseminationListPage.routeName,
+  builder: (context, state) => const InseminationListPage(),
+  routes: [
+    // Add new insemination
+    GoRoute(
+      path: 'add',
+      name: AddInseminationPage.routeName,
+      builder: (context, state) => const AddInseminationPage(),
+    ),
+
+    // View detail: /farmer/inseminations/123
+    GoRoute(
+      path: ':id',
+      name: 'inseminationDetail',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return InseminationDetailPage(recordId: id);
+      },
+      routes: [
+        // Edit: /farmer/inseminations/123/edit
         GoRoute(
-          path: 'inseminations',
-          name: InseminationsPage.routeName, // Use the static routeName
-          builder: (context, state) => const InseminationsPage(),
-          routes: [
-            GoRoute(
-              path: 'add',
-              name: AddInseminationPage.routeName,
-              builder: (context, state) => const AddInseminationPage(),
-            ),
-            GoRoute(
-              path: ':id',
-              name: 'inseminationDetail',
-              builder: (context, state) {
-                final idString = state.pathParameters['id'];
-                final id = int.tryParse(idString ?? '0') ?? 0;
-                return InseminationDetailPage(inseminationId: id);
-              },
-              routes: [
-                GoRoute(
-                  path: 'edit',
-                  name: EditInseminationPage.routeName,
-                  builder: (context, state) {
-                    final idString = state.pathParameters['id'];
-                    final id = int.tryParse(idString ?? '0') ?? 0;
-                    return EditInseminationPage(inseminationId: id);
-                  },
-                ),
-              ],
-            ),
-          ],
+          path: 'edit',
+          name: EditInseminationPage.routeName,
+          builder: (context, state) {
+            final id = state.pathParameters['id']!;
+            final record = state.extra as InseminationEntity?;
+
+            if (record == null) {
+              // Safety fallback
+              context.pop();
+              return const SizedBox.shrink();
+            }
+
+            return EditInseminationPage(
+              recordId: id, record: record);
+          },
         ),
+      ],
+    ),
+  ],
+),
         // Pregnancy Checks Module
         GoRoute(
           path: 'pregnancy-checks',
@@ -500,7 +601,6 @@ final GoRouter router = GoRouter(
           ],
         ),
         // Lactations Module
-        // --- UPDATED LACTATIONS ROUTE ---
         GoRoute(
           path: 'lactations',
           name: 'lactations',
@@ -534,7 +634,6 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
-        // --- END UPDATED LACTATIONS ROUTE ---
       ],
     ),
 
@@ -677,8 +776,7 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
-        // // Treatments
-        // // Treatments
+        // Treatments
         GoRoute(
           path: 'treatments',
           name: 'treatments',
@@ -691,67 +789,34 @@ final GoRouter router = GoRouter(
               // OverdueTreatmentsPage internally uses TreatmentsListPage(isOverdueFilter: true)
               builder: (context, state) => const OverdueTreatmentsPage(),
             ),
-
-            // --- CORRECTED DETAILS ROUTE (Non-Cubit) ---
+            // The treatments list page will handle navigation to the detail page, which is nested here
             GoRoute(
               path: ':treatmentId',
               name: 'treatment-details',
               builder: (context, state) {
-                final idString = state.pathParameters['treatmentId'];
-                // Safely convert the ID to an integer, defaulting to 0 if null/invalid
-                final treatmentId = int.tryParse(idString ?? '0') ?? 0;
-
-                return TreatmentDetailsPage(treatmentId: treatmentId);
+                final treatmentId = state.pathParameters['treatmentId']!;
+                return TreatmentDetailsPage(treatmentId: 1);
               },
             ),
           ],
         ),
+        // Vaccinations
         GoRoute(
           path: 'vaccinations',
           name: 'vaccinations',
           builder: (_, __) => const VaccinationListPage(),
           routes: [
             GoRoute(
-                path: 'detail/:vaccinationId',
-                name: 'vaccination-detail',
-                builder: (context, state) {
-                  final idString = state.pathParameters['vaccinationId'] ?? '0';
-                  final scheduleId = int.tryParse(idString) ?? 0;
-                  return VaccinationDetailPage(scheduleId: scheduleId);
-                }),
+              path: ':vaccinationId',
+              name: 'vaccination-details',
+              builder: (context, state) {
+                final vaccinationId = state.pathParameters['vaccinationId']!;
+                return VaccinationDetailPage(
+                    vaccinationId: vaccinationId, scheduleId: 1);
+              },
+            ),
           ],
         ),
-        // // Prescriptions (ADD: 'add' sub-route for completeness)
-        // GoRoute(
-        //     path: 'prescriptions',
-        //     name: 'prescriptions',
-        //     builder: (_, __) => const PrescriptionsListPage(),
-        //     routes: [
-        //       GoRoute( // New 'add' sub-route
-        //           path: 'add',
-        //           name: 'add-prescription',
-        //           builder: (_, __) => const AddPrescriptionPage()), // Placeholder
-        //     ],
-        // ),
-
-        // // Appointments
-        // GoRoute(
-        //   path: 'appointments',
-        //   name: 'vet-appointments',
-        //   builder: (_, __) => const AppointmentsListPage(),
-        //   routes: [
-        //     GoRoute(
-        //         path: 'add',
-        //         name: 'add-appointment',
-        //         builder: (_, __) => const BookAppointmentPage()),
-        //   ],
-        // ),
-
-        // // Vet Chat
-        // GoRoute(
-        //     path: 'chat',
-        //     name: 'vet-chat',
-        //     builder: (_, __) => const VetChatPage()),
       ],
     ),
 
@@ -768,9 +833,10 @@ final GoRouter router = GoRouter(
 
     // Other Roles Dashboards
     GoRoute(
-        path: AppRoutes.vetDashboard, builder: (_, __) => VetDashboardPage()),
+        path: AppRoutes.vetDashboard,
+        builder: (_, __) => const VetDashboardPage()),
     GoRoute(
         path: AppRoutes.researcherDashboard,
-        builder: (_, __) => ResearcherDashboardPage()),
+        builder: (_, __) => const ResearcherDashboardPage()),
   ],
 );

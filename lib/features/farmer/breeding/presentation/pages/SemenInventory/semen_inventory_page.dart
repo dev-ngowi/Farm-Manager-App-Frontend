@@ -73,6 +73,7 @@ class _SemenInventoryPageState extends State<SemenInventoryPage> {
               return EmptyState(
                 icon: Icons.storage,
                 message: "${l10n.noSemenRecordsYet}\n${l10n.recordFirstSemenBatch}",
+                iconColor: AppColors.iconPrimary,
               );
             }
 

@@ -1,4 +1,3 @@
-import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -277,7 +276,7 @@ class _AddPregnancyCheckPageState extends State<AddPregnancyCheckPage> {
         prefixIcon: Icon(Icons.pets, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedInseminationId,
+      initialValue: _selectedInseminationId,
       hint: Text(l10n.selectInsemination),
       items: _mockInseminations.map((item) {
         return DropdownMenuItem(
@@ -301,7 +300,7 @@ class _AddPregnancyCheckPageState extends State<AddPregnancyCheckPage> {
         prefixIcon: Icon(Icons.straighten, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedMethod,
+      initialValue: _selectedMethod,
       hint: Text(l10n.selectMethod),
       items: _methods.map((method) {
         return DropdownMenuItem(
@@ -325,7 +324,7 @@ class _AddPregnancyCheckPageState extends State<AddPregnancyCheckPage> {
         prefixIcon: Icon(Icons.favorite_border, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedResult,
+      initialValue: _selectedResult,
       hint: Text(l10n.selectResult),
       items: _results.map((result) {
         return DropdownMenuItem(
@@ -354,7 +353,7 @@ class _AddPregnancyCheckPageState extends State<AddPregnancyCheckPage> {
         prefixIcon: Icon(Icons.person_pin, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedVetId,
+      initialValue: _selectedVetId,
       hint: Text(l10n.selectTechnician),
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.notRecorded, style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))),

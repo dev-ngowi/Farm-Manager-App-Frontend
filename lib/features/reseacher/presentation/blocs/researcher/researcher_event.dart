@@ -1,19 +1,16 @@
-// # Researcher Events
+// lib/features/researcher/presentation/blocs/researcher/researcher_event.dart
+
 abstract class ResearcherEvent {}
 
 class SubmitResearcherDetailsEvent extends ResearcherEvent {
-  // REQUIRED FIELDS (Aligned with backend keys)
-  final String affiliatedInstitution; // Renamed from institution
-  final String department;             // Renamed from fieldOfStudy
-  final String researchPurpose;        // New, required field
-  final String researchFocusArea;      // Renamed from researchFocus, and made required
-  
-  // OPTIONAL FIELDS (New fields)
-  final String? academicTitle;         // Optional field
-  final String? orcidId;               // Optional field
-
-  // Status Flag
+  final String affiliatedInstitution; 
+  final String department;             
+  final String researchPurpose;        
+  final String researchFocusArea;      
+  final String? academicTitle;         
+  final String? orcidId;               
   final bool hasCompletedDetails;
+  final String? token; // 🎯 NEW: Token parameter
 
   SubmitResearcherDetailsEvent({
     required this.affiliatedInstitution,
@@ -23,5 +20,12 @@ class SubmitResearcherDetailsEvent extends ResearcherEvent {
     this.academicTitle,
     this.orcidId,
     this.hasCompletedDetails = true,
+    this.token, // 🎯 NEW: Token parameter
   });
+}
+
+class CheckApprovalStatusEvent extends ResearcherEvent {
+  final String? token; // 🎯 NEW: Token parameter
+  
+  CheckApprovalStatusEvent({this.token});
 }

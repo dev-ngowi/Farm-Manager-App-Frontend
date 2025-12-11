@@ -53,14 +53,14 @@ class UserEntity extends Equatable {
   final List<LocationEntity>? locations;
   
   // ========================================
-  // PROFILE COMPLETION
+  // PROFILE/APPROVAL FIELDS
   // ========================================
   
-  /// Whether user has completed their role-specific details
-  /// - For farmers: whether they've completed farm details
-  /// - For vets: whether they've completed practice details
+  /// Whether the user has completed their profile details form
   final bool hasCompletedDetails;
-
+  /// 🎯 NEW: Whether the user's submitted details have been approved by an admin/vet
+  final bool hasDetailsApproved; 
+  
   // ========================================
   // CONSTRUCTOR
   // ========================================
@@ -74,63 +74,21 @@ class UserEntity extends Equatable {
     required this.username,
     required this.role,
     this.token,
-    required this.hasLocation,
+    this.hasLocation = false,
     this.primaryLocationId,
     this.locations,
     this.hasCompletedDetails = false,
+    this.hasDetailsApproved = false, // 🎯 NEW DEFAULT VALUE
   });
 
   // ========================================
-  // COMPUTED PROPERTIES
+  // GETTERS
   // ========================================
 
-  /// Full name (firstname + lastname)
   String get fullName => '$firstname $lastname';
 
-  /// Display name (for UI - firstname only or full name)
-  String get displayName => firstname;
-
-  /// Check if user is authenticated (has token)
-  bool get isAuthenticated => token != null && token!.isNotEmpty;
-
-  /// Check if user has any locations
-  bool get hasAnyLocations => 
-      locations != null && locations!.isNotEmpty;
-
-  /// Get primary location if it exists
-  LocationEntity? get primaryLocation {
-    if (locations == null || locations!.isEmpty) return null;
-    
-    try {
-      return locations!.firstWhere(
-        (loc) => loc.isPrimary,
-        orElse: () => locations!.first,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Get the location ID that should be used (primary or first available)
-  int? get defaultLocationId {
-    final primary = primaryLocation;
-    return primary?.locationId;
-  }
-
-  /// Check if user is a farmer
-  bool get isFarmer => role.toLowerCase() == 'farmer';
-
-  /// Check if user is a vet
-  bool get isVet => role.toLowerCase() == 'vet';
-
-  /// Check if user needs to complete their profile
-  bool get needsProfileCompletion => !hasCompletedDetails;
-
-  /// Check if user needs to add a location
-  bool get needsLocation => !hasLocation || !hasAnyLocations;
-
   // ========================================
-  // COPY WITH METHOD
+  // COPYWITH METHOD (Updated)
   // ========================================
 
   UserEntity copyWith({
@@ -146,6 +104,7 @@ class UserEntity extends Equatable {
     int? primaryLocationId,
     List<LocationEntity>? locations,
     bool? hasCompletedDetails,
+    bool? hasDetailsApproved, // 🎯 NEW COPYWITH PARAMETER
   }) {
     return UserEntity(
       id: id ?? this.id,
@@ -160,11 +119,12 @@ class UserEntity extends Equatable {
       primaryLocationId: primaryLocationId ?? this.primaryLocationId,
       locations: locations ?? this.locations,
       hasCompletedDetails: hasCompletedDetails ?? this.hasCompletedDetails,
+      hasDetailsApproved: hasDetailsApproved ?? this.hasDetailsApproved, // 🎯 NEW
     );
   }
 
   // ========================================
-  // EQUATABLE
+  // EQUATABLE (Updated)
   // ========================================
 
   @override
@@ -181,6 +141,7 @@ class UserEntity extends Equatable {
         primaryLocationId,
         locations,
         hasCompletedDetails,
+        hasDetailsApproved, // 🎯 NEW PROP
       ];
 
   @override
@@ -191,7 +152,7 @@ class UserEntity extends Equatable {
         'role: $role, '
         'hasLocation: $hasLocation, '
         'locations: ${locations?.length ?? 0}, '
-        'hasCompletedDetails: $hasCompletedDetails'
-        ')';
+        'hasCompletedDetails: $hasCompletedDetails, '
+        'hasDetailsApproved: $hasDetailsApproved)'; // 🎯 NEW TOSTRING
   }
 }

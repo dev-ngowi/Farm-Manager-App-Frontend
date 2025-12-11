@@ -1,4 +1,3 @@
-import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
 // Replace these mocks with your actual models and BLoC imports
 // import 'package:farm_manager_app/features/farmer/breeding/data/models/semen_model.dart'; 
@@ -7,7 +6,7 @@ import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/bre
 // import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/Semen/semen_state.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Keep BLoC import for future use
+// Keep BLoC import for future use
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -525,7 +524,7 @@ class _EditSemenPageState extends State<EditSemenPage> {
     bool isSubmitting,
   ) {
     return DropdownButtonFormField<MockBreed>(
-      value: _selectedBreed,
+      initialValue: _selectedBreed,
       decoration: InputDecoration(
         labelText: '${l10n.breed} *',
         prefixIcon: Icon(Icons.catching_pokemon, color: primaryColor),
@@ -563,7 +562,7 @@ class _EditSemenPageState extends State<EditSemenPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<MockAnimal>(
-          value: _selectedBull,
+          initialValue: _selectedBull,
           decoration: InputDecoration(
             labelText: l10n.internalBullId,
             prefixIcon: Icon(Icons.male, color: primaryColor),

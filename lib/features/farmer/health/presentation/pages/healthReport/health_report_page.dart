@@ -229,7 +229,7 @@ class _HealthReportsPageState extends State<HealthReportsPage> {
 
   Widget _buildPriorityFilter(_MockL10n l10n) {
     return DropdownButtonFormField<ReportPriority>(
-      value: _selectedPriority,
+      initialValue: _selectedPriority,
       decoration: InputDecoration(
         labelText: l10n.priority,
         border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
@@ -256,7 +256,7 @@ class _HealthReportsPageState extends State<HealthReportsPage> {
 
   Widget _buildStatusFilter(_MockL10n l10n) {
     return DropdownButtonFormField<ReportStatus>(
-      value: _selectedStatus,
+      initialValue: _selectedStatus,
       decoration: InputDecoration(
         labelText: l10n.status,
         border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),

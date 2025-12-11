@@ -500,7 +500,7 @@ abstract class AppLocalizations {
   /// **'Update Language'**
   String get updateLanguage;
 
-  /// No description provided for @logout.
+  /// Logout button label
   ///
   /// In en, this message translates to:
   /// **'Logout'**
@@ -3127,6 +3127,504 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A network or server error occurred. Please try again later.'**
   String get genericError;
+
+  /// No description provided for @addNewWardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Ward Hint'**
+  String get addNewWardHint;
+
+  /// Title when waiting for researcher approval
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting Approval'**
+  String get awaitingApproval;
+
+  /// Message explaining the approval is pending
+  ///
+  /// In en, this message translates to:
+  /// **'Your researcher profile has been submitted successfully. Please wait while an administrator reviews your application.'**
+  String get approvalPendingMessage;
+
+  /// Info row text
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Submitted'**
+  String get profileSubmitted;
+
+  /// Info row text
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for Review'**
+  String get waitingForReview;
+
+  /// Info row text
+  ///
+  /// In en, this message translates to:
+  /// **'You will be notified once approved'**
+  String get youWillBeNotified;
+
+  /// Text shown while checking approval status
+  ///
+  /// In en, this message translates to:
+  /// **'Checking status...'**
+  String get checkingStatus;
+
+  /// Button label to manually check status
+  ///
+  /// In en, this message translates to:
+  /// **'Check Status'**
+  String get checkStatus;
+
+  /// Snackbar message when approved
+  ///
+  /// In en, this message translates to:
+  /// **'Your researcher profile has been approved!'**
+  String get approvalGranted;
+
+  /// Dialog title when declined
+  ///
+  /// In en, this message translates to:
+  /// **'Application Declined'**
+  String get applicationDeclined;
+
+  /// Dialog message when application is declined
+  ///
+  /// In en, this message translates to:
+  /// **'We regret to inform you that your researcher application has been declined.'**
+  String get declineMessage;
+
+  /// Label for decline reason
+  ///
+  /// In en, this message translates to:
+  /// **'Reason:'**
+  String get reason;
+
+  /// OK button in dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @editAnimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Animal'**
+  String get editAnimal;
+
+  /// No description provided for @animalUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal updated successfully'**
+  String get animalUpdatedSuccess;
+
+  /// No description provided for @deleteConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Animal'**
+  String get deleteConfirmationTitle;
+
+  /// No description provided for @deleteConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete animal {tag}?'**
+  String deleteConfirmationMessage(Object tag);
+
+  /// No description provided for @animalDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal deleted successfully'**
+  String get animalDeletedSuccess;
+
+  /// No description provided for @failedLoadDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load animal details: '**
+  String get failedLoadDetails;
+
+  /// No description provided for @notApplicable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Applicable'**
+  String get notApplicable;
+
+  /// No description provided for @noName.
+  ///
+  /// In en, this message translates to:
+  /// **'No Name'**
+  String get noName;
+
+  /// No description provided for @genealogy.
+  ///
+  /// In en, this message translates to:
+  /// **'Genealogy'**
+  String get genealogy;
+
+  /// No description provided for @purchaseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Details'**
+  String get purchaseDetails;
+
+  /// No description provided for @purchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Date'**
+  String get purchaseDate;
+
+  /// No description provided for @purchaseCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Cost'**
+  String get purchaseCost;
+
+  /// No description provided for @source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source / Vendor'**
+  String get source;
+
+  /// No description provided for @deleteAnimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Animal'**
+  String get deleteAnimal;
+
+  /// No description provided for @updateAnimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Animal'**
+  String get updateAnimal;
+
+  /// No description provided for @basicInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Information'**
+  String get basicInformation;
+
+  /// No description provided for @searchByTagOrName.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Tag or Name'**
+  String get searchByTagOrName;
+
+  /// Header title for the registration form.
+  ///
+  /// In en, this message translates to:
+  /// **'Register New Animal'**
+  String get registerNewAnimal;
+
+  /// Header subtitle for the registration form.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill out all required details to register a new livestock record.'**
+  String get fillAnimalDetails;
+
+  /// Header title for the edit form.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Animal Details'**
+  String get editAnimalHeader;
+
+  /// Header subtitle for the edit form (dynamic parts like tag number are handled in code).
+  ///
+  /// In en, this message translates to:
+  /// **'Update information for this animal'**
+  String get editAnimalHeaderSubtitle;
+
+  /// Information box text on the Add page.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields marked with * are required. The more details you add, the better your farm reports will be.'**
+  String get requiredFieldsNote;
+
+  /// Information box text on the Edit page.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields marked with * are required. Make sure to review all changes before submitting.'**
+  String get requiredFieldsReviewNote;
+
+  /// Error message shown when species dropdown data could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No Species data available. Cannot proceed.'**
+  String get noSpeciesAvailable;
+
+  /// Label for the weight at birth field.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight at Birth (kg)'**
+  String get weightAtBirthKg;
+
+  /// Validation error for missing weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight is required'**
+  String get weightRequired;
+
+  /// Translation for sex 'Male'
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get sexMale;
+
+  /// Translation for sex 'Female'
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get sexFemale;
+
+  /// Translation for sex 'Unknown'
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get sexUnknown;
+
+  /// Translation for animal status 'Active'
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get statusActive;
+
+  /// Translation for animal status 'Sold'
+  ///
+  /// In en, this message translates to:
+  /// **'Sold'**
+  String get statusSold;
+
+  /// Translation for animal status 'Deceased'
+  ///
+  /// In en, this message translates to:
+  /// **'Deceased'**
+  String get statusDeceased;
+
+  /// Translation for animal status 'Culled'
+  ///
+  /// In en, this message translates to:
+  /// **'Culled'**
+  String get statusCulled;
+
+  /// No description provided for @editInseminationRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Insemination Record'**
+  String get editInseminationRecord;
+
+  /// No description provided for @invalidRecordId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Record ID'**
+  String get invalidRecordId;
+
+  /// No description provided for @inseminationUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination updated successfully!'**
+  String get inseminationUpdatedSuccess;
+
+  /// No description provided for @editInseminationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Insemination Details'**
+  String get editInseminationDetails;
+
+  /// No description provided for @updateInseminationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Update information for this insemination record.'**
+  String get updateInseminationNote;
+
+  /// No description provided for @reviewChangesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields marked with * are required. Make sure to review all changes before submitting.'**
+  String get reviewChangesNote;
+
+  /// No description provided for @inseminationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination Details'**
+  String get inseminationDetails;
+
+  /// No description provided for @editRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Record'**
+  String get editRecord;
+
+  /// No description provided for @inseminationDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination deleted successfully!'**
+  String get inseminationDeletedSuccess;
+
+  /// No description provided for @pregnancyResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy & Result'**
+  String get pregnancyResult;
+
+  /// No description provided for @pregnancyDiagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy Diagnosis'**
+  String get pregnancyDiagnosis;
+
+  /// No description provided for @diagnosisResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnosis Result'**
+  String get diagnosisResult;
+
+  /// No description provided for @outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get outcome;
+
+  /// No description provided for @addInseminationRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Insemination Record'**
+  String get addInseminationRecord;
+
+  /// No description provided for @inseminationAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination added successfully!'**
+  String get inseminationAddedSuccess;
+
+  /// No description provided for @registerNewInsemination.
+  ///
+  /// In en, this message translates to:
+  /// **'Register New Insemination'**
+  String get registerNewInsemination;
+
+  /// No description provided for @fillInseminationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill out all required details to register a new insemination record.'**
+  String get fillInseminationDetails;
+
+  /// No description provided for @inseminationRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination Records'**
+  String get inseminationRecords;
+
+  /// No description provided for @searchByAnimalTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Animal Tag or Date'**
+  String get searchByAnimalTag;
+
+  /// No description provided for @noInseminationRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No insemination records yet'**
+  String get noInseminationRecords;
+
+  /// No description provided for @animal.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal'**
+  String get animal;
+
+  /// No description provided for @inseminationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination Type'**
+  String get inseminationType;
+
+  /// No description provided for @inseminatorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Inseminator Name'**
+  String get inseminatorName;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @animalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal Name'**
+  String get animalName;
+
+  /// No description provided for @daysToDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Days To Due'**
+  String get daysToDue;
+
+  /// No description provided for @inseminationEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Insemination Event'**
+  String get inseminationEvent;
+
+  /// No description provided for @sireInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sire/Semen Information'**
+  String get sireInformation;
+
+  /// No description provided for @semenId.
+  ///
+  /// In en, this message translates to:
+  /// **'Semen ID'**
+  String get semenId;
+
+  /// No description provided for @sireId.
+  ///
+  /// In en, this message translates to:
+  /// **'Sire ID'**
+  String get sireId;
+
+  /// No description provided for @noSireInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'No sire information recorded.'**
+  String get noSireInfo;
+
+  /// No description provided for @sireInfoMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sire/Semen details expected but not loaded.'**
+  String get sireInfoMissing;
+
+  /// No description provided for @pregnancyStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy Status'**
+  String get pregnancyStatus;
+
+  /// No description provided for @isPregnant.
+  ///
+  /// In en, this message translates to:
+  /// **'Is Pregnant?'**
+  String get isPregnant;
+
+  /// No description provided for @addRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Record'**
+  String get addRecord;
+
+  /// Validation message when a specific field is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'The {fieldName} field is required.'**
+  String fieldRequiredFor(String fieldName);
+
+  /// No description provided for @requiredFieldsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Required fields missing'**
+  String get requiredFieldsMissing;
 }
 
 class _AppLocalizationsDelegate

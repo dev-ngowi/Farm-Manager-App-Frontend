@@ -516,5 +516,183 @@
   "academicTitle": "Academic Title",
   "orcidId": "ORCID ID",
   "researchPurpose": "Purpose of Research",
-  "genericError": "A network or server error occurred. Please try again later."
+  "genericError": "A network or server error occurred. Please try again later.",
+  "addNewWardHint": "Add New Ward Hint",
+  "awaitingApproval": "Awaiting Approval",
+  "approvalPendingMessage": "Your researcher profile has been submitted successfully. Please wait while an administrator reviews your application.",
+  "profileSubmitted": "Profile Submitted",
+  "waitingForReview": "Waiting for Review",
+  "youWillBeNotified": "You will be notified once approved",
+  "checkingStatus": "Checking status...",
+  "checkStatus": "Check Status",
+  "approvalGranted": "Your researcher profile has been approved!",
+  "applicationDeclined": "Application Declined",
+  "declineMessage": "We regret to inform you that your researcher application has been declined.",
+  "reason": "Reason:",
+  "ok": "OK",
+  "@awaitingApproval": {
+    "description": "Title when waiting for researcher approval"
+  },
+  "@approvalPendingMessage": {
+    "description": "Message explaining the approval is pending"
+  },
+  "@profileSubmitted": {
+    "description": "Info row text"
+  },
+  "@waitingForReview": {
+    "description": "Info row text"
+  },
+  "@youWillBeNotified": {
+    "description": "Info row text"
+  },
+  "@checkingStatus": {
+    "description": "Text shown while checking approval status"
+  },
+  "@checkStatus": {
+    "description": "Button label to manually check status"
+  },
+  "@logout": {
+    "description": "Logout button label"
+  },
+  "@approvalGranted": {
+    "description": "Snackbar message when approved"
+  },
+  "@applicationDeclined": {
+    "description": "Dialog title when declined"
+  },
+  "@declineMessage": {
+    "description": "Dialog message when application is declined"
+  },
+  "@reason": {
+    "description": "Label for decline reason"
+  },
+  "@ok": {
+    "description": "OK button in dialogs"
+  },
+  "editAnimal": "Edit Animal",
+  "animalUpdatedSuccess": "Animal updated successfully",
+  "deleteConfirmationTitle": "Delete Animal",
+  "deleteConfirmationMessage": "Are you sure you want to delete animal {tag}?",
+  "animalDeletedSuccess": "Animal deleted successfully",
+  "failedLoadDetails": "Failed to load animal details: ",
+  "notApplicable": "Not Applicable",
+  "noName": "No Name",
+  "genealogy": "Genealogy",
+  "purchaseDetails": "Purchase Details",
+  "purchaseDate": "Purchase Date",
+  "purchaseCost": "Purchase Cost",
+  "source": "Source / Vendor",
+  "deleteAnimal": "Delete Animal",
+  "updateAnimal": "Update Animal",
+  "basicInformation": "Basic Information",
+  "searchByTagOrName": "Search by Tag or Name",
+  "registerNewAnimal": "Register New Animal",
+  "@registerNewAnimal": {
+    "description": "Header title for the registration form."
+  },
+  "fillAnimalDetails": "Please fill out all required details to register a new livestock record.",
+  "@fillAnimalDetails": {
+    "description": "Header subtitle for the registration form."
+  },
+  "editAnimalHeader": "Edit Animal Details",
+  "@editAnimalHeader": {
+    "description": "Header title for the edit form."
+  },
+  "editAnimalHeaderSubtitle": "Update information for this animal",
+  "@editAnimalHeaderSubtitle": {
+    "description": "Header subtitle for the edit form (dynamic parts like tag number are handled in code)."
+  },
+  "requiredFieldsNote": "All fields marked with * are required. The more details you add, the better your farm reports will be.",
+  "@requiredFieldsNote": {
+    "description": "Information box text on the Add page."
+  },
+  "requiredFieldsReviewNote": "All fields marked with * are required. Make sure to review all changes before submitting.",
+  "@requiredFieldsReviewNote": {
+    "description": "Information box text on the Edit page."
+  },
+  "noSpeciesAvailable": "No Species data available. Cannot proceed.",
+  "@noSpeciesAvailable": {
+    "description": "Error message shown when species dropdown data could not be loaded."
+  },
+  "weightAtBirthKg": "Weight at Birth (kg)",
+  "@weightAtBirthKg": {
+    "description": "Label for the weight at birth field."
+  },
+  "weightRequired": "Weight is required",
+  "@weightRequired": {
+    "description": "Validation error for missing weight."
+  },
+  "sexMale": "Male",
+  "@sexMale": {
+    "description": "Translation for sex 'Male'"
+  },
+  "sexFemale": "Female",
+  "@sexFemale": {
+    "description": "Translation for sex 'Female'"
+  },
+  "sexUnknown": "Unknown",
+  "@sexUnknown": {
+    "description": "Translation for sex 'Unknown'"
+  },
+  "statusActive": "Active",
+  "@statusActive": {
+    "description": "Translation for animal status 'Active'"
+  },
+  "statusSold": "Sold",
+  "@statusSold": {
+    "description": "Translation for animal status 'Sold'"
+  },
+  "statusDeceased": "Deceased",
+  "@statusDeceased": {
+    "description": "Translation for animal status 'Deceased'"
+  },
+  "statusCulled": "Culled",
+  "@statusCulled": {
+    "description": "Translation for animal status 'Culled'"
+  },
+  "editInseminationRecord": "Edit Insemination Record",
+  "invalidRecordId": "Invalid Record ID",
+  "inseminationUpdatedSuccess": "Insemination updated successfully!",
+  "editInseminationDetails": "Edit Insemination Details",
+  "updateInseminationNote": "Update information for this insemination record.",
+  "reviewChangesNote": "All fields marked with * are required. Make sure to review all changes before submitting.",
+  "inseminationDetails": "Insemination Details",
+  "editRecord": "Edit Record",
+  "inseminationDeletedSuccess": "Insemination deleted successfully!",
+  "pregnancyResult": "Pregnancy & Result",
+  "pregnancyDiagnosis": "Pregnancy Diagnosis",
+  "diagnosisResult": "Diagnosis Result",
+  "outcome": "Outcome",
+  "addInseminationRecord": "Add Insemination Record",
+  "inseminationAddedSuccess": "Insemination added successfully!",
+  "registerNewInsemination": "Register New Insemination",
+  "fillInseminationDetails": "Please fill out all required details to register a new insemination record.",
+  "inseminationRecords": "Insemination Records",
+  "searchByAnimalTag": "Search by Animal Tag or Date",
+  "noInseminationRecords": "No insemination records yet",
+  "animal": "Animal",
+  "inseminationType": "Insemination Type",
+  "inseminatorName": "Inseminator Name",
+  "goBack": "Go Back",
+  "animalName": "Animal Name",
+  "daysToDue": "Days To Due",
+  "inseminationEvent": "Insemination Event",
+  "sireInformation": "Sire/Semen Information",
+  "semenId": "Semen ID",
+  "sireId": "Sire ID",
+  "noSireInfo": "No sire information recorded.",
+  "sireInfoMissing": "Sire/Semen details expected but not loaded.",
+  "pregnancyStatus": "Pregnancy Status",
+  "isPregnant": "Is Pregnant?",
+  "addRecord": "Add Record",
+  "fieldRequiredFor": "The {fieldName} field is required.",
+  "@fieldRequiredFor": {
+    "description": "Validation message when a specific field is missing.",
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredFieldsMissing":"Required fields missing"
 }

@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     _hasNavigated = true; // Set flag before navigation
     
     // 1. Check if user needs to select a role
-    if (userRole == null || userRole.isEmpty || userRole.toLowerCase() == 'unassigned') {
+    if (userRole.isEmpty || userRole.toLowerCase() == 'unassigned') {
       print('🔀 Login Success: Role unassigned, navigating to role selection');
       // Use pushReplacement or go to ensure clean history
       context.go(RoleSelectionPage.routeName); 

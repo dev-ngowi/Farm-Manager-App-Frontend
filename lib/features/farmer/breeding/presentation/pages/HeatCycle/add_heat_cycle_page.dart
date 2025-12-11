@@ -14,6 +14,7 @@ import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/liv
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -119,13 +120,14 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
       }
 
       final token = _getAuthToken();
-      
+
       // FIXED: Create DamModel with correct type conversions
       final damModel = DamModel(
         animalId: _selectedAnimal!.animalId.toString(), // Convert int to String
         tagNumber: _selectedAnimal!.tagNumber,
         name: _selectedAnimal!.name ?? 'Unknown', // Handle nullable name
-        species: _selectedAnimal!.species?.speciesName ?? 'Unknown', // Extract species name
+        species: _selectedAnimal!.species?.speciesName ??
+            'Unknown', // Extract species name
       );
 
       // Create HeatCycleModel for API submission
@@ -135,8 +137,8 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
         dam: damModel,
         observedDate: _observedDate!,
         intensity: _selectedIntensity!,
-        notes: _notesController.text.trim().isEmpty 
-            ? null 
+        notes: _notesController.text.trim().isEmpty
+            ? null
             : _notesController.text.trim(),
         inseminated: false,
       );
@@ -149,11 +151,11 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
 
       // Dispatch create event
       context.read<HeatCycleBloc>().add(
-        CreateHeatCycleEvent(
-          cycle: newHeatCycle,
-          token: token,
-        ),
-      );
+            CreateHeatCycleEvent(
+              cycle: newHeatCycle,
+              token: token,
+            ),
+          );
     }
   }
 
@@ -273,7 +275,8 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : const Icon(Icons.save),
@@ -303,13 +306,14 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
       builder: (context, state) {
         // Filter for female animals only (dams)
         List<LivestockEntity> femaleAnimals = [];
-        
+
         // FIXED: Use LivestockListLoaded instead of LivestockLoaded
         if (state is LivestockListLoaded) {
           // CHANGE: state.animals to state.livestock
-          femaleAnimals = state.livestock 
-              .where((animal) => 
-                animal.sex.toLowerCase() == 'female') // Note: Using animal.sex from LivestockEntity
+          femaleAnimals = state.livestock
+              .where((animal) =>
+                  animal.sex.toLowerCase() ==
+                  'female') // Note: Using animal.sex from LivestockEntity
               .toList();
         }
 
@@ -344,16 +348,26 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
                 decoration: InputDecoration(
                   labelText: l10n.selectAnimal,
                   border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.pets, color: BreedingColors.heat),
+                  prefixIcon: SvgPicture.string(
+                    '''<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM8 6L6 8V10L8 12V22H16V12L18 10V8L16 6C15.2 6 14.5 5.7 14 5.2C13.5 5.7 12.8 6 12 6C11.2 6 10.5 5.7 10 5.2C9.5 5.7 8.8 6 8 6Z" fill="currentColor"/>
+                      </svg>''',
+                    colorFilter: const ColorFilter.mode(
+                        BreedingColors.heat, BlendMode.srcIn),
+                    width: 24,
+                    height: 24,
+                  ),
                 ),
-                hint: Text(l10n.noFemaleAnimalsAvailable ?? 'No female animals'),
+                hint:
+                    Text(l10n.noFemaleAnimalsAvailable ?? 'No female animals'),
                 items: const [],
                 onChanged: null,
               ),
               const SizedBox(height: 8),
               Text(
                 'Please add female animals to your livestock first.',
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
+                style:
+                    theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
               ),
             ],
           );
@@ -365,7 +379,7 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.pets, color: BreedingColors.heat),
           ),
-          value: _selectedAnimalId,
+          initialValue: _selectedAnimalId,
           hint: Text(l10n.chooseAnimal),
           items: femaleAnimals.map((animal) {
             return DropdownMenuItem<String>(
@@ -400,12 +414,12 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.flash_on, color: BreedingColors.heat),
       ),
-      value: _selectedIntensity,
+      initialValue: _selectedIntensity,
       hint: Text(l10n.selectIntensity),
       items: _intensityOptions.map((intensity) {
         IconData icon;
         Color color;
-        
+
         switch (intensity) {
           case 'Weak':
             icon = Icons.flash_on_outlined;
@@ -427,7 +441,7 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
             icon = Icons.flash_on;
             color = Colors.grey;
         }
-        
+
         return DropdownMenuItem<String>(
           value: intensity,
           child: Row(
@@ -464,7 +478,8 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
         decoration: InputDecoration(
           labelText: l10n.observedDate,
           border: const OutlineInputBorder(),
-          prefixIcon: const Icon(Icons.calendar_today, color: BreedingColors.heat),
+          prefixIcon:
+              const Icon(Icons.calendar_today, color: BreedingColors.heat),
           suffixIcon: const Icon(Icons.arrow_drop_down),
         ),
         child: Text(

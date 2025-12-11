@@ -1,51 +1,40 @@
-import 'package:farm_manager_app/core/config/app_theme.dart'; // Assumed AppTheme includes AppColors
+import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Uncomment in production
 
 // --- 1. HEALTH-SPECIFIC COLORS ---
 class HealthColors {
-  // Colors chosen based on common association with health (Blue, Green, Red, Orange)
-  static const Color reports = Color(0xFF1E88E5); // Blue for reporting
-  static const Color diagnosis = Color(0xFF00BFA5); // Teal for diagnosis
-  static const Color treatment = Color(0xFFD81B60); // Pink for treatment
-  static const Color vaccine = Color(0xFFFF9800); // Orange for prevention/vaccine
-  static const Color appointment = Color(0xFF7E57C2); // Deep Purple for appointments
-  static const Color chat = Color(0xFF43A047); // Green for communication
+  static const Color reports = Color(0xFF1E88E5);
+  static const Color diagnosis = Color(0xFF00BFA5);
+  static const Color treatment = Color(0xFFD81B60);
+  static const Color vaccine = Color(0xFFFF9800);
+  static const Color appointment = Color(0xFF7E57C2);
+  static const Color chat = Color(0xFF43A047);
 }
 
-// --- 2. DATA STRUCTURES (Mock Data for Design Review) ---
+// --- 2. DATA STRUCTURES ---
 
-// Mock Backend Data Structure
 class _HealthDashboardData {
-  // Reports
   final int totalReports = 45;
-  final int activeCases = 12; // Status: Pending Diagnosis, Under Treatment, etc.
+  final int activeCases = 12;
   final int highPriorityReports = 4;
-
-  // Diagnosis
   final int confirmedDiagnoses = 33;
   final String mostCommonDisease = 'Foot and Mouth Disease';
-
-  // Treatment
   final int totalTreatments = 85;
   final int overdueFollowUps = 7;
-  final double avgTreatmentCost = 45000.0; // TZS
-
-  // Vaccination
+  final double avgTreatmentCost = 45000.0;
   final int totalSchedules = 120;
-  final int upcomingVaccines = 8; // Next 7 days
+  final int upcomingVaccines = 8;
   final int missedVaccines = 15;
-
-  // Vet & Communication
   final int activeAppointments = 3;
   final int activeChats = 2;
   final int pendingExtensionRequests = 5;
+  final double healthScore = 88.5;
+  final int healthyAnimals = 138;
 }
 
 final _mockData = _HealthDashboardData();
 
-// Define a simple structure for modular navigation items
 class ModuleItem {
   final String titleKey;
   final IconData icon;
@@ -91,7 +80,7 @@ final List<ModuleItem> _moduleItems = [
       titleKey: 'prescriptions',
       icon: Icons.receipt_long,
       color: HealthColors.treatment,
-      count: 22, // Mock count
+      count: 22,
       route: '/farmer/health/prescriptions'),
   ModuleItem(
       titleKey: 'appointments',
@@ -115,151 +104,197 @@ class HealthDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final l10n = AppLocalizations.of(context)!; // Uncomment in production
     final l10n = _DesignL10n(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => context.go('/farmer/dashboard'),
         ),
-        title: Text(l10n.healthManagement),
-        elevation: 1,
+        title: const Text(
+          'Health Management',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined,
+                color: AppColors.primary),
+            onPressed: () => context.push('/notifications'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 24),
+      body: RefreshIndicator(
+        onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with overview
+              _buildHeader(l10n),
+
+              const SizedBox(height: 16),
+
+              // Key metrics cards
+              _buildKeyMetrics(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+              // Health score card
+              _buildHealthScoreCard(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+              // Critical alerts
+              _buildCriticalAlerts(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+           
+
+              // Health modules
+              _buildHealthModules(l10n),
+
+              const SizedBox(height: 16),
+
+              // Additional stats
+              _buildAdditionalStats(l10n, _mockData),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(_DesignL10n l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Health Overview',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Monitor and maintain your herd\'s health status',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeyMetrics(_DesignL10n l10n, _HealthDashboardData data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Active Cases',
+              value: data.activeCases.toString(),
+              subtitle: 'Need attention',
+              icon: Icons.healing,
+              color: HealthColors.reports,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Healthy Animals',
+              value: data.healthyAnimals.toString(),
+              subtitle: 'In good health',
+              icon: Icons.favorite,
+              color: AppColors.success,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Vaccinations',
+              value: data.upcomingVaccines.toString(),
+              subtitle: 'Due soon',
+              icon: Icons.vaccines,
+              color: HealthColors.vaccine,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. STATS GRID (Key Performance Indicators)
-            _HealthStatsSection(l10n: l10n, data: _mockData),
-
-            // 2. ALERTS SECTION
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.alerts,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  // High Priority Report Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.highPriorityReports,
-                      _mockData.highPriorityReports,
-                      AppColors.error,
-                      Icons.priority_high,
-                      '/farmer/health/reports/high'),
-                  const SizedBox(height: 8),
-                  // Overdue Follow-up Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.overdueFollowUps,
-                      _mockData.overdueFollowUps,
-                      AppColors.warning,
-                      Icons.watch_later,
-                      '/farmer/health/treatments/overdue'),
-                  const SizedBox(height: 8),
-                  // Missed Vaccines Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.missedVaccines,
-                      _mockData.missedVaccines,
-                      AppColors.secondary,
-                      Icons.error_outline,
-                      '/farmer/health/vaccinations/missed'),
-                  const SizedBox(height: 8),
-                  // Pending Extension Requests Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.pendingExtensionRequests,
-                      _mockData.pendingExtensionRequests,
-                      HealthColors.reports,
-                      Icons.support_agent,
-                      '/farmer/requests/pending'),
-                ],
-              ),
-            ),
-
-            const Divider(indent: 16, endIndent: 16),
-
-            // 3. QUICK ACTIONS SECTION
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.quickActions,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    alignment: WrapAlignment.start,
-                    children: [
-                      _buildQuickActionButton(
-                          context,
-                          l10n.recordSymptoms,
-                          Icons.sick,
-                          HealthColors.reports,
-                          '/farmer/health/reports/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.bookAppointment,
-                          Icons.calendar_month,
-                          HealthColors.appointment,
-                          '/farmer/health/appointments/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.recordTreatment,
-                          Icons.medical_services,
-                          HealthColors.treatment,
-                          '/farmer/health/treatments/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.scheduleVaccine,
-                          Icons.vaccines,
-                          HealthColors.vaccine,
-                          '/farmer/health/vaccinations/schedule'),
-                    ],
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
+                  child: Icon(icon, size: 18, color: color),
+                ),
+                const Spacer(),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
-
-            const Divider(indent: 16, endIndent: 16),
-
-            // 4. MODULES SECTION
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Text(l10n.modules,
-                  style: theme.textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _moduleItems.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.1,
-                ),
-                itemBuilder: (context, index) {
-                  final item = _moduleItems[index];
-                  return _buildModuleCard(context, item, l10n);
-                },
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[600],
               ),
             ),
           ],
@@ -268,110 +303,78 @@ class HealthDashboardPage extends StatelessWidget {
     );
   }
 
-  /// Alert Card using standard Card and ListTile
-  Widget _buildAlertCard(BuildContext context, String title, int count,
-      Color color, IconData icon, String route) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withOpacity(0.5), width: 1),
-      ),
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Icon(icon, color: color, size: 30),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            count.toString(),
-            style: theme.textTheme.titleLarge
-                ?.copyWith(color: color, fontWeight: FontWeight.bold),
-          ),
-        ),
-        onTap: () => context.push(route),
-      ),
-    );
-  }
+  Widget _buildHealthScoreCard(_DesignL10n l10n, _HealthDashboardData data) {
+    double score = data.healthScore;
+    bool isGood = score >= 80;
 
-  /// Quick Action Button using standard ElevatedButton for better accessibility
-  Widget _buildQuickActionButton(BuildContext context, String label,
-      IconData icon, Color color, String route) {
-    // Calculated width to ensure two items per row, regardless of screen size
-    final screenWidth = MediaQuery.of(context).size.width;
-    final widgetWidth = (screenWidth - 16 * 3) / 2;
-
-    return SizedBox(
-      width: widgetWidth,
-      child: ElevatedButton.icon(
-        onPressed: () => context.push(route),
-        icon: Icon(icon, color: AppColors.onSecondary),
-        label: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.onSecondary, fontWeight: FontWeight.w600),
-          textAlign: TextAlign.center,
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 4,
-        ),
-      ),
-    );
-  }
-
-  /// Module Navigation Card using standard Card and Column
-  Widget _buildModuleCard(
-      BuildContext context, ModuleItem item, _DesignL10n l10n) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push(item.route),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  Icon(item.icon, color: item.color, size: 30),
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CircularProgressIndicator(
+                      value: score / 100,
+                      strokeWidth: 6,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isGood ? AppColors.success : AppColors.warning,
+                      ),
+                    ),
+                  ),
                   Text(
-                    item.count.toString(),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: item.color,
-                      fontWeight: FontWeight.w900,
+                    '${score.toInt()}%',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.getString(item.titleKey),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Overall Herd Health',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isGood
+                          ? 'Your herd is in excellent health condition'
+                          : 'Some animals need immediate attention',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: score / 100,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isGood ? AppColors.success : AppColors.warning,
+                      ),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -379,144 +382,410 @@ class HealthDashboardPage extends StatelessWidget {
       ),
     );
   }
-}
 
-// --- 4. NEW WIDGET FOR STATS SECTION ---
-class _HealthStatsSection extends StatelessWidget {
-  const _HealthStatsSection({required this.l10n, required this.data});
-
-  final _DesignL10n l10n;
-  final _HealthDashboardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    // Define the list of stats to show
-    final stats = [
-      {
-        'title': l10n.activeCases,
-        'value': data.activeCases,
-        'color': HealthColors.reports,
-        'icon': Icons.healing,
-      },
-      {
-        'title': l10n.confirmedDiagnoses,
-        'value': data.confirmedDiagnoses,
-        'color': HealthColors.diagnosis,
-        'icon': Icons.verified,
-      },
-      {
-        'title': l10n.upcomingVaccines,
-        'value': data.upcomingVaccines,
-        'color': HealthColors.vaccine,
-        'icon': Icons.calendar_today,
-      },
-      {
-        'title': l10n.avgTreatmentCost,
-        'value':
-            'TZS ${data.avgTreatmentCost.toStringAsFixed(0)}', // Assuming TZS currency
-        'color': HealthColors.treatment,
-        'icon': Icons.money,
-      },
-      {
-        'title': l10n.mostCommonDisease,
-        'value': data.mostCommonDisease,
-        'color': AppColors.textPrimary,
-        'icon': Icons.bug_report,
-      },
-      {
-        'title': l10n.totalTreatments,
-        'value': data.totalTreatments,
-        'color': HealthColors.treatment,
-        'icon': Icons.medication,
-      },
-    ];
-
+  Widget _buildCriticalAlerts(_DesignL10n l10n, _HealthDashboardData data) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.healthOverview,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: AppColors.error, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Critical Alerts',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: stats.map((stat) {
-              return _buildStatCard(
-                context,
-                stat['title'] as String,
-                stat['value'],
-                stat['color'] as Color,
-                stat['icon'] as IconData,
-              );
-            }).toList(),
+          Row(
+            children: [
+              Expanded(
+                child: _buildAlertCard(
+                  title: 'High Priority',
+                  count: data.highPriorityReports,
+                  icon: Icons.priority_high,
+                  color: AppColors.error,
+                  route: '/farmer/health/reports/high',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildAlertCard(
+                  title: 'Overdue Follow-ups',
+                  count: data.overdueFollowUps,
+                  icon: Icons.watch_later,
+                  color: AppColors.warning,
+                  route: '/farmer/health/treatments/overdue',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildAlertCard(
+                  title: 'Missed Vaccines',
+                  count: data.missedVaccines,
+                  icon: Icons.error_outline,
+                  color: AppColors.secondary,
+                  route: '/farmer/health/vaccinations/missed',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildAlertCard(
+                  title: 'Pending Requests',
+                  count: data.pendingExtensionRequests,
+                  icon: Icons.support_agent,
+                  color: HealthColors.reports,
+                  route: '/farmer/requests/pending',
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  /// Stat Card component for 2-column responsiveness
-  Widget _buildStatCard(BuildContext context, String title, dynamic value,
-      Color color, IconData icon) {
-    final theme = Theme.of(context);
-    // Calculated width to ensure two items per row, allowing for space and padding
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 16 * 2 - 12) / 2;
-
-    return SizedBox(
-      width: cardWidth,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(height: 4),
-              // Special handling for long string like disease name
-              value is String && value.contains(' ')
-                  ? Text(
-                      value,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
+  Widget _buildAlertCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required String route,
+  }) {
+    return Builder(
+      builder: (context) => Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => context.push(route),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                  : Text(
-                      value.toString(),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                      child: Icon(icon, size: 16, color: color),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
                         color: color,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-              const SizedBox(height: 4),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'Tap to view',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  
+  Widget _buildHealthModules(_DesignL10n l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.apps, color: AppColors.primary, size: 18),
+              const SizedBox(width: 6),
               Text(
-                title,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontSize: 10, color: AppColors.textSecondary),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                'Health Modules',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _moduleItems.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
+            ),
+            itemBuilder: (context, index) {
+              final item = _moduleItems[index];
+              return _buildModuleButton(item, l10n);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModuleButton(ModuleItem item, _DesignL10n l10n) {
+    return Builder(
+      builder: (context) => InkWell(
+        onTap: () => context.push(item.route),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: item.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      item.icon,
+                      color: item.color,
+                      size: 28,
+                    ),
+                  ),
+                  if (item.count > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: item.color,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          item.count > 99 ? '99+' : item.count.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.getString(item.titleKey),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdditionalStats(_DesignL10n l10n, _HealthDashboardData data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Health Statistics',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  label: 'Total Treatments',
+                  value: data.totalTreatments.toString(),
+                  icon: Icons.medication,
+                  color: HealthColors.treatment,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatItem(
+                  label: 'Avg. Cost',
+                  value: 'TZS ${(data.avgTreatmentCost / 1000).toStringAsFixed(0)}K',
+                  icon: Icons.money,
+                  color: AppColors.success,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.grey[200]!, width: 1),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: HealthColors.diagnosis.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.bug_report,
+                        size: 20, color: HealthColors.diagnosis),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Most Common Disease',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          data.mostCommonDisease,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// --- 5. MOCK LOCALIZATION CLASS (Necessary for code completion and review) ---
+// --- MOCK LOCALIZATION ---
 class _DesignL10n {
   final BuildContext context;
   _DesignL10n(this.context);
@@ -524,24 +793,20 @@ class _DesignL10n {
   String get healthManagement => 'Animal Health Management';
   String get healthOverview => 'Health Overview';
   String get alerts => 'Alerts';
-  String get quickActions => 'Quick Actions';
   String get modules => 'Modules';
 
-  // STATS
   String get activeCases => 'Active Health Cases';
   String get confirmedDiagnoses => 'Confirmed Diagnoses';
-  String get upcomingVaccines => 'Upcoming Vaccines (7 Days)';
+  String get upcomingVaccines => 'Upcoming Vaccines';
   String get avgTreatmentCost => 'Avg. Treatment Cost';
   String get mostCommonDisease => 'Most Common Disease';
   String get totalTreatments => 'Total Treatments';
 
-  // ALERTS
   String get highPriorityReports => 'High Priority Reports';
   String get overdueFollowUps => 'Overdue Follow-ups';
   String get missedVaccines => 'Missed Vaccines';
   String get pendingExtensionRequests => 'Pending Extension Requests';
 
-  // ACTIONS
   String get recordSymptoms => 'Record New Symptom';
   String get bookAppointment => 'Book Vet Appointment';
   String get recordTreatment => 'Record Treatment';
@@ -550,7 +815,7 @@ class _DesignL10n {
   String getString(String key) {
     switch (key) {
       case 'healthReports':
-        return 'Health Reports';
+        return 'Health\nReports';
       case 'diagnoses':
         return 'Diagnoses';
       case 'treatments':
@@ -560,7 +825,7 @@ class _DesignL10n {
       case 'prescriptions':
         return 'Prescriptions';
       case 'appointments':
-        return 'Vet Appointments';
+        return 'Appointments';
       case 'vetChat':
         return 'Vet Chat';
       default:

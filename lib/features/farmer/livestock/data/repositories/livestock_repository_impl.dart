@@ -2,6 +2,7 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
+// Import AppException for error handling
 import 'package:farm_manager_app/features/farmer/livestock/data/datasources/livestock_remote_datasource.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/dropdown_data.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/livestock.dart';
@@ -21,7 +22,7 @@ class LivestockRepositoryImpl implements LivestockRepository {
   LivestockRepositoryImpl({required this.remoteDataSource});
 
   // -----------------------------------------------------------------
-  // 1. Implementation of LivestockRepository required methods (FIX)
+  // 1. Implementation of LivestockRepository required methods 
   // -----------------------------------------------------------------
 
   @override
@@ -56,7 +57,7 @@ class LivestockRepositoryImpl implements LivestockRepository {
       final result = await remoteDataSource.addLivestock(animalData);
       return Right(result);
     } on AppException catch (e) {
-      // ⭐ CRITICAL FIX: Catches ValidationException and converts to ValidationFailure
+      // Catches ValidationException and converts to ValidationFailure
       return Left(FailureConverter.fromException(e));
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred: ${e.toString()}'));
@@ -72,6 +73,38 @@ class LivestockRepositoryImpl implements LivestockRepository {
       return Left(FailureConverter.fromException(e));
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
+ // ⭐ NEW: Update Livestock Implementation
+  @override
+  Future<Either<Failure, LivestockEntity>> updateLivestock({
+    required int animalId,
+    required Map<String, dynamic> animalData,
+  }) async {
+    try {
+      final result = await remoteDataSource.updateLivestock(
+        animalId: animalId,
+        animalData: animalData,
+      );
+      return Right(result);
+    } on AppException catch (e) {
+      return Left(FailureConverter.fromException(e));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred during update: ${e.toString()}'));
+    }
+  }
+
+  // ⭐ NEW: Delete Livestock Implementation
+  @override
+  Future<Either<Failure, void>> deleteLivestock(int animalId) async {
+    try {
+      await remoteDataSource.deleteLivestock(animalId);
+      return const Right(null); // Return Right(null) for a successful void operation
+    } on AppException catch (e) {
+      return Left(FailureConverter.fromException(e));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred during deletion: ${e.toString()}'));
     }
   }
 

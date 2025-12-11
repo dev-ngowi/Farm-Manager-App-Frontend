@@ -104,42 +104,56 @@ class LocationEntity extends Equatable {
     );
   }
 
-  /// Create a LocationEntity from a map (JSON)
-  factory LocationEntity.fromJson(Map<String, dynamic> json) {
-    try {
-      // Handle both nested and flat response structures
-      final locationData = json['location'] as Map<String, dynamic>? ?? json;
-      
-      return LocationEntity(
-        locationId: _parseInt(locationData['id'] ?? locationData['location_id']),
-        regionId: _parseInt(locationData['region_id']),
-        districtId: _parseInt(locationData['district_id']),
-        wardId: _parseInt(locationData['ward_id']),
-        userLocationId: _parseNullableInt(json['id']),
-        isPrimary: (json['is_primary'] as bool?) ?? false,
-        regionName: (locationData['region_name'] ?? 'Unknown Region').toString(),
-        districtName: (locationData['district_name'] ?? 'Unknown District').toString(),
-        wardName: (locationData['ward_name'] ?? 'Unknown Ward').toString(),
-        streetName: locationData['street_name']?.toString(),
-        latitude: _parseDouble(locationData['latitude']),
-        longitude: _parseDouble(locationData['longitude']),
-        addressDetails: locationData['address_details']?.toString(),
-      );
-    } catch (e) {
-      // Return a fallback entity to prevent crashes
-      return LocationEntity(
-        locationId: (json['id'] ?? 0) as int,
-        regionId: 0,
-        districtId: 0,
-        wardId: 0,
-        isPrimary: false,
-        regionName: 'Unknown',
-        districtName: 'Unknown',
-        wardName: 'Unknown',
-      );
-    }
+ factory LocationEntity.fromJson(Map<String, dynamic> json) {
+  try {
+    // Debug: Print raw JSON to see what backend is sending
+    print('🔍 LocationEntity.fromJson - Raw JSON: $json');
+    
+    // Handle both nested and flat response structures
+    final locationData = json['location'] as Map<String, dynamic>? ?? json;
+    
+    print('🔍 LocationEntity.fromJson - Location Data: $locationData');
+    
+    final locationId = _parseInt(locationData['id'] ?? locationData['location_id']);
+    final regionName = (locationData['region_name'] ?? locationData['region'] ?? 'Unknown Region').toString();
+    final districtName = (locationData['district_name'] ?? locationData['district'] ?? 'Unknown District').toString();
+    final wardName = (locationData['ward_name'] ?? locationData['ward'] ?? 'Unknown Ward').toString();
+    
+    print('✅ Parsed: locationId=$locationId, region=$regionName, district=$districtName, ward=$wardName');
+    
+    return LocationEntity(
+      locationId: locationId,
+      regionId: _parseInt(locationData['region_id']),
+      districtId: _parseInt(locationData['district_id']),
+      wardId: _parseInt(locationData['ward_id']),
+      userLocationId: _parseNullableInt(json['id']),
+      isPrimary: (json['is_primary'] as bool?) ?? false,
+      regionName: regionName,
+      districtName: districtName,
+      wardName: wardName,
+      streetName: locationData['street_name']?.toString(),
+      latitude: _parseDouble(locationData['latitude']),
+      longitude: _parseDouble(locationData['longitude']),
+      addressDetails: locationData['address_details']?.toString(),
+    );
+  } catch (e, stackTrace) {
+    print('❌ LocationEntity.fromJson ERROR: $e');
+    print('📍 Stack trace: $stackTrace');
+    print('📦 Failed JSON: $json');
+    
+    // Return a fallback entity to prevent crashes
+    return LocationEntity(
+      locationId: (json['id'] ?? json['location_id'] ?? 0) as int,
+      regionId: 0,
+      districtId: 0,
+      wardId: 0,
+      isPrimary: false,
+      regionName: 'Unknown',
+      districtName: 'Unknown',
+      wardName: 'Unknown',
+    );
   }
-
+}
   static int _parseInt(dynamic value) {
     if (value == null) return 0;
     if (value is int) return value;

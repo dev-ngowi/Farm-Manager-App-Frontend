@@ -8,7 +8,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/networking/network_info.dart';
 import '../datasources/auth/auth_remote_datasource.dart';
 import '../datasources/auth/auth_local_datasource.dart';
-import '../models/user_model.dart'; // Assuming this provides UserModel and copyWithModel
+// Assuming this provides UserModel and copyWithModel
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;

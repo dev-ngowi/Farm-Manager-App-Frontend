@@ -230,7 +230,7 @@ class _AddHealthReportPageState extends State<AddHealthReportPage> {
 
   Widget _buildAnimalDropdown(_MockL10n l10n, AddHealthReportDropdownsLoaded? loadedState) {
     return DropdownButtonFormField<DropdownItem>(
-      value: _selectedAnimal,
+      initialValue: _selectedAnimal,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: l10n.selectAnimal,
@@ -254,7 +254,7 @@ class _AddHealthReportPageState extends State<AddHealthReportPage> {
 
   Widget _buildSeverityDropdown(_MockL10n l10n, AddHealthReportDropdownsLoaded? loadedState) {
     return DropdownButtonFormField<DropdownItem>(
-      value: _selectedSeverity,
+      initialValue: _selectedSeverity,
       decoration: InputDecoration(
         labelText: l10n.severity,
         border: const OutlineInputBorder(),
@@ -274,7 +274,7 @@ class _AddHealthReportPageState extends State<AddHealthReportPage> {
 
   Widget _buildPriorityDropdown(_MockL10n l10n, AddHealthReportDropdownsLoaded? loadedState) {
     return DropdownButtonFormField<DropdownItem>(
-      value: _selectedPriority,
+      initialValue: _selectedPriority,
       decoration: InputDecoration(
         labelText: l10n.priority,
         border: const OutlineInputBorder(),

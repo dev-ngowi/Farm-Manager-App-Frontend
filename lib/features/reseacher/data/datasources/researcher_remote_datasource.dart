@@ -1,4 +1,4 @@
-// 
+// lib/features/reseacher/data/datasources/researcher_remote_datasource.dart
 
 import 'package:dio/dio.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
@@ -6,6 +6,7 @@ import 'package:farm_manager_app/core/networking/api_endpoints.dart';
 import 'package:farm_manager_app/core/networking/network_exception_handler.dart';
 import 'package:farm_manager_app/features/auth/data/models/user_model.dart';
 import 'package:farm_manager_app/features/reseacher/data/models/researcher_details_model.dart';
+import 'package:farm_manager_app/features/reseacher/data/models/approval_status_model.dart'; // NEW IMPORT
 
 /// Abstract contract for researcher-related remote operations
 abstract class ResearcherRemoteDataSource {
@@ -18,7 +19,8 @@ abstract class ResearcherRemoteDataSource {
   /// Fetch allowed research purposes
   Future<List<String>> getResearchPurposes(String token);
 
-  // Future<Map<String, dynamic>> getResearcherProfile(String token);
+  // === NEW METHOD: Get Approval Status ===
+  Future<ApprovalStatusModel> getResearcherApprovalStatus(String token);
 }
 
 class ResearcherRemoteDataSourceImpl implements ResearcherRemoteDataSource {
@@ -54,11 +56,6 @@ class ResearcherRemoteDataSourceImpl implements ResearcherRemoteDataSource {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
 
-        // -----------------------------------------------------------
-        // ⭐ CRITICAL FIX: Handle incomplete response by ensuring ID is present
-        // -----------------------------------------------------------
-        
-        // 1. Extract the partial user map from the response
         Map<String, dynamic>? partialUserMap;
         
         // Look for data structure 1: {message: '...', researcher: {user: {...}}}
@@ -73,51 +70,26 @@ class ResearcherRemoteDataSourceImpl implements ResearcherRemoteDataSource {
         }
 
         if (partialUserMap != null) {
-            // The key update is that the user's details are complete:
             partialUserMap['has_completed_details'] = true;
 
-            // ⭐ ASSUMPTION: To avoid fetching the user profile again, 
-            // the system MUST retrieve the full UserEntity from local storage/state 
-            // and merge the update. Since this RemoteDataSource lacks that context,
-            // we must assume the full User payload *should* be returned by the API
-            // OR we must manually inject the required ID (e.g., if it was passed here).
-            
-            // Temporary fix: Manually inject the required fields for UserModel 
-            // that the API may have omitted (like ID, name, email, etc.)
-            
-            // NOTE: The backend should ideally return the full, updated user object.
-            // If it doesn't, this manual construction is necessary:
             final Map<String, dynamic> completeUserPayload = {
-                // Ensure required non-nullable fields (like ID) are injected 
-                // if the API only returned {has_completed_details: true}
-                // (e.g., by retrieving the ID from state/secure storage). 
-                // Since we don't have the original ID here, we let UserModel.fromJson
-                // handle the missing fields, which now throws a clear error if ID is null.
-                
-                // We pass the response data structure, relying on the improved 
-                // UserModel.fromJson logic to handle nesting and required fields.
                 'user': partialUserMap,
                 'message': data['message'] ?? 'Profile updated successfully',
             };
             
-            // Call the improved UserModel parser
             return UserModel.fromJson(completeUserPayload);
 
         } else {
-             // Fallback to parsing the whole response if no 'user' object was found, 
-             // in case the API returns the user object at the root.
              return UserModel.fromJson(data);
         }
       }
 
       throw NetworkExceptionHandler.handleResponse(response, 'Failed to update researcher profile');
       
-    } on DioException catch (e, stackTrace) {
+    } on DioException catch (e) {
       print('ERROR → ${e.response?.statusCode} ${ApiEndpoints.researcher.profileUpdate}');
       
       if (e.type == DioExceptionType.connectionError || e.response == null) {
-        // This handles the DioExceptionType.unknown case we saw in the previous logs 
-        // when the connection fails entirely.
         throw const ServerException(
           message: 'Connection failed or server is unreachable. Check network connection or API URL.',
         );
@@ -154,17 +126,14 @@ class ResearcherRemoteDataSourceImpl implements ResearcherRemoteDataSource {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         
-        // Handle common API responses: {data: [...]} or {...}
         if (data['data'] is List) {
            return (data['data'] as List).cast<String>();
         }
         
-        // Fallback if the array is returned directly
         if (response.data is List) {
           return (response.data as List).cast<String>();
         }
         
-        // Fallback for empty/unrecognized structure
         return [];
       }
 
@@ -178,6 +147,54 @@ class ResearcherRemoteDataSourceImpl implements ResearcherRemoteDataSource {
       }
       
       throw NetworkExceptionHandler.handleDioException(e, 'Failed to fetch research purposes');
+    }
+  }
+
+  // ===============================================
+  // GET RESEARCHER APPROVAL STATUS (NEW IMPLEMENTATION)
+  // ===============================================
+  
+  @override
+  Future<ApprovalStatusModel> getResearcherApprovalStatus(String token) async {
+    try {
+      // NOTE: This assumes 'ApiEndpoints.researcher' has a new path, e.g., 'statusCheck'
+      print('→ GET ${ApiEndpoints.researcher.statusCheck}'); 
+      
+      final response = await dio.get(
+        ApiEndpoints.researcher.statusCheck,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      print('← ${response.statusCode} Approval Status fetched');
+
+      if (response.statusCode == 200) {
+        // Parse the JSON response into the ApprovalStatusModel
+        return ApprovalStatusModel.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      throw NetworkExceptionHandler.handleResponse(response, 'Failed to fetch researcher approval status');
+      
+    } on DioException catch (e) {
+      print('ERROR → ${e.response?.statusCode} Status Check');
+      
+      if (e.type == DioExceptionType.connectionError || e.response == null) {
+        throw const ServerException(
+          message: 'Connection failed or server is unreachable. Cannot check approval status.',
+        );
+      }
+      
+      throw NetworkExceptionHandler.handleDioException(e, 'Failed to fetch researcher approval status');
+      
+    } catch (e, stackTrace) {
+      print('❌ Unexpected error: $e\n$stackTrace');
+      throw ServerException(
+        message: 'An unexpected error occurred during status check: ${e.runtimeType}',
+      );
     }
   }
 }

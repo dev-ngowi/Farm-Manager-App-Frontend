@@ -1,4 +1,3 @@
-import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -264,7 +263,7 @@ class _EditOffspringPageState extends State<EditOffspringPage> {
                 value: _navelTreated,
                 onChanged: (val) => setState(() => _navelTreated = val),
                 secondary: Icon(Icons.medical_services, color: primaryColor),
-                activeColor: primaryColor,
+                activeThumbColor: primaryColor,
                 contentPadding: EdgeInsets.zero,
               ),
               const Divider(),
@@ -344,7 +343,7 @@ class _EditOffspringPageState extends State<EditOffspringPage> {
         filled: true,
         fillColor: Colors.white, // Replaced AppColors.cardBackground
       ),
-      value: value,
+      initialValue: value,
       items: items.map((String item) {
         return DropdownMenuItem(value: item, child: Text(item));
       }).toList(),

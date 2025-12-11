@@ -1,4 +1,4 @@
-// lib/features/farmer/breeding/domain/entities/insemination_entity.dart
+// lib/features/farmer/insemination/domain/entities/insemination_entity.dart
 
 import 'package:equatable/equatable.dart';
 
@@ -48,11 +48,10 @@ class InseminationEntity extends Equatable {
   final String status; // 'Pending', 'Confirmed Pregnant', 'Not Pregnant', etc.
   final String? notes;
 
-  // Relationships (from 'with' clause in backend index)
+  // Relationships
   final InseminationAnimalEntity dam;
   final InseminationAnimalEntity? sire;
   final InseminationSemenEntity? semen;
-  // Note: 'delivery' and 'pregnancyChecks' should be included for a full detail entity.
 
   // Custom calculated fields from backend
   final bool isPregnant; // Calculated via accessor in backend model
@@ -76,48 +75,47 @@ class InseminationEntity extends Equatable {
     required this.daysToDue,
   });
 
+  // Method to create a new entity instance with updated fields (useful for updates)
+  InseminationEntity copyWith({
+    int? id,
+    int? damId,
+    int? sireId,
+    int? semenId,
+    int? heatCycleId,
+    String? breedingMethod,
+    DateTime? inseminationDate,
+    DateTime? expectedDeliveryDate,
+    String? status,
+    String? notes,
+    InseminationAnimalEntity? dam,
+    InseminationAnimalEntity? sire,
+    InseminationSemenEntity? semen,
+    bool? isPregnant,
+    int? daysToDue,
+  }) {
+    return InseminationEntity(
+      id: id ?? this.id,
+      damId: damId ?? this.damId,
+      sireId: sireId ?? this.sireId,
+      semenId: semenId ?? this.semenId,
+      heatCycleId: heatCycleId ?? this.heatCycleId,
+      breedingMethod: breedingMethod ?? this.breedingMethod,
+      inseminationDate: inseminationDate ?? this.inseminationDate,
+      expectedDeliveryDate: expectedDeliveryDate ?? this.expectedDeliveryDate,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      dam: dam ?? this.dam,
+      sire: sire ?? this.sire,
+      semen: semen ?? this.semen,
+      isPregnant: isPregnant ?? this.isPregnant,
+      daysToDue: daysToDue ?? this.daysToDue,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id, damId, sireId, semenId, heatCycleId, breedingMethod,
     inseminationDate, expectedDeliveryDate, status, notes,
     dam, sire, semen, isPregnant, daysToDue
   ];
-
-  // A factory for converting from JSON map (assuming a Data Transfer Object converts API response to this)
-  factory InseminationEntity.fromJson(Map<String, dynamic> json) {
-    // Helper to map minimal animal data
-    InseminationAnimalEntity mapAnimal(Map<String, dynamic> data) => InseminationAnimalEntity(
-      id: data['animal_id'] as int,
-      tagNumber: data['tag_number'] as String,
-      name: data['name'] as String,
-    );
-    
-    return InseminationEntity(
-      id: json['id'] as int,
-      damId: json['dam_id'] as int,
-      sireId: json['sire_id'] as int?,
-      semenId: json['semen_id'] as int?,
-      heatCycleId: json['heat_cycle_id'] as int,
-      breedingMethod: json['breeding_method'] as String,
-      inseminationDate: DateTime.parse(json['insemination_date'] as String),
-      expectedDeliveryDate: DateTime.parse(json['expected_delivery_date'] as String),
-      status: json['status'] as String,
-      notes: json['notes'] as String?,
-      
-      // Relationships
-      dam: mapAnimal(json['dam'] as Map<String, dynamic>),
-      sire: json['sire'] != null ? mapAnimal(json['sire'] as Map<String, dynamic>) : null,
-      semen: json['semen'] != null 
-          ? InseminationSemenEntity(
-              id: json['semen']['id'] as int,
-              strawCode: json['semen']['straw_code'] as String,
-              bullName: json['semen']['bull_name'] as String,
-            ) 
-          : null,
-      
-      // Custom accessors from backend (Laravel model accessors)
-      isPregnant: json['is_pregnant'] ?? false,
-      daysToDue: json['days_to_due'] ?? 999,
-    );
-  }
 }

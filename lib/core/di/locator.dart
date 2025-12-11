@@ -1,10 +1,15 @@
 // injection.dart
 
-// --- NEW SEMEN IMPORTS ---
-import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_bloc.dart';
-// -------------------------
-
+// --- CORE IMPORTS ---
 import 'package:dio/dio.dart';
+import 'package:farm_manager_app/core/localization/language_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
+import 'package:farm_manager_app/core/networking/api_client.dart';
+import 'package:farm_manager_app/core/networking/api_endpoints.dart'; 
+import 'package:farm_manager_app/core/networking/network_info.dart';
+
+// --- AUTH/FARMER/LOCATION IMPORTS ---
 import 'package:farm_manager_app/features/auth/data/datasources/auth/auth_local_datasource.dart';
 import 'package:farm_manager_app/features/auth/data/datasources/auth/auth_remote_datasource.dart';
 import 'package:farm_manager_app/features/auth/data/datasources/farmer/farmer_remote_datasource.dart';
@@ -20,20 +25,53 @@ import 'package:farm_manager_app/features/auth/data/repositories/auth_repository
 import 'package:farm_manager_app/features/auth/data/repositories/farmer_repository_impl.dart';
 import 'package:farm_manager_app/features/auth/data/repositories/location_repository_impl.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:farm_manager_app/features/vet/data/domain/usercases/submit_vet_details_usecase.dart';
 
-// --- RESEARCHER IMPORTS (NEW) ---
+// --- RESEARCHER IMPORTS ---
 import 'package:farm_manager_app/features/reseacher/data/datasources/researcher_remote_datasource.dart';
 import 'package:farm_manager_app/features/reseacher/data/repositories/researcher_repository_impl.dart';
 import 'package:farm_manager_app/features/reseacher/domain/repositories/researcher_repository.dart';
+import 'package:farm_manager_app/features/reseacher/domain/usecases/get_researcher_approval_status_usecase.dart';
 import 'package:farm_manager_app/features/reseacher/domain/usecases/submit_researcher_details_usecase.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_bloc.dart';
-// ---------------------------------
 
+// --- LIVESTOCK IMPORTS ---
+import 'package:farm_manager_app/features/farmer/livestock/data/datasources/livestock_remote_datasource.dart';
+import 'package:farm_manager_app/features/farmer/livestock/data/repositories/livestock_repository_impl.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/repositories/livestock_repository.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/add_livestock.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/get_all_livestock.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/get_livestock_by_id.dart';
+import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/update_livestock.dart'; 
+import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/delete_livestock.dart'; 
+import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_bloc.dart';
+
+// ========================================
+// ⭐ INSEMINATION IMPORTS (CORRECTED)
+// ========================================
+// Data
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/data/datasources/insemination_remote_datasource.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/data/repositories/insemination_repository_impl.dart';
+// Domain
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/repositories/insemination_repository.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/add_insemination.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/delete_insemination.dart';
+// ⭐ Corrected Use Case Names
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/fetch_insemination_detail.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/fetch_insemination_list.dart';
+import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/update_insemination.dart';
+// Presentation
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_bloc.dart';
+// ========================================
+
+// --- HEAT CYCLE IMPORTS ---
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/datasources/heat_cycle_remote_data_source.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/repositories_imp/heat_cycle_repository_impl.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/domain/repositories/heat_cycle_repository.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/domain/usecases/heat_cycle_usecases.dart'; 
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/HeatCycle/heat_cycle_bloc.dart';
+
+// --- SEMEN INVENTORY IMPORTS ---
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/data/data_resources/semen_data_resource.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/data/repositories/semen_repository_impl.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/repositories/semen_repository.dart';
@@ -43,23 +81,8 @@ import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_semen_details.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/semen_usecases.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/update_semen.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_bloc.dart';
 
-import 'package:farm_manager_app/features/farmer/livestock/data/datasources/livestock_remote_datasource.dart';
-import 'package:farm_manager_app/features/farmer/livestock/data/repositories/livestock_repository_impl.dart';
-import 'package:farm_manager_app/features/farmer/livestock/domain/repositories/livestock_repository.dart';
-import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/add_livestock.dart';
-import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/get_all_livestock.dart';
-import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/get_livestock_by_id.dart';
-import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_bloc.dart';
-import 'package:farm_manager_app/features/vet/data/domain/usercases/submit_vet_details_usecase.dart'; 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:get_it/get_it.dart';
-import 'package:flutter/widgets.dart'; // Required for WidgetsFlutterBinding
-
-import '../localization/language_provider.dart';
-import '../networking/api_client.dart';
-import '../networking/api_endpoints.dart'; 
-import '../networking/network_info.dart';
 
 final getIt = GetIt.instance;
 
@@ -70,9 +93,9 @@ Future<void> setupLocator() async {
   // CORE LAYER - Only essential init here
   // ========================================
   
-  // Register Dio instance LAZILY (created only when first used)
+  // Register Dio instance LAZILY
   getIt.registerLazySingleton<Dio>(() {
-    ApiClient.init(); // Initialize only when Dio is first accessed
+    ApiClient.init(); 
     return ApiClient.dio;
   });
   
@@ -95,7 +118,6 @@ Future<void> setupLocator() async {
       storage: getIt<FlutterSecureStorage>(),
     ),
   );
-  
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(getIt<FlutterSecureStorage>()),
   );
@@ -110,7 +132,7 @@ Future<void> setupLocator() async {
     () => FarmerRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
 
-  // ⭐ RESEARCHER DATA SOURCE (NEW)
+  // Researcher Data Source
   getIt.registerLazySingleton<ResearcherRemoteDataSource>(
     () => ResearcherRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
@@ -124,11 +146,17 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton<HeatCycleRemoteDataSource>(
     () => HeatCycleRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
-
+  
   // Semen Data Source
   getIt.registerLazySingleton<SemenRemoteDataSource>(
     () => SemenRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
+
+  // ⭐ INSEMINATION DATA SOURCE
+  getIt.registerLazySingleton<InseminationRemoteDataSource>(
+    () => InseminationRemoteDataSourceImpl(dio: getIt<Dio>()),
+  );
+
 
   // ========================================
   // REPOSITORIES LAYER - All LAZY
@@ -157,7 +185,7 @@ Future<void> setupLocator() async {
     ),
   );
 
-  // ⭐ RESEARCHER REPOSITORY (NEW)
+  // Researcher Repository
   getIt.registerLazySingleton<ResearcherRepository>(
     () => ResearcherRepositoryImpl(
       remoteDataSource: getIt<ResearcherRemoteDataSource>(),
@@ -184,26 +212,37 @@ Future<void> setupLocator() async {
       networkInfo: getIt<NetworkInfo>(),
     ),
   );
+  
+  // ⭐ INSEMINATION REPOSITORY
+  getIt.registerLazySingleton<InseminationRepository>(
+    () => InseminationRepositoryImpl(
+      remoteDataSource: getIt<InseminationRemoteDataSource>(),
+    ),
+  );
 
   // ========================================
   // USE CASES LAYER - All LAZY
   // ========================================
+
+  // Researcher Use Cases
+  getIt.registerLazySingleton( 
+    () => GetResearcherApprovalStatusUseCase(getIt<ResearcherRepository>()),
+  );
   
   // Auth Use Cases
   getIt.registerLazySingleton(() => LoginUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => AssignRoleUseCase(getIt<AuthRepository>()));
   
-  // Farmer Use Cases
+  // Farmer/Vet Use Cases
   getIt.registerLazySingleton(
     () => RegisterFarmerUseCase(repository: getIt<FarmerRepository>()),
   );
-  
   getIt.registerLazySingleton(
     () => SubmitVetDetailsUseCase(getIt<AuthRepository>()),
   );
-
-  // ⭐ RESEARCHER USE CASE (NEW)
+  
+  // Researcher Use Case
   getIt.registerLazySingleton(
     () => SubmitResearcherDetailsUseCase(getIt<ResearcherRepository>()),
   );
@@ -212,6 +251,8 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton(() => GetAllLivestock(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => GetLivestockById(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => AddLivestock(getIt<LivestockRepository>()));
+  getIt.registerLazySingleton(() => UpdateLivestock(getIt<LivestockRepository>()));
+  getIt.registerLazySingleton(() => DeleteLivestock(getIt<LivestockRepository>()));
   
   // Heat Cycle Use Cases
   getIt.registerLazySingleton(() => GetHeatCycles(getIt<HeatCycleRepository>()));
@@ -226,12 +267,28 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton(() => UpdateSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => DeleteSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => GetAvailableSemen(getIt<SemenRepository>()));
+  
+  // ⭐ INSEMINATION USE CASES (CORRECTED NAMES)
+  getIt.registerLazySingleton(() => FetchInseminationList(repository: getIt<InseminationRepository>()));
+  getIt.registerLazySingleton(() => FetchInseminationDetail(repository: getIt<InseminationRepository>()));
+  getIt.registerLazySingleton(() => AddInsemination(repository: getIt<InseminationRepository>()));
+  getIt.registerLazySingleton(() => UpdateInsemination(repository: getIt<InseminationRepository>()));
+  getIt.registerLazySingleton(() => DeleteInsemination(repository: getIt<InseminationRepository>()));
+
 
   // ========================================
   // PRESENTATION LAYER (BLoCs) - FACTORY
   // ========================================
+
+  // ResearcherBloc - Factory
+  getIt.registerFactory<ResearcherBloc>(
+    () => ResearcherBloc(
+      submitResearcherDetailsUseCase: getIt<SubmitResearcherDetailsUseCase>(),
+      getResearcherApprovalStatusUseCase: getIt<GetResearcherApprovalStatusUseCase>(), 
+    ),
+  );
   
-  // AuthBloc - Factory (new instance per screen)
+  // AuthBloc - Factory
   getIt.registerFactory(
     () => AuthBloc(
       loginUseCase: getIt<LoginUseCase>(),
@@ -248,6 +305,8 @@ Future<void> setupLocator() async {
       getAllLivestock: getIt<GetAllLivestock>(),
       getLivestockById: getIt<GetLivestockById>(),
       addLivestock: getIt<AddLivestock>(),
+      updateLivestock: getIt<UpdateLivestock>(),
+      deleteLivestock: getIt<DeleteLivestock>(),
     ),
   );
   
@@ -273,12 +332,12 @@ Future<void> setupLocator() async {
     ),
   );
 
-  // ⭐ ResearcherBloc - Factory (FIXED)
-  getIt.registerFactory<ResearcherBloc>(
-    () => ResearcherBloc(
-      submitResearcherDetailsUseCase: getIt<SubmitResearcherDetailsUseCase>(),
+  getIt.registerFactory(
+    () => InseminationBloc(
+      repository: getIt<InseminationRepository>(),
     ),
-  );
+);
+
 
   // ========================================
   // UTILITIES & PROVIDERS

@@ -31,7 +31,7 @@ class SemenRepositoryImpl implements SemenRepository {
     } on ValidationException catch (e) {
       // Pass the map of errors for the Bloc to handle
       return Left(ValidationFailure(e.message, errors: e.errors)); 
-    } on DioException catch (e) {
+    } on DioException {
       // NOTE: DioException is caught for network failure (like timeout, dns issues)
       return Left(ServerFailure('Network error occurred.'));
     } catch (e) {

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class VaccinationDetailPage extends StatefulWidget {
   final int scheduleId;
 
-  const VaccinationDetailPage({required this.scheduleId, super.key});
+  const VaccinationDetailPage({required this.scheduleId, super.key, required String vaccinationId});
 
   @override
   State<VaccinationDetailPage> createState() => _VaccinationDetailPageState();

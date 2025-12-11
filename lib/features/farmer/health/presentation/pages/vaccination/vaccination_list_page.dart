@@ -175,7 +175,7 @@ class _VaccinationListPageState extends State<VaccinationListPage> {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => VaccinationDetailPage(scheduleId: schedule.scheduleId),
+                              builder: (context) => VaccinationDetailPage(scheduleId: schedule.scheduleId, vaccinationId: '',),
                             ),
                           );
                           // Refresh list if marked as completed

@@ -235,7 +235,7 @@ class _FarmerDetailsFormPageState extends State<FarmerDetailsFormPage> {
       children: [
         Expanded(
           child: DropdownButtonFormField<int>(
-            value: _selectedLocationId,
+            initialValue: _selectedLocationId,
             decoration: InputDecoration(
               labelText: AppLocalizations.of(context)!.farmLocation ?? 'Farm Location',
               prefixIcon: const Icon(Icons.location_on),
@@ -362,7 +362,7 @@ class _FarmerDetailsFormPageState extends State<FarmerDetailsFormPage> {
 
                     // Farm Purpose
                     DropdownButtonFormField<String>(
-                      value: _selectedFarmPurpose,
+                      initialValue: _selectedFarmPurpose,
                       decoration: InputDecoration(
                         labelText: l10n.farmPurpose ?? 'Main Farm Purpose',
                         prefixIcon: const Icon(Icons.grass),

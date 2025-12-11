@@ -1,11 +1,11 @@
-// lib/features/farmer/breeding/data/models/insemination_model.dart
+// lib/features/farmer/insemination/data/models/insemination_model.dart
 
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/entities/insemination_entity.dart';
-import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/insemination_usecases.dart';
+import 'package:equatable/equatable.dart';
 
 // --- Nested Model Classes for Relationships ---
 
-class InseminationAnimalModel extends InseminationAnimalEntity {
+class InseminationAnimalModel extends InseminationAnimalEntity with EquatableMixin {
   const InseminationAnimalModel({
     required super.id,
     required super.tagNumber,
@@ -14,14 +14,18 @@ class InseminationAnimalModel extends InseminationAnimalEntity {
 
   factory InseminationAnimalModel.fromJson(Map<String, dynamic> json) {
     return InseminationAnimalModel(
-      id: json['animal_id'] as int,
+      // ⭐ Adjusted to use snake_case keys common in API responses
+      id: json['animal_id'] as int? ?? json['id'] as int, 
       tagNumber: json['tag_number'] as String,
       name: json['name'] as String,
     );
   }
+
+  @override
+  List<Object?> get props => [id, tagNumber, name];
 }
 
-class InseminationSemenModel extends InseminationSemenEntity {
+class InseminationSemenModel extends InseminationSemenEntity with EquatableMixin {
   const InseminationSemenModel({
     required super.id,
     required super.strawCode,
@@ -35,11 +39,14 @@ class InseminationSemenModel extends InseminationSemenEntity {
       bullName: json['bull_name'] as String,
     );
   }
+
+  @override
+  List<Object?> get props => [id, strawCode, bullName];
 }
 
 // --- Main Insemination Model ---
 
-class InseminationModel extends InseminationEntity {
+class InseminationModel extends InseminationEntity with EquatableMixin {
   const InseminationModel({
     required super.id,
     required super.damId,
@@ -82,36 +89,19 @@ class InseminationModel extends InseminationEntity {
       
       // Custom calculated fields from backend
       isPregnant: json['is_pregnant'] as bool? ?? false,
-      daysToDue: json['days_to_due'] as int? ?? 999, // Use a high default if null
+      daysToDue: json['days_to_due'] as int? ?? 999,
     );
   }
 
-  // Method to convert the Data Model back to the Domain Entity
+  // Method to convert the Data Model back to the Domain Entity (often implicit via implementation)
   InseminationEntity toEntity() {
-    return InseminationEntity(
-      id: id,
-      damId: damId,
-      sireId: sireId,
-      semenId: semenId,
-      heatCycleId: heatCycleId,
-      breedingMethod: breedingMethod,
-      inseminationDate: inseminationDate,
-      expectedDeliveryDate: expectedDeliveryDate,
-      status: status,
-      notes: notes,
-      
-      // Mapping Nested Models to Nested Entities
-      dam: dam as InseminationAnimalEntity,
-      sire: sire as InseminationAnimalEntity?,
-      semen: semen as InseminationSemenEntity?,
-
-      isPregnant: isPregnant,
-      daysToDue: daysToDue,
-    );
+    return this; // Since InseminationModel implements InseminationEntity
   }
   
-  // Method to convert the entity to JSON for updating/creating (minimal fields)
-  static Map<String, dynamic> toJson(CreateUpdateInseminationParams params) {
-    return params.toJson();
-  }
+  @override
+  List<Object?> get props => [
+    id, damId, sireId, semenId, heatCycleId, breedingMethod,
+    inseminationDate, expectedDeliveryDate, status, notes,
+    dam, sire, semen, isPregnant, daysToDue
+  ];
 }

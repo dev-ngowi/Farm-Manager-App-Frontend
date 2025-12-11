@@ -1561,4 +1561,265 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get genericError =>
       'A network or server error occurred. Please try again later.';
+
+  @override
+  String get addNewWardHint => 'Add New Ward Hint';
+
+  @override
+  String get awaitingApproval => 'Awaiting Approval';
+
+  @override
+  String get approvalPendingMessage =>
+      'Your researcher profile has been submitted successfully. Please wait while an administrator reviews your application.';
+
+  @override
+  String get profileSubmitted => 'Profile Submitted';
+
+  @override
+  String get waitingForReview => 'Waiting for Review';
+
+  @override
+  String get youWillBeNotified => 'You will be notified once approved';
+
+  @override
+  String get checkingStatus => 'Checking status...';
+
+  @override
+  String get checkStatus => 'Check Status';
+
+  @override
+  String get approvalGranted => 'Your researcher profile has been approved!';
+
+  @override
+  String get applicationDeclined => 'Application Declined';
+
+  @override
+  String get declineMessage =>
+      'We regret to inform you that your researcher application has been declined.';
+
+  @override
+  String get reason => 'Reason:';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get editAnimal => 'Edit Animal';
+
+  @override
+  String get animalUpdatedSuccess => 'Animal updated successfully';
+
+  @override
+  String get deleteConfirmationTitle => 'Delete Animal';
+
+  @override
+  String deleteConfirmationMessage(Object tag) {
+    return 'Are you sure you want to delete animal $tag?';
+  }
+
+  @override
+  String get animalDeletedSuccess => 'Animal deleted successfully';
+
+  @override
+  String get failedLoadDetails => 'Failed to load animal details: ';
+
+  @override
+  String get notApplicable => 'Not Applicable';
+
+  @override
+  String get noName => 'No Name';
+
+  @override
+  String get genealogy => 'Genealogy';
+
+  @override
+  String get purchaseDetails => 'Purchase Details';
+
+  @override
+  String get purchaseDate => 'Purchase Date';
+
+  @override
+  String get purchaseCost => 'Purchase Cost';
+
+  @override
+  String get source => 'Source / Vendor';
+
+  @override
+  String get deleteAnimal => 'Delete Animal';
+
+  @override
+  String get updateAnimal => 'Update Animal';
+
+  @override
+  String get basicInformation => 'Basic Information';
+
+  @override
+  String get searchByTagOrName => 'Search by Tag or Name';
+
+  @override
+  String get registerNewAnimal => 'Register New Animal';
+
+  @override
+  String get fillAnimalDetails =>
+      'Please fill out all required details to register a new livestock record.';
+
+  @override
+  String get editAnimalHeader => 'Edit Animal Details';
+
+  @override
+  String get editAnimalHeaderSubtitle => 'Update information for this animal';
+
+  @override
+  String get requiredFieldsNote =>
+      'All fields marked with * are required. The more details you add, the better your farm reports will be.';
+
+  @override
+  String get requiredFieldsReviewNote =>
+      'All fields marked with * are required. Make sure to review all changes before submitting.';
+
+  @override
+  String get noSpeciesAvailable => 'No Species data available. Cannot proceed.';
+
+  @override
+  String get weightAtBirthKg => 'Weight at Birth (kg)';
+
+  @override
+  String get weightRequired => 'Weight is required';
+
+  @override
+  String get sexMale => 'Male';
+
+  @override
+  String get sexFemale => 'Female';
+
+  @override
+  String get sexUnknown => 'Unknown';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusSold => 'Sold';
+
+  @override
+  String get statusDeceased => 'Deceased';
+
+  @override
+  String get statusCulled => 'Culled';
+
+  @override
+  String get editInseminationRecord => 'Edit Insemination Record';
+
+  @override
+  String get invalidRecordId => 'Invalid Record ID';
+
+  @override
+  String get inseminationUpdatedSuccess => 'Insemination updated successfully!';
+
+  @override
+  String get editInseminationDetails => 'Edit Insemination Details';
+
+  @override
+  String get updateInseminationNote =>
+      'Update information for this insemination record.';
+
+  @override
+  String get reviewChangesNote =>
+      'All fields marked with * are required. Make sure to review all changes before submitting.';
+
+  @override
+  String get inseminationDetails => 'Insemination Details';
+
+  @override
+  String get editRecord => 'Edit Record';
+
+  @override
+  String get inseminationDeletedSuccess => 'Insemination deleted successfully!';
+
+  @override
+  String get pregnancyResult => 'Pregnancy & Result';
+
+  @override
+  String get pregnancyDiagnosis => 'Pregnancy Diagnosis';
+
+  @override
+  String get diagnosisResult => 'Diagnosis Result';
+
+  @override
+  String get outcome => 'Outcome';
+
+  @override
+  String get addInseminationRecord => 'Add Insemination Record';
+
+  @override
+  String get inseminationAddedSuccess => 'Insemination added successfully!';
+
+  @override
+  String get registerNewInsemination => 'Register New Insemination';
+
+  @override
+  String get fillInseminationDetails =>
+      'Please fill out all required details to register a new insemination record.';
+
+  @override
+  String get inseminationRecords => 'Insemination Records';
+
+  @override
+  String get searchByAnimalTag => 'Search by Animal Tag or Date';
+
+  @override
+  String get noInseminationRecords => 'No insemination records yet';
+
+  @override
+  String get animal => 'Animal';
+
+  @override
+  String get inseminationType => 'Insemination Type';
+
+  @override
+  String get inseminatorName => 'Inseminator Name';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get animalName => 'Animal Name';
+
+  @override
+  String get daysToDue => 'Days To Due';
+
+  @override
+  String get inseminationEvent => 'Insemination Event';
+
+  @override
+  String get sireInformation => 'Sire/Semen Information';
+
+  @override
+  String get semenId => 'Semen ID';
+
+  @override
+  String get sireId => 'Sire ID';
+
+  @override
+  String get noSireInfo => 'No sire information recorded.';
+
+  @override
+  String get sireInfoMissing => 'Sire/Semen details expected but not loaded.';
+
+  @override
+  String get pregnancyStatus => 'Pregnancy Status';
+
+  @override
+  String get isPregnant => 'Is Pregnant?';
+
+  @override
+  String get addRecord => 'Add Record';
+
+  @override
+  String fieldRequiredFor(String fieldName) {
+    return 'The $fieldName field is required.';
+  }
+
+  @override
+  String get requiredFieldsMissing => 'Required fields missing';
 }

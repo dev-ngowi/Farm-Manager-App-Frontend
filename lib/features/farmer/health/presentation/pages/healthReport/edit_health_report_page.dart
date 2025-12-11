@@ -150,7 +150,7 @@ class _EditHealthReportPageState extends State<EditHealthReportPage> {
 
   Widget _buildStatusDropdown(ThemeData theme, bool isLoading) {
     return DropdownButtonFormField<String>(
-      value: _selectedStatus,
+      initialValue: _selectedStatus,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: l10n.status,
@@ -174,7 +174,7 @@ class _EditHealthReportPageState extends State<EditHealthReportPage> {
 
   Widget _buildPriorityDropdown(ThemeData theme, bool isLoading) {
     return DropdownButtonFormField<String>(
-      value: _selectedPriority,
+      initialValue: _selectedPriority,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: l10n.priority,

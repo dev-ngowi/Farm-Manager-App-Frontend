@@ -36,3 +36,23 @@ class AddNewLivestock extends LivestockEvent {
   @override
   List<Object> get props => [animalData];
 }
+
+class UpdateLivestock extends LivestockEvent {
+  final int animalId;
+  final Map<String, dynamic> animalData;
+
+  const UpdateLivestock({required this.animalId, required this.animalData});
+
+  @override
+  List<Object> get props => [animalId, animalData];
+}
+
+// ⭐ NEW: Delete Event (useful for a delete button on detail page)
+class DeleteLivestock extends LivestockEvent {
+  final int animalId;
+
+  const DeleteLivestock(this.animalId);
+
+  @override
+  List<Object> get props => [animalId];
+}

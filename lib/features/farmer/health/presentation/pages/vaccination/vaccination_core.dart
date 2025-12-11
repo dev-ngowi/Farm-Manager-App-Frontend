@@ -1,9 +1,6 @@
 // Core components for the Vaccination feature: Model, Service, and Shared UI/Mock classes.
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 // --- MOCK THEME & LOCALIZATION IMPORTS (Aligned with Treatment Files) ---
 

@@ -1,40 +1,27 @@
-import 'package:farm_manager_app/core/config/app_theme.dart'; // Assumed AppTheme includes AppColors
+import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
-// Note: Assuming AppLocalizations is available. Using mock for self-contained example.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Uncomment in production
 
-// --- DATA STRUCTURES (Mock Data for Design Review) ---
+// --- DATA STRUCTURES ---
 
-// 1. Mock Backend Data Structure
 class _BreedingDashboardData {
-  // Insemination
-  final int totalInseminations = 150;
+  // Top 3 Key Metrics
   final int pregnantNow = 25;
   final double successRate = 82.5;
-  final int dueSoonCount = 5;
-  final double avgCalvingInterval = 385.2;
-
-  // Lactation
-  final int activeLactations = 35;
-  final double avgDaysInMilk = 120.5;
-
-  // Inventory
-  final int totalAvailableStraws = 280;
-
-  // Offspring
   final int totalOffspringRecorded = 73;
+  final int activeBreeding = 45;
+  final double pregnancyRate = 78.0;
 
   // Alerts
   final int dueSoonAlerts = 5;
   final int heatExpectedAlerts = 12;
   final int dryOffRequiredAlerts = 3;
+  final int pregnancyChecksNeeded = 8;
 }
 
 final _mockData = _BreedingDashboardData();
 
-// 2. Define a simple structure for modular navigation items
 class ModuleItem {
   final String titleKey;
   final IconData icon;
@@ -103,147 +90,195 @@ class BreedingDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final l10n = AppLocalizations.of(context)!; // Uncomment in production
-    // Placeholder l10n for design review:
     final l10n = _DesignL10n(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor:
-          theme.scaffoldBackgroundColor, // Use theme background color
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        // --- START: FIXED NAVIGATION ERROR ---
+        backgroundColor: AppColors.surface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => context.go('/farmer/dashboard'),
         ),
-        // --- END: FIXED NAVIGATION ERROR ---
-        title: Text(l10n.breedingManagement),
-        elevation: 1,
+        title: const Text(
+          'Breeding Management',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined,
+                color: AppColors.primary),
+            onPressed: () => context.push('/notifications'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 24),
+      body: RefreshIndicator(
+        onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with overview
+              _buildHeader(l10n),
+
+              const SizedBox(height: 16),
+
+              // Key metrics cards
+              _buildKeyMetrics(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+              // Breeding performance card
+              _buildPerformanceCard(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+              // Action items / Alerts
+              _buildActionItems(l10n, _mockData),
+
+              const SizedBox(height: 16),
+
+              // Quick access modules
+              _buildQuickAccessModules(l10n),
+
+              const SizedBox(height: 16),
+
+              // Additional metrics
+              _buildAdditionalMetrics(l10n, _mockData),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(_DesignL10n l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Breeding Overview',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Monitor and manage your herd\'s reproductive health',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeyMetrics(_DesignL10n l10n, _BreedingDashboardData data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Currently Pregnant',
+              value: data.pregnantNow.toString(),
+              subtitle: 'Active pregnancies',
+              icon: Icons.pregnant_woman,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Success Rate',
+              value: '${data.successRate.toStringAsFixed(1)}%',
+              subtitle: 'Conception rate',
+              icon: Icons.trending_up,
+              color: AppColors.success,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Total Offspring',
+              value: data.totalOffspringRecorded.toString(),
+              subtitle: 'All time',
+              icon: Icons.child_friendly,
+              color: BreedingColors.offspring,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. STATS GRID (Small, responsive cards)
-            _BreedingStatsSection(l10n: l10n, data: _mockData),
-
-            // 2. ALERTS SECTION
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.alerts,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  // Delivery Due Soon Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.dueSoon,
-                      _mockData.dueSoonAlerts,
-                      AppColors.secondary,
-                      Icons.pregnant_woman,
-                      '/farmer/breeding/deliveries'),
-                  const SizedBox(height: 8),
-                  // Heat Expected Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.heatExpected,
-                      _mockData.heatExpectedAlerts,
-                      BreedingColors.heat,
-                      Icons.whatshot,
-                      '/farmer/breeding/heat-cycles'),
-                  const SizedBox(height: 8),
-                  // Dry-off Required Alert
-                  _buildAlertCard(
-                      context,
-                      l10n.dryOffRequired,
-                      _mockData.dryOffRequiredAlerts,
-                      AppColors.warning,
-                      Icons.opacity,
-                      '/farmer/breeding/lactations'),
-                ],
-              ),
-            ),
-
-            const Divider(indent: 16, endIndent: 16),
-
-            // 3. QUICK ACTIONS SECTION (Small, compact buttons)
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.quickActions,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 16, // Consistent horizontal spacing
-                    runSpacing: 16, // Consistent vertical spacing
-                    alignment: WrapAlignment.start,
-                    children: [
-                      _buildQuickActionButton(
-                          context,
-                          l10n.recordHeat,
-                          Icons.whatshot,
-                          BreedingColors.heat,
-                          '/farmer/breeding/heat-cycles/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.recordBreeding,
-                          Icons.vaccines,
-                          BreedingColors.insemination,
-                          '/farmer/breeding/inseminations/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.addSemen,
-                          Icons.storage,
-                          BreedingColors.semen,
-                          '/farmer/breeding/semen/add'),
-                      _buildQuickActionButton(
-                          context,
-                          l10n.pregnancyCheck,
-                          Icons.monitor_heart,
-                          BreedingColors.pregnancy,
-                          '/farmer/breeding/pregnancy-checks/add'),
-                    ],
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
+                  child: Icon(icon, size: 18, color: color),
+                ),
+                const Spacer(),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
-
-            const Divider(indent: 16, endIndent: 16),
-
-            // 4. MODULES SECTION (Cards now smaller/denser)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Text(l10n.modules,
-                  style: theme.textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _moduleItems.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  // Aspect ratio for smaller cards
-                  childAspectRatio: 1.1,
-                ),
-                itemBuilder: (context, index) {
-                  final item = _moduleItems[index];
-                  return _buildModuleCard(context, item, l10n);
-                },
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[600],
               ),
             ),
           ],
@@ -252,112 +287,78 @@ class BreedingDashboardPage extends StatelessWidget {
     );
   }
 
-  /// Alert Card using standard Card and ListTile
-  Widget _buildAlertCard(BuildContext context, String title, int count,
-      Color color, IconData icon, String route) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withOpacity(0.5), width: 1),
-      ),
-      margin: EdgeInsets.zero, // Remove global card margin
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Icon(icon, color: color, size: 30),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            count.toString(),
-            style: theme.textTheme.titleLarge
-                ?.copyWith(color: color, fontWeight: FontWeight.bold),
-          ),
-        ),
-        onTap: () => context.push(route),
-      ),
-    );
-  }
+  Widget _buildPerformanceCard(_DesignL10n l10n, _BreedingDashboardData data) {
+    double rate = data.pregnancyRate;
+    bool isGood = rate >= 70;
 
-  /// Quick Action Button using standard ElevatedButton for better accessibility
-  Widget _buildQuickActionButton(BuildContext context, String label,
-      IconData icon, Color color, String route) {
-    // Calculated width to ensure two items per row, regardless of screen size
-    final screenWidth = MediaQuery.of(context).size.width;
-    final widgetWidth = (screenWidth - 16 * 3) /
-        2; // (Screen - (Paddings * 2) - (Spacing * 1)) / 2
-
-    return SizedBox(
-      width: widgetWidth,
-      child: ElevatedButton.icon(
-        onPressed: () => context.push(route),
-        icon: Icon(icon,
-            color: AppColors.onSecondary), // Use AppColors.onSecondary (white)
-        label: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.onSecondary, fontWeight: FontWeight.w600),
-          textAlign: TextAlign.center,
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 4,
-        ),
-      ),
-    );
-  }
-
-  /// Module Navigation Card using standard Card and Column
-  Widget _buildModuleCard(
-      BuildContext context, ModuleItem item, _DesignL10n l10n) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 2, // Locally override global CardTheme
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.zero, // Remove global card margin
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push(item.route),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  Icon(item.icon, color: item.color, size: 30),
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CircularProgressIndicator(
+                      value: rate / 100,
+                      strokeWidth: 6,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isGood ? AppColors.success : AppColors.secondary,
+                      ),
+                    ),
+                  ),
                   Text(
-                    item.count.toString(),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: item.color,
-                      fontWeight: FontWeight.w900,
+                    '${rate.toInt()}%',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.getString(item.titleKey), // Use localized title
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Breeding Program Health',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isGood
+                          ? 'Your breeding program is performing excellently'
+                          : 'Some areas need attention',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: rate / 100,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isGood ? AppColors.success : AppColors.secondary,
+                      ),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -365,175 +366,392 @@ class BreedingDashboardPage extends StatelessWidget {
       ),
     );
   }
-}
 
-// --- NEW WIDGET FOR STATS SECTION ---
-class _BreedingStatsSection extends StatelessWidget {
-  const _BreedingStatsSection({required this.l10n, required this.data});
-
-  final _DesignL10n l10n;
-  final _BreedingDashboardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    // Define the list of stats to show (selected 6 key stats for density)
-    final stats = [
-      // INSEMINATION
-      {
-        'title': l10n.pregnantNow,
-        'value': data.pregnantNow,
-        'color': AppColors.primary,
-        'icon': Icons.favorite,
-      },
-      {
-        'title': l10n.successRate,
-        'value': '${data.successRate.toStringAsFixed(1)}%',
-        'color': BreedingColors.insemination,
-        'icon': Icons.trending_up,
-      },
-      {
-        'title': l10n.avgCalvingInterval,
-        'value': '${data.avgCalvingInterval.toStringAsFixed(0)} ${l10n.days}',
-        'color': BreedingColors.delivery,
-        'icon': Icons.calendar_today,
-      },
-      // LACTATION & INVENTORY & Offspring (Added Offspring Stat here)
-      {
-        'title': l10n.totalOffspring,
-        'value': data.totalOffspringRecorded,
-        'color': BreedingColors.offspring,
-        'icon': Icons.child_friendly,
-      },
-      {
-        'title': l10n.activeLactations,
-        'value': data.activeLactations,
-        'color': BreedingColors.lactation,
-        'icon': Icons.local_drink,
-      },
-      {
-        'title': l10n.availableSemen,
-        'value': data.totalAvailableStraws,
-        'color': BreedingColors.semen,
-        'icon': Icons.storage,
-      },
-    ];
-
+  Widget _buildActionItems(_DesignL10n l10n, _BreedingDashboardData data) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.performanceSummary,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              Icon(Icons.notifications_active,
+                  color: AppColors.secondary, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Action Items',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 12, // Horizontal spacing between cards
-            runSpacing: 12, // Vertical spacing between cards
-            children: stats.map((stat) {
-              return _buildStatCard(
-                context,
-                stat['title'] as String,
-                stat['value'],
-                stat['color'] as Color,
-                stat['icon'] as IconData,
-              );
-            }).toList(),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  title: 'Due Soon',
+                  count: data.dueSoonAlerts,
+                  icon: Icons.calendar_today,
+                  color: AppColors.secondary,
+                  route: '/farmer/breeding/deliveries',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  title: 'Heat Expected',
+                  count: data.heatExpectedAlerts,
+                  icon: Icons.whatshot,
+                  color: BreedingColors.heat,
+                  route: '/farmer/breeding/heat-cycles',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  title: 'Dry-off Required',
+                  count: data.dryOffRequiredAlerts,
+                  icon: Icons.opacity,
+                  color: AppColors.warning,
+                  route: '/farmer/breeding/lactations',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  title: 'Pregnancy Checks',
+                  count: data.pregnancyChecksNeeded,
+                  icon: Icons.monitor_heart,
+                  color: BreedingColors.pregnancy,
+                  route: '/farmer/breeding/pregnancy-checks',
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  /// Stat Card component redesigned for 2-column responsiveness
-  Widget _buildStatCard(BuildContext context, String title, dynamic value,
-      Color color, IconData icon) {
-    final theme = Theme.of(context);
-    // Calculated width to ensure two items per row, allowing for space and padding
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 16 * 2 - 12) /
-        2; // (Screen - (Paddings * 2) - (Spacing * 1)) / 2
-
-    return SizedBox(
-      width: cardWidth,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(height: 4),
-              Text(
-                value.toString(),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: color,
+  Widget _buildActionCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required String route,
+  }) {
+    return Builder(
+      builder: (context) => Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => context.push(route),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, size: 16, color: color),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'Tap to view',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessModules(_DesignL10n l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.apps, color: AppColors.primary, size: 18),
+              const SizedBox(width: 6),
               Text(
-                title,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontSize: 10, color: AppColors.textSecondary),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                'Quick Access',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _moduleItems.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
+            ),
+            itemBuilder: (context, index) {
+              final item = _moduleItems[index];
+              return _buildModuleButton(item, l10n);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModuleButton(ModuleItem item, _DesignL10n l10n) {
+    return Builder(
+      builder: (context) => InkWell(
+        onTap: () => context.push(item.route),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: item.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      item.icon,
+                      color: item.color,
+                      size: 28,
+                    ),
+                  ),
+                  if (item.count > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: item.color,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          item.count > 99 ? '99+' : item.count.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.getString(item.titleKey),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdditionalMetrics(
+      _DesignL10n l10n, _BreedingDashboardData data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Breeding Statistics',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  label: 'Active Breeding',
+                  value: data.activeBreeding.toString(),
+                  icon: Icons.insights,
+                  color: BreedingColors.insemination,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatItem(
+                  label: 'Semen Straws',
+                  value: '52',
+                  icon: Icons.storage,
+                  color: BreedingColors.semen,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// --- MOCK LOCALIZATION CLASS (Necessary for code completion and review) ---
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCK LOCALIZATION
+// ═══════════════════════════════════════════════════════════════════════════
 class _DesignL10n {
   final BuildContext context;
   _DesignL10n(this.context);
 
   String get breedingManagement => 'Breeding Management';
-  String get performanceSummary => 'Performance Summary';
   String get alerts => 'Alerts';
-  String get quickActions => 'Quick Actions';
   String get modules => 'Modules';
 
   // STATS
-  String get pregnantNow => 'Pregnant Now';
+  String get pregnantNow => 'Pregnant';
   String get successRate => 'Success Rate';
-  String get avgCalvingInterval => 'Avg. Calving Interval';
-  String get activeLactations => 'Active Lactations';
-  String get avgDaysInMilk => 'Avg. Days in Milk';
-  String get availableSemen => 'Available Semen Straws';
-  String get totalOffspring => 'Total Offspring';
-  String get days => 'Days';
+  String get totalOffspring => 'Offspring';
 
   // ALERTS
   String get dueSoon => 'Deliveries Due Soon';
   String get heatExpected => 'Heat Expected';
   String get dryOffRequired => 'Dry-off Required';
 
-  // ACTIONS
-  String get recordHeat => 'Record Heat';
-  String get addSemen => 'Add Semen';
-  String get recordBreeding => 'Record Breeding';
-  String get pregnancyCheck => 'Pregnancy Check';
-
   String getString(String key) {
     switch (key) {
       case 'heatCycles':
         return 'Heat Cycles';
       case 'semenInventory':
-        return 'Semen Inventory';
+        return 'Semen';
       case 'inseminations':
         return 'Inseminations';
       case 'pregnancyChecks':
-        return 'Pregnancy Checks';
+        return 'Pregnancy';
       case 'deliveries':
         return 'Deliveries';
       case 'offspring':

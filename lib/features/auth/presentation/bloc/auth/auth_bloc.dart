@@ -38,12 +38,161 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Register event handlers
     on<RegisterSubmitted>(_onRegisterSubmitted);
     on<LoginSubmitted>(_onLoginSubmitted);
-    // REMOVED: on<FetchUserLocations>(_onFetchUserLocations); // Not needed for immediate login refresh
     on<AssignRoleSubmitted>(_onAssignRoleSubmitted);
     on<SubmitFarmerDetails>(_onSubmitFarmerDetails);
     on<LogoutRequested>(_onLogoutRequested);
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<UserLocationUpdated>(_onUserLocationUpdated);
+    on<UserDetailsUpdated>(_onUserDetailsUpdated); 
+  }
+
+  // lib/features/auth/presentation/bloc/auth/auth_bloc.dart
+  // FIXED VERSION - Properly handles UserDetailsUpdated event
+
+  // ========================================
+  // USER DETAILS UPDATED HANDLER (COMPLETE FIX)
+  // ========================================
+  Future<void> _onUserDetailsUpdated(
+    UserDetailsUpdated event,
+    Emitter<AuthState> emit,
+  ) async {
+    print('========================================');
+    print('AuthBloc: UserDetailsUpdated received');
+    print('========================================');
+
+    final currentState = state;
+    String? preservedToken;
+    List<LocationEntity>? preservedLocations;
+    bool? preservedHasLocation;
+    int? preservedPrimaryLocationId;
+
+    // Step 1: Try to get data from current AuthSuccess state
+    if (currentState is AuthSuccess) {
+      preservedToken = currentState.user.token;
+      preservedLocations = currentState.user.locations;
+      preservedHasLocation = currentState.user.hasLocation;
+      preservedPrimaryLocationId = currentState.user.primaryLocationId;
+      print('✅ Retrieved data from AuthSuccess state');
+      print('   Token exists: ${preservedToken != null}');
+      print('   Locations count: ${preservedLocations?.length ?? 0}');
+      print('   Has Location: $preservedHasLocation');
+      print('   Primary Location ID: $preservedPrimaryLocationId');
+    } else {
+      // Step 2: If not AuthSuccess, read from secure storage (CRITICAL FIX)
+      print('⚠️  State is not AuthSuccess. Reading from secure storage...');
+
+      try {
+        preservedToken = await _storage.read(key: 'access_token');
+        final hasLocationStr = await _storage.read(key: 'has_location');
+        final primaryLocationIdStr =
+            await _storage.read(key: 'primary_location_id');
+        final locationsCountStr = await _storage.read(key: 'locations_count');
+
+        preservedHasLocation = hasLocationStr == 'true';
+        preservedPrimaryLocationId = primaryLocationIdStr != null
+            ? int.tryParse(primaryLocationIdStr)
+            : null;
+
+        print('✅ Retrieved from secure storage:');
+        print('   Token exists: ${preservedToken != null}');
+        print('   Has Location: $preservedHasLocation');
+        print('   Primary Location ID: $preservedPrimaryLocationId');
+        print('   Locations count: ${locationsCountStr ?? '0'}');
+      } catch (e) {
+        print('❌ Error reading from storage: $e');
+      }
+    }
+
+    // Step 3: Merge event data with preserved data
+    print('');
+    print('Merging user data...');
+    print('   Event user:');
+    print('      ID: ${event.user.id}');
+    print('      Role: ${event.user.role}');
+    print('      hasCompletedDetails: ${event.user.hasCompletedDetails}');
+    print('      hasDetailsApproved: ${event.user.hasDetailsApproved}');
+    print('      hasLocation: ${event.user.hasLocation}');
+    print('      token: ${event.user.token != null ? "provided" : "null"}');
+    print('   Preserved data:');
+    print('      hasLocation: $preservedHasLocation');
+    print('      primaryLocationId: $preservedPrimaryLocationId');
+    print('      locations count: ${preservedLocations?.length ?? 0}');
+
+    // 🎯 CRITICAL FIX: Determine which location data to use
+    // Priority: preserved data > event data (because researcher/vet detail APIs don't return location)
+    final bool finalHasLocation =
+        preservedHasLocation ?? event.user.hasLocation ?? false;
+    final int? finalPrimaryLocationId =
+        preservedPrimaryLocationId ?? event.user.primaryLocationId;
+    final List<LocationEntity>? finalLocations =
+        preservedLocations ?? event.user.locations;
+
+    print('');
+    print('Final location decision:');
+    print(
+        '   hasLocation: $finalHasLocation (preserved: $preservedHasLocation, event: ${event.user.hasLocation})');
+    print(
+        '   primaryLocationId: $finalPrimaryLocationId (preserved: $preservedPrimaryLocationId, event: ${event.user.primaryLocationId})');
+    print('   locations count: ${finalLocations?.length ?? 0}');
+
+    final finalUser = event.user.copyWith(
+      // 🎯 Token: Use preserved token if event doesn't have one
+      token: event.user.token ?? preservedToken,
+
+      // 🎯 CRITICAL: Always use preserved location data first
+      // The researcher/vet details API responses don't include location info
+      locations: finalLocations,
+      hasLocation: finalHasLocation,
+      primaryLocationId: finalPrimaryLocationId,
+
+      // 🎯 CRITICAL: These MUST come from the API response (event.user)
+      hasCompletedDetails: event.user.hasCompletedDetails,
+      hasDetailsApproved: event.user.hasDetailsApproved,
+    );
+
+    // Step 4: Validate final user data
+    print('');
+    print('Final merged user:');
+    print('   ID: ${finalUser.id}');
+    print('   Role: ${finalUser.role}');
+    print(
+        '   Token exists: ${finalUser.token != null && finalUser.token!.isNotEmpty}');
+    print('   Has Location: ${finalUser.hasLocation}');
+    print('   Primary Location ID: ${finalUser.primaryLocationId}');
+    print('   Locations count: ${finalUser.locations?.length ?? 0}');
+    print('   Has Completed Details: ${finalUser.hasCompletedDetails}');
+    print('   Has Details Approved: ${finalUser.hasDetailsApproved}');
+
+    if (finalUser.token == null || finalUser.token!.isEmpty) {
+      print('');
+      print('❌ CRITICAL ERROR: Token is still missing after merge!');
+      print('   Cannot save to secure storage or maintain auth state.');
+      emit(const AuthError('Authentication error. Please log in again.'));
+      return;
+    }
+
+    // Step 5: Save to secure storage
+    print('');
+    print('Saving user data to secure storage...');
+    await _saveUserData(finalUser);
+    print('✅ User data saved successfully');
+
+    // Step 6: Emit AuthSuccess with updated user
+    emit(AuthSuccess(
+      finalUser,
+      message: finalUser.hasCompletedDetails
+          ? 'Profile updated successfully!'
+          : 'User details synchronized.',
+    ));
+
+    print('');
+    print('✅ AuthSuccess emitted with updated user details');
+    print('   Router should now see:');
+    print('   - Role: ${finalUser.role}');
+    print('   - hasLocation: ${finalUser.hasLocation}');
+    print('   - hasCompletedDetails: ${finalUser.hasCompletedDetails}');
+    print('   - hasDetailsApproved: ${finalUser.hasDetailsApproved}');
+    print('========================================');
   }
 
   // ========================================
@@ -76,6 +225,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (failure) async {
         print('Register Error: ${failure.message}');
         _isProcessingRegistration = false;
+        
+        // ⭐ NEW: Handle ValidationFailure and show detailed errors
+        if (failure is ValidationFailure) {
+          print('Validation Error:');
+          failure.errors?.forEach((key, value) => print('   - $key: $value'));
+
+          final formattedErrors = _formatValidationErrors(failure.errors);
+
+          final errorMessage = formattedErrors.isNotEmpty
+              ? 'Please correct the following errors:\n$formattedErrors'
+              : failure.message; 
+              
+          emit(AuthError(errorMessage));
+          return;
+        }
+
         emit(AuthError(failure.message));
       },
       (user) async {
@@ -118,23 +283,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         // --- CRITICAL FIX: Fetch locations synchronously after successful login ---
         UserEntity finalUser = user;
-        
+
         if (user.token != null && user.token!.isNotEmpty) {
           print('Fetching locations before finalizing AuthSuccess...');
-          
+
           // AWAIT the repository call to ensure data is fetched before proceeding
-          final locationResult = await locationRepository.getUserLocations(user.token!);
-          
+          final locationResult =
+              await locationRepository.getUserLocations(user.token!);
+
           await locationResult.fold(
             (locationFailure) {
-              print('Location Fetch Error (Post-Login): ${locationFailure.message}');
+              print(
+                  'Location Fetch Error (Post-Login): ${locationFailure.message}');
               // Continue with user data if location fetch fails
             },
             (locations) {
               print('Location Fetch Success: Found ${locations.length} locations.');
               final bool hasAnyLocation = locations.isNotEmpty;
-              final LocationEntity? primaryLocation = LocationEntity.findPrimary(locations);
-              
+              final LocationEntity? primaryLocation =
+                  LocationEntity.findPrimary(locations);
+
               // Update the user object with the fetched locations
               finalUser = user.copyWith(
                 hasLocation: hasAnyLocation,
@@ -144,12 +312,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             },
           );
         }
-        
+
         // --- END CRITICAL FIX ---
 
         print('   HasDetails: ${finalUser.hasCompletedDetails}');
         print('   HasLocation: ${finalUser.hasLocation}');
-        
+
         await _saveUserData(finalUser);
         _isProcessingLogin = false;
 
@@ -163,9 +331,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   // ========================================
-  // REMOVED: FETCH USER LOCATIONS HANDLER
-  // This is now handled by _onLoginSubmitted, 
-  // but keeping the function body for completeness if the event is triggered elsewhere.
+  // REMOVED: FETCH USER LOCATIONS HANDLER (Kept for reference)
   // ========================================
 
   Future<void> _onFetchUserLocations(
@@ -186,7 +352,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
       (failure) async {
         print('Location Fetch Error: ${failure.message}');
-        
+
         emit(AuthSuccess(currentState.user, message: 'Could not update locations.'));
       },
       (locations) async {
@@ -286,7 +452,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   // ========================================
-  // SUBMIT FARMER DETAILS HANDLER
+  // SUBMIT FARMER DETAILS HANDLER - WITH VALIDATION ERROR FIX
   // ========================================
 
   Future<void> _onSubmitFarmerDetails(
@@ -354,11 +520,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           return;
         }
 
+        // ⭐ FIX: Handle ValidationFailure to prioritize detailed errors
         if (failure is ValidationFailure) {
           print('Validation Error:');
           failure.errors?.forEach((key, value) => print('   - $key: $value'));
-          emit(AuthError(
-              '${failure.message}\n${_formatValidationErrors(failure.errors)}'));
+
+          final formattedErrors = _formatValidationErrors(failure.errors);
+
+          // Use the formatted errors as the primary message
+          final errorMessage = formattedErrors.isNotEmpty
+              ? 'Please correct the following errors:\n$formattedErrors'
+              : failure.message; // Fallback to the general message
+
+          emit(AuthError(errorMessage));
           return;
         }
 
@@ -501,6 +675,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _storage.write(
           key: 'has_completed_details',
           value: user.hasCompletedDetails.toString());
+      // 🎯 NEW: Save the hasDetailsApproved flag
+      // Assumes UserEntity now contains hasDetailsApproved
+      await _storage.write(
+          key: 'has_details_approved',
+          value: user.hasDetailsApproved.toString());
 
       if (user.primaryLocationId != null) {
         await _storage.write(
@@ -519,12 +698,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  /// Helper method to format a backend map of validation errors into a user-friendly string.
+  /// Example: { "field1": ["error message 1"], "field2": ["error message 2"] }
+  /// Output: "• error message 1\n• error message 2"
   String _formatValidationErrors(Map<String, dynamic>? errors) {
     if (errors == null || errors.isEmpty) return '';
 
     final errorMessages = <String>[];
     errors.forEach((field, messages) {
       if (messages is List && messages.isNotEmpty) {
+        // Only use the first error message for a given field
         errorMessages.add('• ${messages.first}');
       } else if (messages is String) {
         errorMessages.add('• $messages');

@@ -1,5 +1,9 @@
+// lib/features/researcher/presentation/blocs/researcher/researcher_bloc.dart
+// FIX: Don't get AuthBloc from GetIt, pass the token from the UI
+
 import 'package:farm_manager_app/core/error/failure.dart';
 import 'package:farm_manager_app/features/reseacher/domain/entities/researcher_details_entity.dart';
+import 'package:farm_manager_app/features/reseacher/domain/usecases/get_researcher_approval_status_usecase.dart'; 
 import 'package:farm_manager_app/features/reseacher/domain/usecases/submit_researcher_details_usecase.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_event.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_state.dart';
@@ -7,30 +11,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// # Researcher Bloc
 class ResearcherBloc extends Bloc<ResearcherEvent, ResearcherState> {
-  // 1. Inject the Use Case
   final SubmitResearcherDetailsUseCase submitResearcherDetailsUseCase;
-  
-  // NOTE: You need a mechanism to get the authenticated user's token. 
-  // For simplicity here, we'll assume a method/dependency handles it.
-  // In a real app, this might come from a shared preference or an Auth Bloc.
-  // We'll use a placeholder variable for now.
-  final String _userTokenPlaceholder = 'YOUR_AUTHENTICATION_TOKEN_HERE'; 
+  final GetResearcherApprovalStatusUseCase getResearcherApprovalStatusUseCase;
 
   ResearcherBloc({
     required this.submitResearcherDetailsUseCase,
+    required this.getResearcherApprovalStatusUseCase, 
   }) : super(ResearcherInitial()) {
     on<SubmitResearcherDetailsEvent>(_mapSubmitResearcherDetailsEventToState);
+    on<CheckApprovalStatusEvent>(_mapCheckApprovalStatusEventToState);
   }
 
-  void _mapSubmitResearcherDetailsEventToState(
+  // ========================================
+  // SUBMIT RESEARCHER DETAILS - FIXED
+  // ========================================
+ void _mapSubmitResearcherDetailsEventToState(
     SubmitResearcherDetailsEvent event,
     Emitter<ResearcherState> emit,
   ) async {
-    // 1. Loading State
+    print('========================================');
+    print('ResearcherBloc: Submit Details Started');
+    print('========================================');
+    
     emit(ResearcherLoading());
-
+    
+    // Get token from event
+    final userToken = event.token;
+    
+    if (userToken == null || userToken.isEmpty) {
+      print('❌ ERROR: Token is null or empty!');
+      emit(ResearcherError('Authentication token missing. Please log in again.'));
+      return;
+    }
+    
+    print('✅ Token received from event');
+    print('   Token (first 20 chars): ${userToken.substring(0, 20)}...');
+    
     try {
-      // 2. Map Event data to Entity
       final detailsEntity = ResearcherDetailsEntity(
         affiliatedInstitution: event.affiliatedInstitution,
         department: event.department,
@@ -40,39 +57,126 @@ class ResearcherBloc extends Bloc<ResearcherEvent, ResearcherState> {
         orcidId: event.orcidId,
       );
 
-      // 3. Prepare Use Case Parameters
+      print('');
+      print('Submitting researcher details:');
+      print('   Institution: ${event.affiliatedInstitution}');
+      print('   Department: ${event.department}');
+      print('   Purpose: ${event.researchPurpose}');
+
       final params = SubmitResearcherDetailsParams(
         details: detailsEntity,
-        token: _userTokenPlaceholder, // Replace with actual token retrieval
+        token: userToken,
       );
 
-      // 4. Call the Use Case
       final result = await submitResearcherDetailsUseCase(params);
       
-      // 5. Handle the result (Either<Failure, UserEntity>)
       result.fold(
-        // LEFT: Failure (Error)
         (failure) {
-          // Use FailureConverter.toMessage for user-friendly errors
+          print('');
+          print('❌ Submission failed');
+          
           final errorMessage = (failure is ValidationFailure)
               ? 'Validation Error: ${failure.getFieldError(failure.errors!.keys.first) ?? failure.message}'
               : failure.message;
           
+          print('   Error: $errorMessage');
+          
+          if (failure is ValidationFailure && failure.errors != null) {
+            print('   Validation errors:');
+            failure.errors!.forEach((key, value) {
+              print('      $key: $value');
+            });
+          }
+          
           emit(ResearcherError(errorMessage));
         },
         
-        // RIGHT: Success (UserEntity)
         (userEntity) {
+          print('');
+          print('✅ Submission successful!');
+          print('   🔍 DIAGNOSTIC: API Response Details');
+          print('   =====================================');
+          print('   ID: ${userEntity.id}');
+          print('   Firstname: ${userEntity.firstname}');
+          print('   Lastname: ${userEntity.lastname}');
+          print('   Email: ${userEntity.email}');
+          print('   Phone: ${userEntity.phoneNumber}');
+          print('   Role: ${userEntity.role}');
+          print('   Token included: ${userEntity.token != null}');
+          print('   Token length: ${userEntity.token?.length ?? 0}');
+          print('   hasCompletedDetails: ${userEntity.hasCompletedDetails}');
+          print('   hasDetailsApproved: ${userEntity.hasDetailsApproved}');
+          print('   hasLocation: ${userEntity.hasLocation}');
+          print('   primaryLocationId: ${userEntity.primaryLocationId}');
+          print('   locations: ${userEntity.locations?.length ?? 0} items');
+          
+          if (userEntity.locations != null && userEntity.locations!.isNotEmpty) {
+            print('   Location details:');
+            for (var loc in userEntity.locations!) {
+              print('      - ID: ${loc.locationId}, Name: ${loc.displayName}');
+            }
+          }
+          print('   =====================================');
+          
+          // 🚨 WARNING CHECK: Verify role is correct
+          if (userEntity.role.toLowerCase() != 'researcher') {
+            print('');
+            print('⚠️  WARNING: API returned wrong role!');
+            print('   Expected: researcher');
+            print('   Got: ${userEntity.role}');
+            print('   This will cause router redirect issues!');
+          }
+          
           emit(ResearcherSuccess(
-            message: 'Profile for ${event.affiliatedInstitution} saved successfully!',
-            // The UserEntity should contain the updated hasCompletedDetails flag
-            hasCompletedDetails: userEntity.hasCompletedDetails, 
+            message: 'Profile saved successfully! Waiting for approval.',
+            hasCompletedDetails: userEntity.hasCompletedDetails,
+            updatedUser: userEntity,
           ));
+          
+          print('✅ ResearcherSuccess emitted');
+          print('========================================');
         },
       );
-    } catch (e) {
-      // 6. Catch any unexpected sync errors
+    } catch (e, stackTrace) {
+      print('');
+      print('❌ Exception during submission');
+      print('   Error: $e');
+      print('   Stack trace: $stackTrace');
       emit(ResearcherError("An unexpected error occurred during profile submission."));
     }
+  }
+
+  // ========================================
+  // CHECK APPROVAL STATUS
+  // ========================================
+  void _mapCheckApprovalStatusEventToState(
+    CheckApprovalStatusEvent event,
+    Emitter<ResearcherState> emit,
+  ) async {
+    emit(ResearcherLoading()); 
+    
+    // 🎯 FIX: Token should be passed from the event
+    final userToken = event.token;
+    
+    if (userToken == null || userToken.isEmpty) {
+      emit(ResearcherError('Authentication token missing.'));
+      return;
+    }
+    
+    final params = GetResearcherApprovalStatusParams(token: userToken);
+
+    final result = await getResearcherApprovalStatusUseCase(params);
+
+    result.fold(
+      (failure) {
+        emit(ResearcherError("Failed to fetch approval status: ${failure.message}"));
+      },
+      (statusEntity) {
+        emit(ResearcherApprovalStatus(
+          approvalStatus: statusEntity.status,
+          declineReason: statusEntity.reason,
+        ));
+      },
+    );
   }
 }

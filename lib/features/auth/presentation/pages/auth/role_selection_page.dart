@@ -116,7 +116,7 @@ class RoleSelectionPage extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       child: Text(
-                        'Current Role: ${currentRole!.toUpperCase()}',
+                        'Current Role: ${currentRole.toUpperCase()}',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppColors.secondary),

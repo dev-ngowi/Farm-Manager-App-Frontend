@@ -744,373 +744,377 @@ class AppLocalizationsSw extends AppLocalizations {
   String get vetDetailsPrompt => 'Tuambie kuhusu uzoefu wako';
 
   @override
-  String get submitForApproval => 'Wasilisha Ombi';
+  String get submitForApproval => 'Wasilisha kwa Idhini';
 
   @override
   String get heatCycleEmptyStateMessage => '';
 
   @override
-  String get heatCycles => 'Heat Cycles';
+  String get heatCycles => 'Mizunguko ya Joto';
 
   @override
-  String get deliveries => 'Deliveries';
+  String get deliveries => 'Uzalishaji / Kuzaa';
 
   @override
-  String get noDeliveriesYet => 'No delivery records found.';
+  String get noDeliveriesYet => 'Hakuna rekodi za uzalishaji zilizopatikana.';
 
   @override
   String get recordFirstDelivery =>
-      'Tap + to begin recording the first delivery.';
+      'Gusa + kuanza kurekodi uzalishaji wa kwanza.';
 
   @override
-  String get date => 'Date';
+  String get date => 'Tarehe';
 
   @override
-  String get totalWeight => 'Total Weight (kg)';
+  String get totalWeight => 'Jumla ya Uzito (kg)';
 
   @override
-  String get recordDelivery => 'Record Delivery';
+  String get recordDelivery => 'Rekodi Uzalishaji';
 
   @override
-  String get inseminations => 'Inseminations';
+  String get inseminations => 'Mbegu Bandia / Kupandikiza';
 
   @override
-  String get noInseminationsYet => 'No insemination records found.';
+  String get noInseminationsYet =>
+      'Hakuna rekodi za mbegu bandia zilizopatikana.';
 
   @override
   String get recordFirstInsemination =>
-      'Tap + to begin recording the first insemination.';
+      'Gusa + kuanza kurekodi mbegu bandia ya kwanza.';
 
   @override
-  String get recordInsemIination => 'Record Insemination';
+  String get recordInsemIination => 'Rekodi Mbegu Bandia';
 
   @override
-  String get lactations => 'Lactations';
+  String get lactations => 'Vipindi vya Kukamua';
 
   @override
-  String get noLactationsYet => 'No lactation records found.';
+  String get noLactationsYet => 'Hakuna rekodi za kukamua zilizopatikana.';
 
   @override
   String get recordFirstLactation =>
-      'Tap + to begin recording the first lactation cycle.';
+      'Gusa + kuanza kurekodi mzunguko wa kwanza wa kukamua.';
 
   @override
-  String get recordLactation => 'Record Lactation';
+  String get recordLactation => 'Rekodi Kukamua';
 
   @override
-  String get lactationNumber => 'Lactation';
+  String get lactationNumber => 'Mkamuo';
 
   @override
-  String get started => 'Started';
+  String get started => 'Ilianza';
 
   @override
   String projectedDuration(Object projectedDays) {
-    return '$projectedDays days projected';
+    return 'Siku $projectedDays zinatarajiwa';
   }
 
   @override
-  String get offspring => 'Offspring';
+  String get offspring => 'Wazao / Ndama';
 
   @override
-  String get noOffspringYet => 'No offspring records found.';
+  String get noOffspringYet => 'Hakuna rekodi za wazao zilizopatikana.';
 
   @override
-  String get recordFirstOffspring => 'Tap + to record the first birth.';
+  String get recordFirstOffspring => 'Gusa + kurekodi kuzaliwa kwa kwanza.';
 
   @override
-  String get recordOffspring => 'Record Offspring';
+  String get recordOffspring => 'Rekodi Mzao';
 
   @override
-  String get born => 'Born';
+  String get born => 'Amezaliwa';
 
   @override
-  String get readyToRegister => 'Ready to Register';
+  String get readyToRegister => 'Tayari Kusajiliwa';
 
   @override
-  String get pregnancyChecks => 'Pregnancy Checks';
+  String get pregnancyChecks => 'Vipimo vya Mimba';
 
   @override
-  String get noChecksYet => 'No pregnancy check records found.';
+  String get noChecksYet => 'Hakuna rekodi za vipimo vya mimba zilizopatikana.';
 
   @override
   String get recordFirstCheck =>
-      'Tap + to record the first pregnancy scan or test result.';
+      'Gusa + kurekodi skani au kipimo cha mimba cha kwanza.';
 
   @override
-  String get dueDate => 'Due Date';
+  String get dueDate => 'Tarehe Inayotarajiwa Kuzalia';
 
   @override
-  String get recordInsemination => 'Record Insemination';
+  String get recordInsemination => 'Rekodi Mbegu Bandia';
 
   @override
-  String get semenInventory => 'Semen Inventory';
+  String get semenInventory => 'Hifadhi ya Mbegu za Kiume';
 
   @override
-  String get noSemenRecordsYet => 'No semen inventory records found.';
+  String get noSemenRecordsYet =>
+      'Hakuna rekodi za mbegu za kiume zilizopatikana.';
 
   @override
   String get addFirstSemenRecord =>
-      'Tap + to add the first semen inventory record.';
+      'Gusa + kuongeza rekodi ya kwanza ya mbegu za kiume.';
 
   @override
-  String get addSemenRecord => 'Add Semen Record';
+  String get addSemenRecord => 'Ongeza Rekodi ya Mbegu';
 
   @override
-  String get semenSource => 'Semen Source';
+  String get semenSource => 'Chanzo cha Mbegu';
 
   @override
-  String get semenSourceRequired => 'Semen source is required';
+  String get semenSourceRequired => 'Chanzo cha mbegu kinahitajika';
 
   @override
-  String get semenType => 'Semen Type';
+  String get semenType => 'Aina ya Mbegu';
 
   @override
-  String get semenTypeRequired => 'Semen type is required';
+  String get semenTypeRequired => 'Aina ya mbegu inahitajika';
 
   @override
-  String get semenQuantity => 'Quantity (Straws)';
+  String get semenQuantity => 'Idadi (Majani)';
 
   @override
   String get validQuantityRequired =>
-      'Please enter a valid quantity (must be 1 or more)';
+      'Tafadhali ingiza idadi halali (lazima iwe 1 au zaidi)';
 
   @override
-  String get semenNotes => 'Notes';
+  String get semenNotes => 'Maelezo';
 
   @override
-  String get saveSemenRecord => 'Save Semen Record';
+  String get saveSemenRecord => 'Hifadhi Rekodi ya Mbegu';
 
   @override
-  String get semenRecordSuccess => 'Semen inventory record added successfully!';
+  String get semenRecordSuccess =>
+      'Rekodi ya mbegu za kiume imeongezwa kwa ufanisi!';
 
   @override
-  String get noDataAvailable => 'No data available';
+  String get noDataAvailable => 'Hakuna data inayopatikana';
 
   @override
-  String get pressPlusToAdd => 'Press + to add records.';
+  String get pressPlusToAdd => 'Bonyeza + kuongeza rekodi.';
 
   @override
-  String get recordFirstSemenBatch =>
-      'Record the first semen batch to get started.';
+  String get recordFirstSemenBatch => 'Rekodi kundi la kwanza la mbegu kuanza.';
 
   @override
-  String get availableUnits => 'Available Units';
+  String get availableUnits => 'Vitengo Vilivyobaki';
 
   @override
-  String get addSemen => 'Add Semen';
+  String get addSemen => 'Ongeza Mbegu';
 
   @override
-  String get recordHeatCycle => 'Record Heat Cycle';
+  String get recordHeatCycle => 'Rekodi Mzunguko wa Joto';
 
   @override
-  String get startDate => 'Start Date';
+  String get startDate => 'Tarehe ya Kuanza';
 
   @override
-  String get heatCycleDetails => 'Heat Cycle Details';
+  String get heatCycleDetails => 'Maelezo ya Mzunguko wa Joto';
 
   @override
-  String get animalID => 'Animal ID';
+  String get animalID => 'Kitambulisho cha Mnyama';
 
   @override
-  String get details => 'Details';
+  String get details => 'Maelezo';
 
   @override
-  String get completionDate => 'Completion Date';
+  String get completionDate => 'Tarehe ya Kumalizika';
 
   @override
-  String get nextObservation => 'Next Observation';
+  String get nextObservation => 'Uchunguzi Unaofuata';
 
   @override
-  String get endHeatCycle => 'End Cycle';
+  String get endHeatCycle => 'Maliza Mzunguko';
 
   @override
-  String get edit => 'Edit';
+  String get edit => 'Hariri';
 
   @override
-  String get selectAnimal => 'Select Animal';
+  String get selectAnimal => 'Chagua Mnyama';
 
   @override
-  String get chooseAnimal => 'Choose Animal';
+  String get chooseAnimal => 'Chagua Mnyama';
 
   @override
-  String get animalRequired => 'Please select an animal.';
+  String get animalRequired => 'Tafadhali chagua mnyama.';
 
   @override
-  String get selectDate => 'Select Date';
+  String get selectDate => 'Chagua Tarehe';
 
   @override
-  String get selectStartDate => 'Select Start Date';
+  String get selectStartDate => 'Chagua Tarehe ya Kuanza';
 
   @override
   String get notesPlaceholder =>
-      'E.g., Signs observed (mucus, mounting, restlessness)';
+      'Mfano: Dalili zilizochunguzwa (kamasi, kupanda, kutotulia)';
 
   @override
-  String get heatCycleRecorded => 'Heat cycle recorded successfully!';
+  String get heatCycleRecorded => 'Mzunguko wa joto umerekodiwa kwa ufanisi!';
 
   @override
-  String get observedDate => 'Observed Date';
+  String get observedDate => 'Tarehe ya Kuchunguzwa';
 
   @override
-  String get selectObservedDate => 'Select Observed Date';
+  String get selectObservedDate => 'Chagua Tarehe ya Kuchunguzwa';
 
   @override
-  String get heatIntensity => 'Heat Intensity';
+  String get heatIntensity => 'Ukali wa Joto';
 
   @override
-  String get selectIntensity => 'Select Intensity';
+  String get selectIntensity => 'Chagua Ukali';
 
   @override
-  String get intensityRequired => 'Please select the heat intensity.';
+  String get intensityRequired => 'Tafadhali chagua ukali wa joto.';
 
   @override
-  String get errorFetchingDetails => 'Could not load heat cycle details.';
+  String get errorFetchingDetails =>
+      'Imeshindwa kupakia maelezo ya mzunguko wa joto.';
 
   @override
-  String get selectAHeatCycle => 'Select a heat cycle to view details.';
+  String get selectAHeatCycle => 'Chagua mzunguko wa joto ili kuona maelezo.';
 
   @override
-  String get inseminatedStatus => 'Inseminated / Completed';
+  String get inseminatedStatus => 'Amepandikizwa / Imekamilika';
 
   @override
-  String get activeStatus => 'Active';
+  String get activeStatus => 'Inaendelea';
 
   @override
-  String get completedStatus => 'Missed / Completed';
+  String get completedStatus => 'Imekosa / Imekamilika';
 
   @override
-  String get noNotesProvided => 'No notes provided for this cycle.';
+  String get noNotesProvided => 'Hakuna maelezo yaliyotolewa kwa mzunguko huu.';
 
   @override
-  String get nextExpected => 'Next Expected';
+  String get nextExpected => 'Inayotarajiwa Ifuatayo';
 
   @override
-  String get intensity => 'Intensity';
+  String get intensity => 'Ukali';
 
   @override
-  String get inseminationRecorded => 'Insemination Recorded';
+  String get inseminationRecorded => 'Mbegu Bandia Imerekodiwa';
 
   @override
-  String get yes => 'Yes';
+  String get yes => 'Ndiyo';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Jaribu Tena';
 
   @override
-  String get noFemaleAnimalsAvailable => 'No female animals available';
+  String get noFemaleAnimalsAvailable => 'Hakuna wanyama wa kike waliopo';
 
   @override
-  String get saving => 'Saving...';
+  String get saving => 'Inahifadhi...';
 
   @override
-  String get collectionDate => 'Collection Date';
+  String get collectionDate => 'Tarehe ya Kukusanya';
 
   @override
-  String get dose => 'Dose (straws)';
+  String get dose => 'Kipimo (majani)';
 
   @override
-  String get motility => 'Motility (%)';
+  String get motility => 'Uwezo wa Kusonga (%)';
 
   @override
-  String get costPerStraw => 'Cost per Straw';
+  String get costPerStraw => 'Gharama kwa Kijani';
 
   @override
-  String get sourceSupplier => 'Source / Supplier';
+  String get sourceSupplier => 'Chanzo / Muuzaji';
 
   @override
   String get sourceSupplierHint =>
-      'Enter the name of the supplier or leave blank if collected on-farm';
+      'Ingiza jina la muuzaji au acha wazi ikiwa imekusanywa shambani';
 
   @override
-  String get internalBullId => 'Internal Bull ID';
+  String get internalBullId => 'Kitambulisho cha Fahali wa Ndani';
 
   @override
-  String get bullTag => 'Bull Tag / Ear Tag';
+  String get bullTag => 'Namba ya Sikio la Fahali';
 
   @override
-  String get selectCollectionDate => 'Select Collection Date';
+  String get selectCollectionDate => 'Chagua Tarehe ya Kukusanya';
 
   @override
-  String get selectBreed => 'Select Breed';
+  String get selectBreed => 'Chagua Aina';
 
   @override
-  String get selectOwnedBull => 'Select Owned Bull';
+  String get selectOwnedBull => 'Chagua Fahali wa Shamba';
 
   @override
-  String get fieldRequired => 'This field is required';
+  String get fieldRequired => 'Sehemu hii inahitajika';
 
   @override
-  String get invalidNumber => 'Please enter a valid number';
+  String get invalidNumber => 'Tafadhali ingiza namba halali';
 
   @override
-  String get invalidPercentage => 'Please enter a valid percentage (0-100)';
+  String get invalidPercentage => 'Tafadhali ingiza asilimia halali (0-100)';
 
   @override
-  String get optionalDetails => 'Optional Details';
+  String get optionalDetails => 'Maelezo ya Ziada';
 
   @override
-  String get semenAddInfo => 'Additional Semen Information';
+  String get semenAddInfo => 'Maelezo ya Ziada ya Mbegu';
 
   @override
-  String get fillAllRequiredFields => 'Please fill in all required fields';
+  String get fillAllRequiredFields =>
+      'Tafadhali jaza sehemu zote zinazohitajika';
 
   @override
-  String get savingSemen => 'Saving Semen...';
+  String get savingSemen => 'Inahifadhi mbegu...';
 
   @override
-  String get strawCode => 'Straw Code / Batch';
+  String get strawCode => 'Namba ya Kijani / Kundi';
 
   @override
-  String get timesUsed => 'Times Used';
+  String get timesUsed => 'Mara Zilizotumika';
 
   @override
-  String get conceptions => 'Confirmed Conceptions';
+  String get conceptions => 'Mimba Zilizothibitishwa';
 
   @override
-  String get successRate => 'Conception Rate';
+  String get successRate => 'Kiwango cha Kushika Mimba';
 
   @override
-  String get generalDetails => 'General Details';
+  String get generalDetails => 'Maelezo ya Jumla';
 
   @override
-  String get internalBullSource => 'Internal Bull / Own Collection';
+  String get internalBullSource => 'Fahali wa Ndani / Kukusanya Shambani';
 
   @override
-  String get usageHistory => 'Usage History';
+  String get usageHistory => 'Historia ya Matumizi';
 
   @override
-  String get notRecorded => 'Not recorded';
+  String get notRecorded => 'Haijarekodiwa';
 
   @override
-  String get noUsageRecords => 'No usage records yet';
+  String get noUsageRecords => 'Hakuna rekodi za matumizi bado';
 
   @override
-  String get deleteRecord => 'Delete Record';
+  String get deleteRecord => 'Futa Rekodi';
 
   @override
-  String get confirmDelete => 'Confirm Deletion';
+  String get confirmDelete => 'Thibitisha Kufuta';
 
   @override
   String get deleteSemenWarning =>
-      'Are you sure you want to permanently delete this semen record? This action cannot be undone.';
+      'Una uhakika unataka kufuta rekodi hii ya mbegu kabisa? Hatua hii haiwezi kutenduliwa.';
 
   @override
-  String get delete => 'Delete';
+  String get delete => 'Futa';
 
   @override
-  String get editSemen => '';
+  String get editSemen => 'Hariri Mbegu';
 
   @override
-  String get semenEditInfo => '';
+  String get semenEditInfo => 'Maelezo ya kuhariri mbegu';
 
   @override
-  String get update => '';
+  String get update => 'Sasisha';
 
   @override
-  String get used => 'Used';
+  String get used => 'Zimetumika';
 
   @override
-  String get available => 'Available';
+  String get available => 'Zilizobaki';
 
   @override
   String get currency => 'TZS';
@@ -1125,444 +1129,706 @@ class AppLocalizationsSw extends AppLocalizations {
   }
 
   @override
-  String get saveChanges => 'Save Changes';
+  String get saveChanges => 'Hifadhi Mabadiliko';
 
   @override
-  String get editInsemination => 'Edit Insemination';
+  String get editInsemination => 'Hariri Mbegu Bandia';
 
   @override
-  String get selectDam => 'Select Dam';
+  String get selectDam => 'Chagua Mama';
 
   @override
-  String get heatCycle => 'Heat Cycle';
+  String get heatCycle => 'Mzunguko wa Joto';
 
   @override
-  String get selectHeatCycle => 'Select Heat Cycle';
+  String get selectHeatCycle => 'Chagua Mzunguko wa Joto';
 
   @override
-  String get breedingMethod => 'Breeding Method';
+  String get breedingMethod => 'Njia ya Kuzalisha';
 
   @override
-  String get natural => 'Natural';
+  String get natural => 'Asilia';
 
   @override
-  String get ai => 'AI';
+  String get ai => 'Mbegu Bandia';
 
   @override
-  String get selectSire => 'Select Sire';
+  String get selectSire => 'Chagua Baba';
 
   @override
-  String get semenStraw => 'Semen Straw';
+  String get semenStraw => 'Kijani cha Mbegu';
 
   @override
-  String get selectSemen => 'Select Semen';
+  String get selectSemen => 'Chagua Mbegu';
 
   @override
-  String get inseminationDate => 'Insemination Date';
+  String get inseminationDate => 'Tarehe ya Kupandikiza';
 
   @override
-  String get technician => 'Technician';
+  String get technician => 'Fundi';
 
   @override
-  String get breedingDetails => 'Breeding Details';
+  String get breedingDetails => 'Maelezo ya Uzalishaji';
 
   @override
-  String get breedingPartner => 'Breeding Partner';
+  String get breedingPartner => 'Mshirika wa Kuzalisha';
 
   @override
-  String get sireName => 'Sire Name';
+  String get sireName => 'Jina la Baba';
 
   @override
   String get detailsUnavailable =>
-      'Details unavailable for this breeding method.';
+      'Maelezo hayapatikani kwa njia hii ya uzalishaji.';
 
   @override
-  String get noNotes => 'No notes recorded.';
+  String get noNotes => 'Hakuna maelezo yaliyorekodiwa.';
 
   @override
-  String get checkRecord => 'Check Record';
+  String get checkRecord => 'Angalia Rekodi';
 
   @override
   String get noPregnancyChecksRecorded =>
-      'No pregnancy checks have been recorded for this insemination.';
+      'Hakuna vipimo vya mimba vilivyorekodiwa kwa mbegu hii.';
 
   @override
-  String get deleteInsemination => 'Delete Insemination Record';
+  String get deleteInsemination => 'Futa Rekodi ya Mbegu Bandia';
 
   @override
-  String get deleteConfirmation =>
-      'Are you sure you want to delete the record?';
+  String get deleteConfirmation => 'Una uhakika unataka kufuta rekodi hii?';
 
   @override
-  String get searchInseminations => 'Search by Tag, Name, or Status';
+  String get searchInseminations => 'Tafuta kwa Namba, Jina, au Hali';
 
   @override
-  String get noResultsFound => 'No results found for your search.';
+  String get noResultsFound =>
+      'Hakuna matokeo yaliyopatikana kwa utafutaji wako.';
 
   @override
-  String get deleteCheck => 'delete check';
+  String get deleteCheck => 'Futa Kipimo';
 
   @override
   String get deleteCheckConfirmation =>
-      'Are you sure you want to delete the check record? This action cannot be undone.';
+      'Una uhakika unataka kufuta rekodi hii ya kipimo? Hatua hii haiwezi kutenduliwa.';
 
   @override
-  String get fetusCount => '';
+  String get fetusCount => 'Idadi ya Vijuso';
 
   @override
-  String get checkDetails => '';
+  String get checkDetails => 'Maelezo ya Kipimo';
 
   @override
-  String get relatedInsemination => '';
+  String get relatedInsemination => 'Mbegu Bandia Inayohusiana';
 
   @override
-  String get viewInseminationDetails => '';
+  String get viewInseminationDetails => 'Angalia Maelezo ya Mbegu Bandia';
 
   @override
-  String get addPregnancyCheck => 'Add Pregnancy Check';
+  String get addPregnancyCheck => 'Ongeza Kipimo cha Mimba';
 
   @override
-  String get selectInsemination => 'Select Insemination';
+  String get selectInsemination => 'Chagua Mbegu Bandia';
 
   @override
-  String get selectMethod => 'Select Method';
+  String get selectMethod => 'Chagua Njia';
 
   @override
-  String get selectResult => 'Select Result';
+  String get selectResult => 'Chagua Matokeo';
 
   @override
-  String get pregnancyDetails => 'Pregnancy Details';
+  String get pregnancyDetails => 'Maelezo ya Mimba';
 
   @override
-  String get selectTechnician => 'Select Technician';
+  String get selectTechnician => 'Chagua Fundi';
 
   @override
   String get pregnantFieldsRequired =>
-      'Please fill in all required fields for a positive pregnancy result';
+      'Tafadhali jaza sehemu zote zinazohitajika kwa matokeo chanya ya mimba';
 
   @override
-  String get editPregnancyCheck => 'Edit Pregnancy Check';
+  String get editPregnancyCheck => 'Hariri Kipimo cha Mimba';
 
   @override
-  String get searchChecks => 'Search by Tag, Name, or Result';
+  String get searchChecks => 'Tafuta kwa Namba, Jina, au Matokeo';
 
   @override
-  String get liveBorn => 'Live Born';
+  String get liveBorn => 'Waliozaliwa Hai';
 
   @override
-  String get totalBorn => 'Total Born';
+  String get totalBorn => 'Jumla ya Waliozaliwa';
 
   @override
-  String get searchDeliveries => 'Search by Tag, Name, or Date';
+  String get searchDeliveries => 'Tafuta kwa Namba, Jina, au Tarehe';
 
   @override
-  String get delivery => 'delivery';
+  String get delivery => 'Uzalishaji';
 
   @override
-  String get deleteDelivery => 'deleteDelivery';
+  String get deleteDelivery => 'Futa Uzalishaji';
 
   @override
   String get deleteDeliveryConfirmation =>
-      'Are you sure you want to delete the delivery record? This action cannot be undone and will affect related records.';
+      'Una uhakika unataka kufuta rekodi hii ya uzalishaji? Hatua hii haiwezi kutenduliwa na itaathiri rekodi zinazohusiana.';
 
   @override
-  String get deliverySummary => 'deliverySummary';
+  String get deliverySummary => 'Muhtasari wa Uzalishaji';
 
   @override
-  String get deliveryType => 'deliveryType';
+  String get deliveryType => 'Aina ya Uzalishaji';
 
   @override
-  String get calvingEaseScore => 'calvingEaseScore';
+  String get calvingEaseScore => 'Alama ya Ugumu wa Kuzalia';
 
   @override
-  String get damConditionAfter => 'damConditionAfter';
+  String get damConditionAfter => 'Hali ya Mama Baada ya Kuzalia';
 
   @override
-  String get offspringRecords => 'offspringRecords';
+  String get offspringRecords => 'Rekodi za Wazao';
 
   @override
-  String get stillborn => 'stillborn';
+  String get stillborn => 'Waliozaliwa Wafu';
 
   @override
-  String get stillbornCalf => 'stillbornCalf';
+  String get stillbornCalf => 'Ndama Aliyezaliwa Amekufa';
 
   @override
-  String get birthWeight => 'birthWeight';
+  String get birthWeight => 'Uzito wa Kuzaliwa';
 
   @override
-  String get colostrumIntake => 'colostrumIntake';
+  String get colostrumIntake => 'Unyonyeshaji wa Kolostramu';
 
   @override
-  String get navelTreated => 'navelTreated';
+  String get navelTreated => 'Kitovu Kilichotibiwa';
 
   @override
-  String get downloadPdf => 'downloadPdf';
+  String get downloadPdf => 'Pakua PDF';
 
   @override
-  String get saveDelivery => 'Save Delivery';
+  String get saveDelivery => 'Hifadhi Uzalishaji';
 
   @override
   String get selectInseminationRequired =>
-      'Please select an insemination record first.';
+      'Tafadhali chagua rekodi ya mbegu bandia kwanza.';
 
   @override
-  String get atLeastOneOffspringRequired =>
-      'At least one offspring record is required.';
+  String get atLeastOneOffspringRequired => 'Angalau mzao mmoja anahitajika.';
 
   @override
-  String get selectDeliveryType => 'Select Delivery Type';
+  String get selectDeliveryType => 'Chagua Aina ya Uzalishaji';
 
   @override
-  String get scoreEasy => 'Easy';
+  String get scoreEasy => 'Rahisi';
 
   @override
-  String get scoreDifficult => 'Difficult';
+  String get scoreDifficult => 'Ngumu';
 
   @override
-  String get selectDamCondition => 'Select Dam Condition';
+  String get selectDamCondition => 'Chagua Hali ya Mama';
 
   @override
-  String get addOffspring => 'Add Offspring';
+  String get addOffspring => 'Ongeza Mzao';
 
   @override
-  String get removeOffspring => 'Remove Offspring';
+  String get removeOffspring => 'Ondoa Mzao';
 
   @override
-  String get temporaryTag => 'Temporary Tag';
+  String get temporaryTag => 'Namba ya Muda';
 
   @override
-  String get gender => 'Gender';
+  String get gender => 'Jinsia';
 
   @override
-  String get birthCondition => 'Birth Condition';
+  String get birthCondition => 'Hali ya Kuzaliwa';
 
   @override
-  String get offspringNotes => 'Offspring Notes';
+  String get offspringNotes => 'Maelezo ya Mzao';
 
   @override
-  String get editDelivery => 'Edit Delivery';
+  String get editDelivery => 'Hariri Uzalishaji';
 
   @override
-  String get newLabel => 'New';
+  String get newLabel => 'Mpya';
 
   @override
-  String get insemination => 'Insemination';
+  String get insemination => 'Mbegu Bandia';
 
   @override
-  String get unknownInsemination => 'Unknown Insemination';
+  String get unknownInsemination => 'Mbegu Bandia Isiyojulikana';
 
   @override
-  String get registered => 'Registered';
+  String get registered => 'Amesajiliwa';
 
   @override
-  String get noTemporaryTag => 'No temporary tag';
+  String get noTemporaryTag => 'Hakuna namba ya muda';
 
   @override
-  String get condition => 'Stillborn';
+  String get condition => 'Amekufa';
 
   @override
-  String get offspringNotFound => 'Offspring not found';
+  String get offspringNotFound => 'Mzao hajapatikana';
 
   @override
-  String get loading => 'Loading...';
+  String get loading => 'Inapakia...';
 
   @override
-  String get offspringDetails => 'Offspring Details';
+  String get offspringDetails => 'Maelezo ya Mzao';
 
   @override
-  String get birthEvent => 'Birth Event';
+  String get birthEvent => 'Tukio la Kuzaliwa';
 
   @override
-  String get lineage => 'Lineage';
+  String get lineage => 'Nasaba';
 
   @override
-  String get damTag => 'Dam Tag';
+  String get damTag => 'Namba ya Mama';
 
   @override
-  String get sireTag => 'Sire Tag';
+  String get sireTag => 'Namba ya Baba';
 
   @override
-  String get registrationStatusRegistered => 'Registered';
+  String get registrationStatusRegistered => 'Amesajiliwa';
 
   @override
-  String get registrationStatusPending => 'Pending Registration';
+  String get registrationStatusPending => 'Inasubiri Usajili';
 
   @override
-  String get registeredAs => 'Registered as';
+  String get registeredAs => 'Amesajiliwa kama';
 
   @override
-  String get livestockId => 'Livestock ID';
+  String get livestockId => 'Kitambulisho cha Mifugo';
 
   @override
-  String get registerOffspring => 'Register Offspring';
+  String get registerOffspring => 'Sajili Mzao';
 
   @override
   String get registerOffspringMessage =>
-      'This offspring is ready to be registered with an official tag/ID.';
+      'Mzao huyu yuko tayari kusajiliwa na namba rasmi.';
 
   @override
-  String get unknownTag => 'Unknown Tag';
+  String get unknownTag => 'Namba Isiyojulikana';
 
   @override
-  String get selectDeliveryContext => 'Delivery Context';
+  String get selectDeliveryContext => 'Muktadha wa Uzalishaji';
 
   @override
-  String get identification => 'Identification';
+  String get identification => 'Utambulisho';
 
   @override
-  String get birthMetrics => 'Birth Metrics';
+  String get birthMetrics => 'Vipimo vya Kuzaliwa';
 
   @override
-  String get birthWeightKg => 'Birth Weight (kg)';
+  String get birthWeightKg => 'Uzito wa Kuzaliwa (kg)';
 
   @override
-  String get additionalNotes => 'Additional Notes';
+  String get additionalNotes => 'Maelezo ya Ziada';
 
   @override
-  String get saveOffspring => 'Save Offspring';
+  String get saveOffspring => 'Hifadhi Mzao';
 
   @override
-  String get savingOffspring => 'Saving offspring record...';
+  String get savingOffspring => 'Inahifadhi rekodi ya mzao...';
 
   @override
-  String get offspringRecordSuccess => 'Offspring record saved successfully';
+  String get offspringRecordSuccess =>
+      'Rekodi ya mzao imehifadhiwa kwa ufanisi';
 
   @override
-  String get enterValidWeight => 'Please enter a valid weight';
+  String get enterValidWeight => 'Tafadhali ingiza uzito halali';
 
   @override
-  String get editOffspring => 'Edit Offspring';
+  String get editOffspring => 'Hariri Mzao';
 
   @override
-  String get savingChanges => 'Saving changes...';
+  String get savingChanges => 'Inahifadhi mabadiliko...';
 
   @override
-  String get deliveryContext => 'Delivery Context';
+  String get deliveryContext => 'Muktadha wa Uzalishaji';
 
   @override
   String get registrationInstructions =>
-      'Enter the official livestock tag/ID to complete registration.';
+      'Ingiza namba rasmi ya mifugo ili kumaliza usajili.';
 
   @override
-  String get newLivestockTag => 'Official Livestock Tag / ID';
+  String get newLivestockTag => 'Namba Rasmi ya Mifugo';
 
   @override
-  String get enterUniqueTag => 'Enter a unique tag or ID';
+  String get enterUniqueTag => 'Ingiza namba ya kipekee';
 
   @override
-  String get registrationDate => 'Registration Date';
+  String get registrationDate => 'Tarehe ya Usajili';
 
   @override
-  String get confirmRegistration => 'Confirm Registration';
+  String get confirmRegistration => 'Thibitisha Usajili';
 
   @override
-  String get submittingRegistration => 'Submitting registration...';
+  String get submittingRegistration => 'Inawasilisha usajili...';
 
   @override
-  String get statusCompleted => 'Completed';
+  String get statusCompleted => 'Imekamilika';
 
   @override
-  String get totalYield => 'Total Yield (liters)';
+  String get totalYield => 'Jumla ya Maziwa (lita)';
 
   @override
-  String get editLactation => 'Edit Lactation';
+  String get editLactation => 'Hariri Mkamuo';
 
   @override
-  String get lactationStarted => 'Lactation Started';
+  String get lactationStarted => 'Mkamuo Ulianza';
 
   @override
-  String get ongoing => 'Ongoing';
+  String get ongoing => 'Unaendelea';
 
   @override
-  String get completed => 'Completed';
+  String get completed => 'Imekamilika';
 
   @override
-  String get peakDate => 'Peak Date';
+  String get peakDate => 'Tarehe ya Kilele';
 
   @override
   String get dateAfterStartDateError =>
-      'Date must be on or after the lactation start date.';
+      'Tarehe lazima iwe baada au sawa na tarehe ya kuanza kamua.';
 
   @override
-  String get invalidDateError => 'Invalid date format.';
+  String get invalidDateError => 'Tarehe si halali.';
 
   @override
-  String get dryOffDate => 'Dry Off Date';
+  String get dryOffDate => 'Tarehe ya Kumaliza Kukamua';
 
   @override
-  String get totalMilkKg => 'Total Milk Yield (kg)';
+  String get totalMilkKg => 'Jumla ya Maziwa (kg)';
 
   @override
-  String get invalidNumberError => 'Please enter a valid number.';
+  String get invalidNumberError => 'Tafadhali ingiza namba halali.';
 
   @override
-  String get mustBePositiveError => 'Value must be positive.';
+  String get mustBePositiveError => 'Thamani lazima iwe chanya.';
 
   @override
-  String get daysInMilk => 'Days in Milk';
+  String get daysInMilk => 'Siku za Kukamua';
 
   @override
-  String get invalidIntegerError => 'Please enter a valid integer.';
+  String get invalidIntegerError => 'Tafadhali ingiza namba kamili halali.';
 
   @override
-  String get savingLactation => 'Saving lactation record...';
+  String get savingLactation => 'Inahifadhi rekodi ya mkamuo...';
 
   @override
-  String get lactationRecordSuccess => 'Lactation record saved successfully!';
+  String get lactationRecordSuccess =>
+      'Rekodi ya mkamuo imehifadhiwa kwa ufanisi!';
 
   @override
-  String get animalInformation => 'Animal Information';
+  String get animalInformation => 'Maelezo ya Mnyama';
 
   @override
-  String get keyDates => 'Key Dates';
+  String get keyDates => 'Tarehe Muhimu';
 
   @override
-  String get initialMetrics => 'Initial Metrics (Optional)';
+  String get initialMetrics => 'Vipimo vya Mwanzo (Hiari)';
 
   @override
-  String get lactationDetails => 'Lactation Details';
+  String get lactationDetails => 'Maelezo ya Mkamuo';
 
   @override
-  String get yieldSummary => 'Yield Summary';
+  String get yieldSummary => 'Muhtasari wa Mazao';
 
   @override
-  String get totalMilkProduced => 'Total Milk Produced';
+  String get totalMilkProduced => 'Jumla ya Maziwa Yaliyotolewa';
 
   @override
-  String get lactationNotFound => 'Lactation record not found.';
+  String get lactationNotFound => 'Rekodi ya mkamuo haijapatikana.';
 
   @override
-  String get wardAddedSuccess => 'Ward added successfully!';
+  String get wardAddedSuccess => 'Wadi imeongezwa kwa ufanisi!';
 
   @override
-  String get researcherProfile => 'Researcher Profile';
+  String get researcherProfile => 'Wasilisha kwa Idhini';
 
   @override
-  String get welcomeResearcher => 'Welcome, Researcher!';
+  String get welcomeResearcher => 'Karibu, Mtafiti!';
 
   @override
   String get researcherDetailsSubtitle =>
-      'Complete your profile to access research tools and data.';
+      'Kamilisha wasifu wako ili uweze kufikia zana na data za utafiti.';
 
   @override
-  String get affiliatedInstitution => 'Affiliated Institution';
+  String get affiliatedInstitution => 'Taasisi Inayohusiana';
 
   @override
-  String get department => 'Department';
+  String get department => 'Idara';
 
   @override
-  String get researchFocusArea => 'Research Focus Area';
+  String get researchFocusArea => 'Eneo la Utafiti';
 
   @override
-  String get academicTitle => 'Academic Title';
+  String get academicTitle => 'Cheo cha Kielimu';
 
   @override
   String get orcidId => 'ORCID ID';
 
   @override
-  String get researchPurpose => 'Purpose of Research';
+  String get researchPurpose => 'Madhumuni ya Utafiti';
 
   @override
   String get genericError =>
-      'A network or server error occurred. Please try again later.';
+      'Hitilafu ya mtandao au seva imetokea. Tafadhali jaribu tena baadaye.';
+
+  @override
+  String get addNewWardHint => 'Ongeza Wadi Mpya';
+
+  @override
+  String get awaitingApproval => 'Inasubiri Idhini';
+
+  @override
+  String get approvalPendingMessage =>
+      'Wasifu wako wa mtafiti umewasilishwa kwa ufanisi. Tafadhali subiri wakati msimamizi anakagua maombi yako.';
+
+  @override
+  String get profileSubmitted => 'Wasifu Umewasilishwa';
+
+  @override
+  String get waitingForReview => 'Inasubiri Kukaguliwa';
+
+  @override
+  String get youWillBeNotified => 'Utaarifiwa mara itakapoidhinishwa';
+
+  @override
+  String get checkingStatus => 'Inaangalia hali...';
+
+  @override
+  String get checkStatus => 'Angalia Hali';
+
+  @override
+  String get approvalGranted => 'Wasifu wako wa mtafiti umeidhinishwa!';
+
+  @override
+  String get applicationDeclined => 'Maombi Yametengwa';
+
+  @override
+  String get declineMessage =>
+      'Tunajuta kukuarifu kuwa ombi lako la mtafiti limekataliwa.';
+
+  @override
+  String get reason => 'Sababu:';
+
+  @override
+  String get ok => 'Sawa';
+
+  @override
+  String get editAnimal => 'Hariri Mnyama';
+
+  @override
+  String get animalUpdatedSuccess => 'Mnyama amesasishwa kwa ufanisi';
+
+  @override
+  String get deleteConfirmationTitle => 'Futa Mnyama';
+
+  @override
+  String deleteConfirmationMessage(Object tag) {
+    return 'Una uhakika unataka kufuta mnyama $tag?';
+  }
+
+  @override
+  String get animalDeletedSuccess => 'Mnyama amefutwa kwa ufanisi';
+
+  @override
+  String get failedLoadDetails => 'Imeshindwa kupakia maelezo ya mnyama: ';
+
+  @override
+  String get notApplicable => 'Haitumiki';
+
+  @override
+  String get noName => 'Hana Jina';
+
+  @override
+  String get genealogy => 'Nasaba';
+
+  @override
+  String get purchaseDetails => 'Maelezo ya Ununuzi';
+
+  @override
+  String get purchaseDate => 'Tarehe ya Kununua';
+
+  @override
+  String get purchaseCost => 'Gharama ya Kununua';
+
+  @override
+  String get source => 'Chanzo / Muuzaji';
+
+  @override
+  String get deleteAnimal => 'Futa Mnyama';
+
+  @override
+  String get updateAnimal => 'Sasisha Mnyama';
+
+  @override
+  String get basicInformation => 'Basic Information';
+
+  @override
+  String get searchByTagOrName => 'Search by Tag or Name';
+
+  @override
+  String get registerNewAnimal => 'Register New Animal';
+
+  @override
+  String get fillAnimalDetails =>
+      'Please fill out all required details to register a new livestock record.';
+
+  @override
+  String get editAnimalHeader => 'Edit Animal Details';
+
+  @override
+  String get editAnimalHeaderSubtitle => 'Update information for this animal';
+
+  @override
+  String get requiredFieldsNote =>
+      'All fields marked with * are required. The more details you add, the better your farm reports will be.';
+
+  @override
+  String get requiredFieldsReviewNote =>
+      'All fields marked with * are required. Make sure to review all changes before submitting.';
+
+  @override
+  String get noSpeciesAvailable => 'No Species data available. Cannot proceed.';
+
+  @override
+  String get weightAtBirthKg => 'Weight at Birth (kg)';
+
+  @override
+  String get weightRequired => 'Weight is required';
+
+  @override
+  String get sexMale => 'Male';
+
+  @override
+  String get sexFemale => 'Female';
+
+  @override
+  String get sexUnknown => 'Unknown';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusSold => 'Sold';
+
+  @override
+  String get statusDeceased => 'Deceased';
+
+  @override
+  String get statusCulled => 'Culled';
+
+  @override
+  String get editInseminationRecord => 'Edit Insemination Record';
+
+  @override
+  String get invalidRecordId => 'Invalid Record ID';
+
+  @override
+  String get inseminationUpdatedSuccess => 'Insemination updated successfully!';
+
+  @override
+  String get editInseminationDetails => 'Edit Insemination Details';
+
+  @override
+  String get updateInseminationNote =>
+      'Update information for this insemination record.';
+
+  @override
+  String get reviewChangesNote =>
+      'All fields marked with * are required. Make sure to review all changes before submitting.';
+
+  @override
+  String get inseminationDetails => 'Insemination Details';
+
+  @override
+  String get editRecord => 'Edit Record';
+
+  @override
+  String get inseminationDeletedSuccess => 'Insemination deleted successfully!';
+
+  @override
+  String get pregnancyResult => 'Pregnancy & Result';
+
+  @override
+  String get pregnancyDiagnosis => 'Pregnancy Diagnosis';
+
+  @override
+  String get diagnosisResult => 'Diagnosis Result';
+
+  @override
+  String get outcome => 'Outcome';
+
+  @override
+  String get addInseminationRecord => 'Add Insemination Record';
+
+  @override
+  String get inseminationAddedSuccess => 'Insemination added successfully!';
+
+  @override
+  String get registerNewInsemination => 'Register New Insemination';
+
+  @override
+  String get fillInseminationDetails =>
+      'Please fill out all required details to register a new insemination record.';
+
+  @override
+  String get inseminationRecords => 'Insemination Records';
+
+  @override
+  String get searchByAnimalTag => 'Search by Animal Tag or Date';
+
+  @override
+  String get noInseminationRecords => 'No insemination records yet';
+
+  @override
+  String get animal => 'Animal';
+
+  @override
+  String get inseminationType => 'Insemination Type';
+
+  @override
+  String get inseminatorName => 'Inseminator Name';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get animalName => 'Animal Name';
+
+  @override
+  String get daysToDue => 'Days To Due';
+
+  @override
+  String get inseminationEvent => 'Insemination Event';
+
+  @override
+  String get sireInformation => 'Sire/Semen Information';
+
+  @override
+  String get semenId => 'Semen ID';
+
+  @override
+  String get sireId => 'Sire ID';
+
+  @override
+  String get noSireInfo => 'No sire information recorded.';
+
+  @override
+  String get sireInfoMissing => 'Sire/Semen details expected but not loaded.';
+
+  @override
+  String get pregnancyStatus => 'Pregnancy Status';
+
+  @override
+  String get isPregnant => 'Is Pregnant?';
+
+  @override
+  String get addRecord => 'Add Record';
+
+  @override
+  String fieldRequiredFor(String fieldName) {
+    return 'The $fieldName field is required.';
+  }
+
+  @override
+  String get requiredFieldsMissing => 'Required fields missing';
 }

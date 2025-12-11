@@ -231,6 +231,7 @@ class _DeliveriesPageState extends State<DeliveriesPage> {
                     message: _searchQuery.isEmpty
                         ? "${l10n.noDeliveriesYet}\n${l10n.recordFirstDelivery}"
                         : l10n.noResultsFound,
+                        iconColor: AppColors.iconPrimary,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

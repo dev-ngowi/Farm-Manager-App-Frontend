@@ -1,17 +1,15 @@
-// lib/features/reseacher/presentation/pages/reseacher_detailes_form_page.dart
+// lib/features/researcher/presentation/pages/researcher_details_form_page.dart
+// FIXED: Get token from AuthBloc in the widget, pass to bloc event
 
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_bloc.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_event.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_state.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-// Ensure this import exists
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-// -----------------------------------------------------------------
-//                  PLACEHOLDER AND UTILITY COMPONENTS
-// -----------------------------------------------------------------
 
 class AppColors { 
   static const Color primary = Colors.blue; 
@@ -20,9 +18,9 @@ class AppColors {
   static const Color surface = Colors.white; 
 }
 
-// Route Constants (consistent with AppRoutes in router)
 class AppRoutes {
   static const String researcherDashboard = '/researcher/dashboard';
+  static const String researcherAwaitingApproval = '/researcher/awaiting-approval'; 
 }
 
 const List<String> _researchPurposes = [
@@ -32,10 +30,6 @@ const List<String> _researchPurposes = [
   'Government Policy',
   'NGO Project',
 ];
-
-// -----------------------------------------------------------------
-//                      RESEARCHER DETAILS FORM PAGE (UPDATED)
-// -----------------------------------------------------------------
 
 class ResearcherDetailsFormPage extends StatefulWidget {
   const ResearcherDetailsFormPage({super.key});
@@ -53,7 +47,7 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
   final _orcidIdController = TextEditingController();
   String? _selectedResearchPurpose;
 
-  bool _isNavigating = false; // Prevent multiple navigation calls
+  bool _isNavigating = false;
 
   @override
   void dispose() {
@@ -88,6 +82,32 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
       return;
     }
 
+    // 🎯 FIX: Get token from AuthBloc
+    final authState = context.read<AuthBloc>().state;
+    
+    if (authState is! AuthSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentication error. Please log in again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    final token = authState.user.token;
+    
+    if (token == null || token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token missing. Please log in again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // 🎯 FIX: Pass token to the event
     context.read<ResearcherBloc>().add(
       SubmitResearcherDetailsEvent(
         affiliatedInstitution: _institutionController.text.trim(), 
@@ -101,6 +121,7 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
             ? null 
             : _orcidIdController.text.trim(),
         hasCompletedDetails: true,
+        token: token, // 🎯 FIX: Pass the token
       ),
     );
   }
@@ -117,10 +138,20 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
       ),
       body: BlocListener<ResearcherBloc, ResearcherState>(
         listener: (context, state) {
-          // Success → Show message + redirect to dashboard
-          if (state is ResearcherSuccess && state.hasCompletedDetails == true && !_isNavigating) {
-            _isNavigating = true; // Prevent double navigation
+          // ========================================
+          // 🎯 CRITICAL FIX: Handle success properly
+          // ========================================
+          if (state is ResearcherSuccess && !_isNavigating) {
+            _isNavigating = true;
 
+            // 1. Dispatch UserDetailsUpdated to AuthBloc with the updated user
+            if (state.updatedUser != null) {
+              print('');
+              print('📤 Form: Dispatching UserDetailsUpdated to AuthBloc');
+              context.read<AuthBloc>().add(UserDetailsUpdated(state.updatedUser!));
+            }
+
+            // 2. Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message ?? 'Profile completed successfully!'),
@@ -130,14 +161,14 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
               ),
             );
 
-            // Safe delayed navigation
+            // 3. Navigate to awaiting approval page
             Future.delayed(const Duration(milliseconds: 1800), () {
               if (mounted) {
-                context.go(AppRoutes.researcherDashboard);
+                print('🔀 Form: Navigating to: ${AppRoutes.researcherAwaitingApproval}');
+                context.go(AppRoutes.researcherAwaitingApproval); 
               }
             });
           } 
-          // Error → Show error message
           else if (state is ResearcherError) {
             final errorMessage = state.message.isNotEmpty 
                 ? state.message 
@@ -186,7 +217,6 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
               ),
               const SizedBox(height: 32),
               
-              // Fields
               _buildTextFormField(
                 controller: _institutionController, 
                 labelText: l10n.affiliatedInstitution ?? "Institution / University",
@@ -241,7 +271,6 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
               ),
               const SizedBox(height: 40),
 
-              // Submit Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -250,7 +279,7 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(),
+                    shape: const RoundedRectangleBorder(),
                   ),
                   child: isLoading
                       ? const SizedBox(
@@ -308,7 +337,7 @@ class _ResearcherDetailsFormPageState extends State<ResearcherDetailsFormPage> {
     required AppLocalizations l10n,
   }) {
     return DropdownButtonFormField<String>(
-      value: _selectedResearchPurpose,
+      initialValue: _selectedResearchPurpose,
       hint: Text(labelText),
       validator: (v) => v == null ? l10n.requiredField : null,
       onChanged: isLoading ? null : (String? newValue) {

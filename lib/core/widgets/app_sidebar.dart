@@ -1,5 +1,4 @@
 // lib/core/widgets/app_sidebar.dart
-import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/core/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

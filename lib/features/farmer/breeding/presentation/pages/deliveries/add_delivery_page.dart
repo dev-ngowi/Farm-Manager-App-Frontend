@@ -282,7 +282,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
         prefixIcon: Icon(Icons.pets, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedInseminationId,
+      initialValue: _selectedInseminationId,
       hint: Text(l10n.selectInsemination),
       items: _mockInseminations.map((item) {
         return DropdownMenuItem(
@@ -306,7 +306,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
         prefixIcon: Icon(Icons.local_hospital, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedDeliveryType,
+      initialValue: _selectedDeliveryType,
       hint: Text(l10n.selectDeliveryType),
       items: _deliveryTypes.map((type) {
         return DropdownMenuItem(value: type, child: Text(type));
@@ -327,7 +327,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
         prefixIcon: Icon(Icons.favorite_border, color: color),
         border: const OutlineInputBorder(),
       ),
-      value: _selectedDamCondition,
+      initialValue: _selectedDamCondition,
       hint: Text(l10n.selectDamCondition),
       items: _damConditions.map((condition) {
         return DropdownMenuItem(value: condition, child: Text(condition));
@@ -450,7 +450,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
                 prefixIcon: const Icon(Icons.transgender),
                 border: const OutlineInputBorder(),
               ),
-              value: offspring.gender,
+              initialValue: offspring.gender,
               items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
               onChanged: (value) => setState(() { offspring.gender = value!; }),
               validator: (value) => value == null ? l10n.fieldRequired : null,
@@ -464,7 +464,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
                 prefixIcon: const Icon(Icons.sentiment_satisfied),
                 border: const OutlineInputBorder(),
               ),
-              value: offspring.birthCondition,
+              initialValue: offspring.birthCondition,
               items: _birthConditions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (value) => setState(() { offspring.birthCondition = value!; }),
               validator: (value) => value == null ? l10n.fieldRequired : null,
@@ -497,7 +497,7 @@ class _AddDeliveryPageState extends State<AddDeliveryPage> {
                 prefixIcon: const Icon(Icons.local_drink),
                 border: const OutlineInputBorder(),
               ),
-              value: offspring.colostrumIntake,
+              initialValue: offspring.colostrumIntake,
               items: _colostrumIntakeOptions.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
               onChanged: (value) => setState(() { offspring.colostrumIntake = value!; }),
               validator: (value) => value == null ? l10n.fieldRequired : null,
