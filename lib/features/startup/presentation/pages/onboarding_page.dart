@@ -28,14 +28,14 @@ class OnboardingPage extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Text(
-                l10n.welcomeTitle ?? 'Welcome to Farm Manager',
+                l10n.welcomeTitle ?? 'Welcome to Farm Bond App',
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
                 l10n.welcomeSubtitle ??
-                    'Keep livestock records, request vet services, and manage your farm offline.',
+                    'Keep livestock records, request vet services, and manage your farm easy.',
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),

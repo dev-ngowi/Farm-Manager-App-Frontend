@@ -5,178 +5,88 @@ import 'package:provider/provider.dart';
 import 'package:farm_manager_app/core/di/locator.dart';
 import 'package:farm_manager_app/core/localization/language_provider.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
-import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_bloc.dart'; // <--- ADDED IMPORT
+import 'package:farm_manager_app/features/reseacher/presentation/blocs/researcher/researcher_bloc.dart';
+import 'package:farm_manager_app/core/networking/network_info.dart';
 
-import 'app.dart'; 
+import 'app.dart';
 
-void main() {
+void main() async {
+  // 1. Ensure bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ⚡ Start initialization WITHOUT blocking
-  final initFuture = setupLocator();
+  try {
+    // 2. Check Internet (Optional: If you want to block app entry without net)
+    final networkInfo = NetworkInfoImpl();
+    final isConnected = await networkInfo.isConnected;
 
-  runApp(
-    FutureBuilder(
-      future: initFuture,
-      builder: (context, snapshot) {
-        // Show splash screen while initializing
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: _SplashScreen(),
-          );
-        }
+    if (!isConnected) {
+      runApp(const _StaticErrorApp(type: _ErrorType.noInternet));
+      return;
+    }
 
-        // Handle initialization errors
-        if (snapshot.hasError) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: _ErrorScreen(error: snapshot.error.toString()),
-          );
-        }
+    // 3. Setup Locator (Service Injection)
+    await setupLocator();
 
-        // Once initialized, show the real app
-        return MultiProvider(
-          providers: [
-            // Language Provider (loaded asynchronously in background)
-            ChangeNotifierProvider(
-              create: (_) => getIt<LanguageProvider>(),
-            ),
-
-            // AuthBloc – Global & Available Everywhere
-            BlocProvider<AuthBloc>(
-              create: (context) => getIt<AuthBloc>(),
-            ),
-            
-            // SemenInventoryBloc - Global & Available Everywhere
-            BlocProvider<SemenInventoryBloc>(
-              create: (context) => getIt<SemenInventoryBloc>(),
-            ),
-            
-            // ResearcherBloc - Global & Available Everywhere (FIXED)
-            BlocProvider<ResearcherBloc>( // <--- ADDED BLOC PROVIDER
-              create: (context) => getIt<ResearcherBloc>(),
-            ),
-          ],
-          child: const FarmManagerApp(),
-        );
-      },
-    ),
-  );
-}
-
-/// ⚡ Fast splash screen (shown immediately)
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2E7D32), // Your primary green
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Your app icon/logo
-            const Icon(
-              Icons.agriculture,
-              size: 80,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 24),
-            
-            // Loading indicator
-            const SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 3,
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // App title
-            const Text(
-              'Meneja wa Shamba',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Subtitle
-            const Text(
-              'Livestock Management System',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
+    // 4. Run the actual App
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => getIt<LanguageProvider>()),
+          BlocProvider<AuthBloc>(create: (context) => getIt<AuthBloc>()),
+          BlocProvider<SemenInventoryBloc>(create: (context) => getIt<SemenInventoryBloc>()),
+          BlocProvider<ResearcherBloc>(create: (context) => getIt<ResearcherBloc>()),
+        ],
+        child: const FarmBondApp(),
       ),
     );
+  } catch (e) {
+    runApp(_StaticErrorApp(type: _ErrorType.initError, message: e.toString()));
   }
 }
 
-/// Error screen (shown if initialization fails)
-class _ErrorScreen extends StatelessWidget {
-  final String error;
-  
-  const _ErrorScreen({required this.error});
+/// --- Simple Error Handling if Init Fails ---
+
+enum _ErrorType { noInternet, initError }
+
+class _StaticErrorApp extends StatelessWidget {
+  final _ErrorType type;
+  final String? message;
+  const _StaticErrorApp({required this.type, this.message});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.red.shade50,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red.shade700,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Initialization Error',
-                style: TextStyle(
-                  color: Colors.red.shade900,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  type == _ErrorType.noInternet ? Icons.wifi_off : Icons.error_outline,
+                  size: 64,
+                  color: Colors.red,
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                error,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.red.shade700,
-                  fontSize: 14,
+                const SizedBox(height: 16),
+                Text(
+                  type == _ErrorType.noInternet 
+                      ? "No Internet Connection" 
+                      : "Initialization Failed",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  // Restart app (you may need to implement this)
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Retry'),
-              ),
-            ],
+                if (message != null) ...[
+                  const SizedBox(height: 8),
+                  Text(message!, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => main(), // Restarts the main function
+                  child: const Text("Retry"),
+                )
+              ],
+            ),
           ),
         ),
       ),

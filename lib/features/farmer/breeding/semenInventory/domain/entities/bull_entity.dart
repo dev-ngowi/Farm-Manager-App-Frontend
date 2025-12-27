@@ -1,16 +1,16 @@
-class BullEntity {
+import 'package:equatable/equatable.dart';
+
+class BullEntity extends Equatable {
   final int animalId;
   final String tagNumber;
   final String name;
-  final int? speciesId; 
-  
-  BullEntity({
-    required this.animalId, 
-    required this.tagNumber, 
-    required this.name, 
-    this.speciesId
+
+  const BullEntity({
+    required this.animalId,
+    required this.tagNumber,
+    required this.name,
   });
 
-
-  String get displayName => '$tagNumber - $name';
+  @override
+  List<Object?> get props => [animalId, tagNumber, name];
 }

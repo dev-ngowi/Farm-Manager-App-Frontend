@@ -37,5 +37,10 @@ abstract class HeatCycleRepository {
     required String token,
   });
 
- 
+  /// Deletes a heat cycle record by ID.
+  /// Returns [Unit] on success (representing no content returned from the server) or a Failure.
+  Future<Either<Failure, Unit>> deleteHeatCycle({
+    required String id,
+    required String token,
+  });
 }

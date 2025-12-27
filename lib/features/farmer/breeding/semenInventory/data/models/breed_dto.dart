@@ -1,43 +1,65 @@
-import 'package:farm_manager_app/features/farmer/livestock/domain/entities/breed.dart'; // Assuming BreedEntity is defined here
+import 'package:farm_manager_app/features/farmer/livestock/domain/entities/breed.dart';
 
 class BreedDto {
   final int id;
   final String breedName;
-  // NOTE: Made speciesId non-nullable here to match BreedEntity, 
-  // or handle the null case explicitly in toEntity(). 
-  // Sticking with non-nullable for DTO to match required Entity field.
-  final int speciesId; 
-  final String? purpose; // Added to match the Entity
+  final int? speciesId; // Optional because API might not always return it
+  final String? purpose;
 
   BreedDto({
     required this.id,
     required this.breedName,
-    required this.speciesId, // Updated to be required
-    this.purpose, // Added purpose
-   });
+    this.speciesId,
+    this.purpose,
+  });
 
+  // FROM JSON - Updated to match API format
   factory BreedDto.fromJson(Map<String, dynamic> json) {
-    // You might need to adjust 'species_id' handling if it can be null 
-    // in the JSON but is required for the Entity.
-    final speciesIdJson = json['species_id'];
+    int? safeParseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is String) return int.tryParse(value);
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      return null;
+    }
 
     return BreedDto(
-      id: json['id'] as int,
-      breedName: json['breed_name'] as String,
-      // Use null-aware operator '??' to provide a default or throw an error 
-      // if speciesId is null in JSON and is required. Assuming it's non-null here.
-      speciesId: speciesIdJson as int, 
-      purpose: json['purpose'] as String?, // Assuming 'purpose' is in the JSON
+      id: safeParseInt(json['id']) ?? 0,
+      breedName: json['breed_name'] as String? ?? '',
+      speciesId: safeParseInt(json['species_id']),
+      purpose: json['purpose'] as String?,
     );
   }
 
-  // Convert DTO to Entity
+  // TO JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'breed_name': breedName,
+      if (speciesId != null) 'species_id': speciesId,
+      if (purpose != null) 'purpose': purpose,
+    };
+  }
+
+  // TO ENTITY
   BreedEntity toEntity() {
     return BreedEntity(
       id: id,
       breedName: breedName,
-      speciesId: speciesId, // speciesId is now correctly required and non-nullable
+      // Use speciesId from DTO if available, otherwise default to 1 (cattle)
+      // You may need to adjust this default based on your business logic
+      speciesId: speciesId ?? 1, 
       purpose: purpose,
+    );
+  }
+
+  // FROM ENTITY
+  factory BreedDto.fromEntity(BreedEntity entity) {
+    return BreedDto(
+      id: entity.id,
+      breedName: entity.breedName,
+      speciesId: entity.speciesId,
+      purpose: entity.purpose,
     );
   }
 }

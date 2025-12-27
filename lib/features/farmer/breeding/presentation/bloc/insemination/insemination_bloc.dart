@@ -1,6 +1,5 @@
 // Import dartz for Either
-import 'package:farm_manager_app/core/error/failure.dart'; // Import Failure
-// Import Entity
+import 'package:farm_manager_app/core/error/failure.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/repositories/insemination_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'insemination_event.dart';
@@ -25,7 +24,6 @@ class InseminationBloc extends Bloc<InseminationEvent, InseminationState> {
     emit(InseminationLoading());
     final result = await repository.fetchInseminationList(filters: event.filters);
     
-    // ⭐ FIX: Use .fold() to unwrap the Either
     result.fold(
       (failure) => emit(InseminationError(FailureConverter.toMessage(failure))),
       (records) => emit(InseminationListLoaded(records)),
@@ -40,26 +38,25 @@ class InseminationBloc extends Bloc<InseminationEvent, InseminationState> {
     emit(InseminationLoading());
     final result = await repository.fetchInseminationDetail(event.id);
 
-    // ⭐ FIX: Use .fold() to unwrap the Either
     result.fold(
       (failure) => emit(InseminationError(FailureConverter.toMessage(failure))),
       (record) => emit(InseminationDetailLoaded(record)),
     );
   }
 
-  // --- Add Handler (Fixes the reported error) ---
+  // --- Add Handler ---
   Future<void> _onAddInsemination(
     AddInsemination event,
     Emitter<InseminationState> emit,
   ) async {
-    // Note: You may want to emit a Loading/Submitting state here, but for now, 
-    // we focus on the result handling.
+    // ✅ Emit loading state for form submission
+    emit(InseminationSubmitting());
+    
     final newRecordResult = await repository.addInsemination(event.recordData);
     
-    // ⭐ FIX: Use .fold() to unwrap the Either
     newRecordResult.fold(
       (failure) => emit(InseminationError(FailureConverter.toMessage(failure))),
-      (newRecord) => emit(InseminationAdded(newRecord)), // newRecord is now InseminationEntity
+      (newRecord) => emit(InseminationAdded(newRecord)),
     );
   }
 
@@ -68,9 +65,11 @@ class InseminationBloc extends Bloc<InseminationEvent, InseminationState> {
     UpdateInsemination event,
     Emitter<InseminationState> emit,
   ) async {
+    // ✅ Emit loading state for form submission
+    emit(InseminationSubmitting());
+    
     final updatedRecordResult = await repository.updateInsemination(event.id, event.updatedData);
     
-    // ⭐ FIX: Use .fold() to unwrap the Either
     updatedRecordResult.fold(
       (failure) => emit(InseminationError(FailureConverter.toMessage(failure))),
       (updatedRecord) => emit(InseminationUpdated(updatedRecord)),
@@ -82,13 +81,14 @@ class InseminationBloc extends Bloc<InseminationEvent, InseminationState> {
     DeleteInsemination event,
     Emitter<InseminationState> emit,
   ) async {
-    // You might want to emit InseminationLoading() for delete operations
+    // ✅ Emit loading state for delete operation
+    emit(InseminationLoading());
+    
     final deleteResult = await repository.deleteInsemination(event.id);
     
-    // ⭐ FIX: Use .fold() to unwrap the Either (void is the Right side)
     deleteResult.fold(
       (failure) => emit(InseminationError(FailureConverter.toMessage(failure))),
-      (_) => emit(InseminationDeleted()), // '_' represents the void (success) result
+      (_) => emit(InseminationDeleted()),
     );
   }
 }

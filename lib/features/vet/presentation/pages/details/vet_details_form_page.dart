@@ -6,11 +6,11 @@ import 'package:farm_manager_app/features/auth/data/domain/entities/location_ent
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
-import 'package:farm_manager_app/utils/image_helper.dart'; // Assumed to handle file/image to base64
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class VetDetailsFormPage extends StatefulWidget {
   static const String routeName = '/vet/details-form';
@@ -92,48 +92,59 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
   }
 
   // ========================================
+  // HELPER: Get Location Display Name
+  // ========================================
+  String _getLocationDisplayName(LocationEntity location) {
+    // Build a readable name from location properties
+    final parts = <String>[];
+    
+    if (location.wardName != null && location.wardName!.isNotEmpty) {
+      parts.add(location.wardName!);
+    }
+    if (location.districtId != null) {
+      parts.add('District ${location.districtId}');
+    }
+    
+    return parts.isEmpty ? 'Location ${location.locationId}' : parts.join(', ');
+  }
+
+  // ========================================
   // DOCUMENT/PHOTO HANDLING (FIXED LOGIC)
   // ========================================
 
-  Future<void> _pickDocument(
-    String fileType,
-    Function(String?) onPicked,
-    bool isMultiple,
-  ) async {
+  Future<void> _pickSingleDocument(Function(String?) onPicked) async {
     try {
-      if (isMultiple) {
-        // FIX 1: Use the dedicated multi-file picker method (returns List<String>)
-        final List<String> base64Files = await ImageHelper.pickMultipleAndConvertToBase64();
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.bytes != null) {
+        // Web platform - use bytes
+        final bytes = result.files.single.bytes!;
+        final base64String = base64Encode(bytes);
         
         if (mounted) {
-          setState(() {
-            _clinicPhotosBase64.addAll(base64Files);
-          });
-
-          if (base64Files.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${base64Files.length} photo(s) selected!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        }
-      } else {
-        // FIX 2: Use the single file picker method (returns String?)
-        // The isDocument flag tells ImageHelper to use file_picker for robust document selection.
-        final String? base64File = await ImageHelper.pickAndConvertToBase64(
-          ImageSource.gallery, 
-          isDocument: true,
-        );
-
-        if (base64File != null && mounted) {
-          // For single docs, use the callback
-          onPicked(base64File);
-
+          onPicked(base64String);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$fileType selected!'),
+            const SnackBar(
+              content: Text('Document selected successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else if (result != null && result.files.single.path != null) {
+        // Mobile platform - use path
+        final file = File(result.files.single.path!);
+        final bytes = await file.readAsBytes();
+        final base64String = base64Encode(bytes);
+        
+        if (mounted) {
+          onPicked(base64String);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Document selected successfully!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -143,7 +154,67 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick $fileType: $e'),
+            content: Text('Failed to pick document: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickMultiplePhotos() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        final List<String> newPhotos = [];
+        
+        for (var file in result.files) {
+          if (_clinicPhotosBase64.length + newPhotos.length >= 5) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Maximum 5 photos allowed'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+            break;
+          }
+
+          if (file.bytes != null) {
+            // Web platform
+            newPhotos.add(base64Encode(file.bytes!));
+          } else if (file.path != null) {
+            // Mobile platform
+            final fileObj = File(file.path!);
+            final bytes = await fileObj.readAsBytes();
+            newPhotos.add(base64Encode(bytes));
+          }
+        }
+
+        if (mounted && newPhotos.isNotEmpty) {
+          setState(() {
+            _clinicPhotosBase64.addAll(newPhotos);
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${newPhotos.length} photo(s) added!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick photos: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -207,7 +278,7 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
       return;
     }
 
-    // Call the new Bloc event (must be implemented in AuthBloc)
+    // Call the Bloc event
     context.read<AuthBloc>().add(
           SubmitVetDetails(
             clinicName: _clinicNameController.text.trim(),
@@ -219,7 +290,7 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
             token: state.user.token,
             certificateBase64: _certificateBase64!,
             licenseBase64: _licenseBase64!,
-            clinicPhotosBase64: _clinicPhotosBase64, // Pass the list
+            clinicPhotosBase64: _clinicPhotosBase64,
           ),
         );
   }
@@ -227,6 +298,21 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
   // ========================================
   // WIDGET HELPERS
   // ========================================
+
+  Widget _buildRequiredLabel(String text) {
+    return RichText(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(color: Colors.black87, fontSize: 16),
+        children: const [
+          TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildFilePickerTile({
     required String title,
@@ -242,7 +328,9 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
 
     return ListTile(
       leading: Icon(hasFile ? Icons.check_circle : icon, color: color),
-      title: Text(title, style: TextStyle(color: color)),
+      title: isRequired 
+          ? _buildRequiredLabel(title)
+          : Text(title, style: TextStyle(color: color)),
       subtitle: Text(hasFile ? 'File ready for upload' : subtitle),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -334,11 +422,9 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: isLoading || _clinicPhotosBase64.length >= 5 ? null : () => _pickDocument(
-                'Clinic Photos', 
-                (_) {}, // Not used for single pick
-                true
-              ),
+              onPressed: isLoading || _clinicPhotosBase64.length >= 5 
+                  ? null 
+                  : _pickMultiplePhotos,
               icon: const Icon(Icons.add_a_photo),
               label: Text(
                 _clinicPhotosBase64.isEmpty
@@ -356,14 +442,13 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
     );
   }
 
-
   // ========================================
   // BUILD UI
   // ========================================
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!; // Ensure L10N keys exist
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -379,7 +464,6 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
             _initializeLocations();
           }
 
-          // Handle successful profile submission (pending approval)
           if (state is AuthSuccess && state.user.hasCompletedDetails == true) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -389,15 +473,12 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
               ),
             );
             
-            // Navigate to a "Pending Approval" screen or home
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted) {
                 context.go('/vet/pending-approval'); 
               }
             });
           } 
-          
-          // Handle errors
           else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -450,12 +531,12 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const Divider(height: 16, thickness: 1),
                   
-                  // License Number
+                  // License Number *
                   TextFormField(
                     controller: _licenseNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'License Number',
-                      prefixIcon: Icon(Icons.badge),
+                    decoration: InputDecoration(
+                      label: _buildRequiredLabel('License Number'),
+                      prefixIcon: const Icon(Icons.badge),
                       hintText: 'e.g., VET-123456',
                     ),
                     validator: (v) =>
@@ -464,13 +545,13 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Years Experience
+                  // Years Experience *
                   TextFormField(
                     controller: _experienceController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Years of Experience',
-                      prefixIcon: Icon(Icons.calendar_today),
+                    decoration: InputDecoration(
+                      label: _buildRequiredLabel('Years of Experience'),
+                      prefixIcon: const Icon(Icons.calendar_today),
                       suffixText: 'years',
                       hintText: 'e.g., 5',
                     ),
@@ -486,12 +567,12 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const SizedBox(height: 20),
                   
-                  // Specialization
+                  // Specialization *
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedSpecialization,
-                    decoration: const InputDecoration(
-                      labelText: 'Primary Specialization',
-                      prefixIcon: Icon(Icons.pets),
+                    value: _selectedSpecialization,
+                    decoration: InputDecoration(
+                      label: _buildRequiredLabel('Primary Specialization'),
+                      prefixIcon: const Icon(Icons.pets),
                     ),
                     items: _specializations
                         .map((p) => DropdownMenuItem(value: p, child: Text(p)))
@@ -512,12 +593,12 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const Divider(height: 16, thickness: 1),
 
-                  // Clinic Name
+                  // Clinic Name *
                   TextFormField(
                     controller: _clinicNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Clinic Name',
-                      prefixIcon: Icon(Icons.local_hospital),
+                    decoration: InputDecoration(
+                      label: _buildRequiredLabel('Clinic Name'),
+                      prefixIcon: const Icon(Icons.local_hospital),
                       hintText: 'e.g., Trusty Vet Services',
                     ),
                     validator: (v) =>
@@ -527,14 +608,14 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const SizedBox(height: 20),
                   
-                  // Consultation Fee
+                  // Consultation Fee *
                   TextFormField(
                     controller: _consultationFeeController,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'Consultation Fee (Tsh)',
-                      prefixIcon: Icon(Icons.attach_money),
+                    decoration: InputDecoration(
+                      label: _buildRequiredLabel('Consultation Fee (Tsh)'),
+                      prefixIcon: const Icon(Icons.attach_money),
                       suffixText: 'Tsh',
                       hintText: 'e.g., 20000.00',
                     ),
@@ -550,14 +631,14 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // LOCATION DROPDOWN WITH REFRESH BUTTON (Copied from Farmer Form)
+                  // LOCATION DROPDOWN WITH REFRESH BUTTON *
                   Row(
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          initialValue: _selectedLocationId,
+                          value: _selectedLocationId,
                           decoration: InputDecoration(
-                            labelText: 'Primary Service Location',
+                            label: _buildRequiredLabel('Primary Service Location'),
                             prefixIcon: const Icon(Icons.location_on),
                             helperText: _availableLocations.isEmpty
                                 ? 'No locations available. Add one first.'
@@ -580,7 +661,12 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                                     value: loc.locationId,
                                     child: Row(
                                       children: [
-                                        Expanded(child: Text(loc.displayName, overflow: TextOverflow.ellipsis)),
+                                        Expanded(
+                                          child: Text(
+                                            _getLocationDisplayName(loc), 
+                                            overflow: TextOverflow.ellipsis
+                                          )
+                                        ),
                                         if (loc.isPrimary)
                                           Container(
                                             margin: const EdgeInsets.only(left: 8),
@@ -590,7 +676,14 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                                               borderRadius: BorderRadius.circular(4),
                                               border: Border.all(color: AppColors.primary, width: 1),
                                             ),
-                                            child: const Text('Primary', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                            child: const Text(
+                                              'Primary', 
+                                              style: TextStyle(
+                                                fontSize: 10, 
+                                                color: AppColors.primary, 
+                                                fontWeight: FontWeight.bold
+                                              )
+                                            ),
                                           ),
                                       ],
                                     ),
@@ -605,7 +698,6 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Action buttons
                       Column(
                         children: [
                           IconButton(
@@ -635,33 +727,33 @@ class _VetDetailsFormPageState extends State<VetDetailsFormPage> {
                   ),
                   const Divider(height: 16, thickness: 1),
 
-                  // 1. Qualification Certificate
+                  // 1. Qualification Certificate *
                   _buildFilePickerTile(
                     title: 'Qualification Certificate (PDF/Image)',
                     subtitle: 'E.g., Degree, Diploma certificate.',
                     icon: Icons.school,
                     fileBase64: _certificateBase64,
                     isRequired: true,
-                    onTap: isLoading ? () {} : () => _pickDocument(
-                      'Certificate', 
-                      (base64) => setState(() => _certificateBase64 = base64),
-                      false
-                    ),
+                    onTap: isLoading 
+                        ? () {} 
+                        : () => _pickSingleDocument(
+                            (base64) => setState(() => _certificateBase64 = base64)
+                          ),
                     onClear: () => setState(() => _certificateBase64 = null),
                   ),
 
-                  // 2. License Document
+                  // 2. License Document *
                   _buildFilePickerTile(
                     title: 'Practice License Document (PDF/Image)',
                     subtitle: 'Current license to practice.',
                     icon: Icons.verified_user,
                     fileBase64: _licenseBase64,
                     isRequired: true,
-                    onTap: isLoading ? () {} : () => _pickDocument(
-                      'License', 
-                      (base64) => setState(() => _licenseBase64 = base64),
-                      false
-                    ),
+                    onTap: isLoading 
+                        ? () {} 
+                        : () => _pickSingleDocument(
+                            (base64) => setState(() => _licenseBase64 = base64)
+                          ),
                     onClear: () => setState(() => _licenseBase64 = null),
                   ),
                   

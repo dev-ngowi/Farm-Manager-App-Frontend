@@ -2,13 +2,14 @@ import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/seme
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/create_semen.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/delete_semen.dart';
-import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_available_semen.dart';
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_available_semen.dart' hide NoParams;
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_semen_details.dart';
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_semen_dropdowns.dart'; // ⭐ ADD THIS IMPORT
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/semen_usecases.dart';
 import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/update_semen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
-import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/dropdown_entity.dart'; // Import to use the type
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/dropdown_entity.dart';
 
 class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
   // Use Cases
@@ -18,7 +19,7 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
   final UpdateSemen updateSemen;
   final DeleteSemen deleteSemen;
   final GetAvailableSemen getAvailableSemen;
-
+  final GetSemenDropdowns getSemenDropdowns; 
 
   SemenInventoryBloc({
     required this.getAllSemen,
@@ -27,6 +28,7 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
     required this.updateSemen,
     required this.deleteSemen,
     required this.getAvailableSemen,
+    required this.getSemenDropdowns,
   }) : super(SemenInitial()) {
     on<SemenLoadInventory>(_onLoadInventory);
     on<SemenLoadDetails>(_onLoadDetails);
@@ -39,7 +41,6 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
   // Helper function to map Failure to Error State
   SemenError _mapFailureToState(Failure failure) {
     if (failure is ValidationFailure) {
-      // ✅ FIX: Safely access values on potentially null errors map
       final errors = failure.errors?.values.expand((e) => e).join('\n') ?? 'Validation failed.';
       return SemenError(errors, isValidationError: true);
     }
@@ -53,7 +54,6 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
     Emitter<SemenState> emit,
   ) async {
     emit(SemenLoading());
-    // ✅ FIX: SemenListParams is correctly imported from its Use Case file
     final params = SemenListParams( 
       availableOnly: event.availableOnly,
       breedId: event.breedId,
@@ -69,7 +69,7 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
   Future<void> _onLoadDetails(
     SemenLoadDetails event,
     Emitter<SemenState> emit,
-    ) async {
+  ) async {
     emit(SemenLoading());
     final result = await getSemenDetails(event.id);
 
@@ -100,7 +100,6 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
     Emitter<SemenState> emit,
   ) async {
     emit(SemenLoading());
-    // ✅ FIX: SemenUpdateParams is correctly imported from its Use Case file
     final params = SemenUpdateParams(id: event.id, semen: event.semen); 
     final result = await updateSemen(params);
 
@@ -129,20 +128,22 @@ class SemenInventoryBloc extends Bloc<SemenEvent, SemenState> {
     add(const SemenLoadInventory()); 
   }
 
-  // ⭐ UPDATED HANDLER: Filter the list before emitting SemenLoadedDropdowns
+  // ⭐ CORRECTED: Now uses getSemenDropdowns which returns a Map
   Future<void> _onLoadDropdowns(
     SemenLoadDropdowns event,
     Emitter<SemenState> emit,
   ) async {
     emit(SemenLoading());
-    final result = await getAvailableSemen(NoParams()); 
+    
+    // ⭐ Call the correct use case that returns Map<String, List<DropdownEntity>>
+    final result = await getSemenDropdowns(NoParams()); 
 
     emit(result.fold(
       (failure) => _mapFailureToState(failure),
-      (List<DropdownEntity> dropdowns) {
-        // ⭐ Filter the single list into two separate lists for the state
-        final bulls = dropdowns.where((d) => d.type == 'bull').toList();
-        final breeds = dropdowns.where((d) => d.type == 'breed').toList();
+      (Map<String, List<DropdownEntity>> dropdownData) {
+        // ⭐ Extract bulls and breeds from the Map
+        final bulls = dropdownData['bulls'] ?? [];
+        final breeds = dropdownData['breeds'] ?? [];
         
         return SemenLoadedDropdowns(bulls: bulls, breeds: breeds);
       },

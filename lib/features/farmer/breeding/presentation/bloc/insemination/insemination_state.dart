@@ -6,7 +6,12 @@ abstract class InseminationState {
 
 // Common States
 class InseminationInitial extends InseminationState {}
+
 class InseminationLoading extends InseminationState {}
+
+// ✅ NEW: Separate state for form submission
+class InseminationSubmitting extends InseminationState {}
+
 class InseminationError extends InseminationState {
   final String message;
   const InseminationError(this.message);

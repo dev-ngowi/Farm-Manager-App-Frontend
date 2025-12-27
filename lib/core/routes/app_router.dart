@@ -5,9 +5,12 @@ import 'package:farm_manager_app/features/auth/presentation/pages/auth/login_pag
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/register_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/auth/role_selection_page.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/entities/insemination_entity.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/pages/HeatCycle/edit_heat_cycle_page.dart';
 import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/farmer_dashboard_page.dart';
 import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/farmerDetailed/farmer_details_form_page.dart';
 import 'package:farm_manager_app/features/auth/presentation/pages/location/location_manager_page.dart';
+import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/profile/farmer_profile_edit_page.dart';
+import 'package:farm_manager_app/features/farmer/dashboard/presentation/pages/profile/profile_page.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/livestock.dart';
 import 'package:farm_manager_app/features/farmer/livestock/presentation/pages/edit_livestock_page.dart';
 import 'package:farm_manager_app/features/reseacher/presentation/pages/dashboard/reseacher_dashboard_page.dart';
@@ -108,6 +111,7 @@ class AppRoutes {
 
   // Farmer Main Routes (Sidebar Menu)
   static const String farmerDashboard = '/farmer/dashboard';
+  static const String farmerProfile = '/farmer/profile';
 
   // Livestock
   static const String livestock = '/farmer/livestock';
@@ -345,6 +349,19 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
+      path: AppRoutes.farmerProfile,
+      name: 'farmer-profile',
+      builder: (_, __) => const FarmerProfilePage(),
+      routes: [
+        GoRoute(
+          path: 'edit',
+          name: 'farmer-profile-edit',
+          builder: (_, __) => const FarmerProfileEditPage(),
+        ),
+      ],
+    ),
+
+    GoRoute(
       path: AppRoutes.livestock,
       name: 'livestock',
       builder: (_, __) => const LivestockListPage(),
@@ -429,73 +446,82 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
-     // Inseminations Module
-GoRoute(
-  path: 'inseminations',
-  name: InseminationListPage.routeName,
-  builder: (context, state) => const InseminationListPage(),
-  routes: [
-    // Add new insemination
-    GoRoute(
-      path: 'add',
-      name: AddInseminationPage.routeName,
-      builder: (context, state) => const AddInseminationPage(),
-    ),
-
-    // View detail: /farmer/inseminations/123
-    GoRoute(
-      path: ':id',
-      name: 'inseminationDetail',
-      builder: (context, state) {
-        final id = state.pathParameters['id']!;
-        return InseminationDetailPage(recordId: id);
-      },
-      routes: [
-        // Edit: /farmer/inseminations/123/edit
+        // Inseminations Module
         GoRoute(
-          path: 'edit',
-          name: EditInseminationPage.routeName,
-          builder: (context, state) {
-            final id = state.pathParameters['id']!;
-            final record = state.extra as InseminationEntity?;
+          path: 'inseminations',
+          name: InseminationListPage.routeName,
+          builder: (context, state) => const InseminationListPage(),
+          routes: [
+            // Add new insemination
+            GoRoute(
+              path: 'add',
+              name: 'add-insemination',
+              builder: (context, state) => const AddInseminationPage(),
+            ),
 
-            if (record == null) {
-              // Safety fallback
-              context.pop();
-              return const SizedBox.shrink();
-            }
+            // View detail: /farmer/inseminations/:id
+            GoRoute(
+              path: ':id',
+              name: 'inseminationDetail',
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return InseminationDetailPage(recordId: id);
+              },
+              routes: [
+                // Edit route: /farmer/inseminations/:id/edit
+                GoRoute(
+                  path: 'edit',
+                  name: EditInseminationPage.routeName,
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    final record = state.extra as InseminationEntity?;
 
-            return EditInseminationPage(
-              recordId: id, record: record);
-          },
+                    if (record == null) {
+                      context.pop();
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   SnackBar(
+                      //       content: Text(AppLocalizations.of(context)!
+                      //           .errorLoadingRecord)),
+                      // );
+                      return const SizedBox.shrink();
+                    }
+
+                    return EditInseminationPage(recordId: id, record: record);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-      ],
-    ),
-  ],
-),
-        // Pregnancy Checks Module
+
         GoRoute(
           path: 'pregnancy-checks',
-          name: PregnancyChecksPage.routeName, // Use the static routeName
+          name: PregnancyChecksPage.routeName,
           builder: (context, state) => const PregnancyChecksPage(),
           routes: [
-            // 1. Detail Page (View single check by ID)
+            // Add Page (place before :id to avoid route conflicts)
             GoRoute(
-              // Path: /farmer/breeding/pregnancy-checks/:id
+              path: 'add',
+              name: 'add-pregnancy-check', // ← Unique name
+              builder: (context, state) => const AddPregnancyCheckPage(),
+            ),
+
+            // Detail Page with nested edit route
+            GoRoute(
               path: ':id',
               name: PregnancyCheckDetailPage.routeName,
               builder: (context, state) {
-                final checkId =
-                    int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+                // ✅ Extract as String (don't parse to int here)
+                final checkId = state.pathParameters['id'] ?? '0';
                 return PregnancyCheckDetailPage(checkId: checkId);
               },
               routes: [
-                // 1b. Edit Page (Nested under detail)
+                // Edit Page (nested under detail)
                 GoRoute(
-                  // Path: /farmer/breeding/pregnancy-checks/:id/edit
                   path: 'edit',
                   name: EditPregnancyCheckPage.routeName,
                   builder: (context, state) {
+                    // ✅ Parse to int here for EditPregnancyCheckPage
                     final checkId =
                         int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
                     return EditPregnancyCheckPage(checkId: checkId);
@@ -503,16 +529,8 @@ GoRoute(
                 ),
               ],
             ),
-            // 2. Add Page (New Check)
-            GoRoute(
-              // Path: /farmer/breeding/pregnancy-checks/add
-              path: 'add',
-              name: AddPregnancyCheckPage.routeName,
-              builder: (context, state) => const AddPregnancyCheckPage(),
-            ),
           ],
         ),
-        // Deliveries Module
         GoRoute(
           path: 'deliveries',
           name: 'deliveries',
@@ -520,9 +538,11 @@ GoRoute(
           routes: [
             // Child Route 1: Add Delivery Page
             // Path: /farmer/breeding/deliveries/add
+            // FIXED: Changed name to match your navigation call
             GoRoute(
               path: 'add',
-              name: 'addDelivery',
+              name:
+                  'add-delivery', // Changed from 'addDelivery' to 'add-delivery'
               builder: (context, state) => const AddDeliveryPage(),
             ),
 
@@ -530,9 +550,9 @@ GoRoute(
             // Path: /farmer/breeding/deliveries/:id/edit
             GoRoute(
               path: ':id/edit',
-              name: 'editDelivery',
+              name:
+                  'edit-delivery', // Changed from 'editDelivery' to 'edit-delivery' for consistency
               builder: (context, state) {
-                // Ensure 'id' is extracted and converted to an integer
                 final id = state.pathParameters['id'];
                 final deliveryId = int.tryParse(id ?? '') ?? 0;
                 return EditDeliveryPage(deliveryId: deliveryId);
@@ -543,7 +563,8 @@ GoRoute(
             // Path: /farmer/breeding/deliveries/:id
             GoRoute(
               path: ':id',
-              name: 'deliveryDetail',
+              name:
+                  'delivery-detail', // Changed from 'deliveryDetail' to 'delivery-detail' for consistency
               builder: (context, state) {
                 // Ensure 'id' is extracted and converted to an integer
                 final id = state.pathParameters['id'];
@@ -637,8 +658,7 @@ GoRoute(
       ],
     ),
 
-    // 3. Heat Cycles Routes (FLATTENED - Outside nested routes)
-    // Heat Cycles List
+    // Heat Cycles Routes - Add edit as nested route
     GoRoute(
       path: AppRoutes.heatCycles,
       name: 'heat-cycles',
@@ -648,41 +668,53 @@ GoRoute(
           child: const HeatCyclesPage(),
         );
       },
-    ),
+      routes: [
+        // Add Heat Cycle
+        GoRoute(
+          path: 'add',
+          name: 'add-heat-cycle',
+          builder: (context, state) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<HeatCycleBloc>(
+                  create: (context) => GetIt.instance<HeatCycleBloc>(),
+                ),
+                BlocProvider<LivestockBloc>(
+                  create: (context) => GetIt.instance<LivestockBloc>(),
+                ),
+              ],
+              child: const AddHeatCyclePage(),
+            );
+          },
+        ),
 
-    // Add Heat Cycle
-    GoRoute(
-      path: AppRoutes.addHeatCycle,
-      name: 'add-heat-cycle',
-      builder: (context, state) {
-        // 💡 FIX: Use MultiBlocProvider to provide both required BLoCs
-        return MultiBlocProvider(
-          providers: [
-            // 1. HeatCycleBloc (for saving the heat cycle)
-            BlocProvider<HeatCycleBloc>(
+        // Heat Cycle Details
+        GoRoute(
+          path: ':heatCycleId',
+          name: 'heat-cycle-details',
+          builder: (context, state) {
+            final heatCycleId = state.pathParameters['heatCycleId']!;
+            return BlocProvider<HeatCycleBloc>(
               create: (context) => GetIt.instance<HeatCycleBloc>(),
-            ),
-            // 2. LivestockBloc (for loading the animal list dropdown)
-            BlocProvider<LivestockBloc>(
-              create: (context) => GetIt.instance<LivestockBloc>(),
+              child: HeatCycleDetailsPage(heatCycleId: heatCycleId),
+            );
+          },
+          routes: [
+            // Edit Heat Cycle - ADDED
+            GoRoute(
+              path: 'edit',
+              name: 'edit-heat-cycle',
+              builder: (context, state) {
+                final heatCycleId = state.pathParameters['heatCycleId']!;
+                return BlocProvider<HeatCycleBloc>(
+                  create: (context) => GetIt.instance<HeatCycleBloc>(),
+                  child: EditHeatCyclePage(heatCycleId: heatCycleId),
+                );
+              },
             ),
           ],
-          child: const AddHeatCyclePage(),
-        );
-      },
-    ),
-
-    // Heat Cycle Details
-    GoRoute(
-      path: AppRoutes.heatCycleDetails,
-      name: 'heat-cycle-details',
-      builder: (context, state) {
-        final heatCycleId = state.pathParameters['heatCycleId']!;
-        return BlocProvider<HeatCycleBloc>(
-          create: (context) => GetIt.instance<HeatCycleBloc>(),
-          child: HeatCycleDetailsPage(heatCycleId: heatCycleId),
-        );
-      },
+        ),
+      ],
     ),
 
     // Other Farmer Routes
@@ -828,7 +860,7 @@ GoRoute(
     GoRoute(
       path: AppRoutes.reports,
       name: 'reports',
-      builder: (_, __) => const ReportsPage(),
+      builder: (_, __) => const ReportsHubPage(),
     ),
 
     // Other Roles Dashboards

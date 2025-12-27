@@ -1,4 +1,5 @@
 import 'package:farm_manager_app/core/config/app_theme.dart';
+import 'package:farm_manager_app/core/routes/app_router.dart';
 import 'package:farm_manager_app/core/widgets/add_record_bottom_sheet.dart';
 import 'package:farm_manager_app/core/widgets/app_sidebar.dart';
 import 'package:flutter/material.dart';
@@ -76,17 +77,25 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
           style:
               TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
         ),
+        // The corrected version of your code snippet:
+
         actions: [
+          // Notification Icon
           IconButton(
             icon: const Icon(Icons.notifications_none_outlined,
                 color: AppColors.primary),
             onPressed: () => context.push('/notifications'),
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey,
-              child: Icon(Icons.person, color: AppColors.primary),
+          // Profile Icon (wrapped in GestureDetector for tap functionality)
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => context
+                  .go(AppRoutes.farmerProfile), 
+              child: const CircleAvatar(
+                backgroundColor: Colors.grey,
+                child: Icon(Icons.person, color: AppColors.primary),
+              ),
             ),
           ),
         ],

@@ -1,5 +1,4 @@
-// add_heat_cycle_page.dart
-
+import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:farm_manager_app/features/auth/presentation/bloc/auth/auth_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/models/heat_cycle_model.dart';
@@ -14,7 +13,6 @@ import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/liv
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -35,7 +33,6 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
   String? _selectedIntensity;
   final TextEditingController _notesController = TextEditingController();
 
-  // Intensity options from the backend
   final List<String> _intensityOptions = [
     'Weak',
     'Moderate',
@@ -46,12 +43,10 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
   @override
   void initState() {
     super.initState();
-    // Load livestock when page opens
     _loadLivestock();
   }
 
   void _loadLivestock() {
-    // FIXED: Use LoadLivestockList event with empty filters
     context.read<LivestockBloc>().add(const LoadLivestockList(filters: {}));
   }
 
@@ -90,9 +85,7 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
       },
     );
     if (picked != null && picked != _observedDate) {
-      setState(() {
-        _observedDate = picked;
-      });
+      setState(() => _observedDate = picked);
     }
   }
 
@@ -101,9 +94,9 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
       if (_observedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            // FIXED: Use existing localization key
             content: Text(AppLocalizations.of(context)!.selectDate),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
         return;
@@ -113,26 +106,23 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.animalRequired),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
         return;
       }
 
       final token = _getAuthToken();
-
-      // FIXED: Create DamModel with correct type conversions
       final damModel = DamModel(
-        animalId: _selectedAnimal!.animalId.toString(), // Convert int to String
+        animalId: _selectedAnimal!.animalId.toString(),
         tagNumber: _selectedAnimal!.tagNumber,
-        name: _selectedAnimal!.name ?? 'Unknown', // Handle nullable name
-        species: _selectedAnimal!.species?.speciesName ??
-            'Unknown', // Extract species name
+        name: _selectedAnimal!.name ?? 'Unknown',
+        species: _selectedAnimal!.species?.speciesName ?? 'Unknown',
       );
 
-      // Create HeatCycleModel for API submission
       final newHeatCycle = HeatCycleModel(
-        id: '', // Will be assigned by backend
+        id: '',
         damId: _selectedAnimalId!,
         dam: damModel,
         observedDate: _observedDate!,
@@ -143,18 +133,8 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
         inseminated: false,
       );
 
-      print('📤 Submitting Heat Cycle:');
-      print('   Dam ID: ${newHeatCycle.damId}');
-      print('   Date: ${newHeatCycle.observedDate}');
-      print('   Intensity: ${newHeatCycle.intensity}');
-      print('   Notes: ${newHeatCycle.notes}');
-
-      // Dispatch create event
       context.read<HeatCycleBloc>().add(
-            CreateHeatCycleEvent(
-              cycle: newHeatCycle,
-              token: token,
-            ),
+            CreateHeatCycleEvent(cycle: newHeatCycle, token: token),
           );
     }
   }
@@ -168,34 +148,41 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
     );
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(l10n.recordHeatCycle),
-        backgroundColor: BreedingColors.heat,
-        foregroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          l10n.recordHeatCycle,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       body: MultiBlocListener(
         listeners: [
-          // Listen to HeatCycle creation success/error
           BlocListener<HeatCycleBloc, HeatCycleState>(
             listener: (context, state) {
               if (state is HeatCycleSuccess) {
-                print('✅ Heat Cycle Created Successfully!');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppColors.success,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
-                // Navigate back to heat cycles list
                 context.go('/farmer/breeding/heat-cycles');
               } else if (state is HeatCycleError) {
-                print('❌ Error Creating Heat Cycle: ${state.message}');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 5),
+                    backgroundColor: AppColors.error,
+                    behavior: SnackBarBehavior.floating,
                     action: SnackBarAction(
                       label: 'Dismiss',
                       textColor: Colors.white,
@@ -213,86 +200,52 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
 
             return Form(
               key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: <Widget>[
-                  // Info Card
-                  Card(
-                    color: BreedingColors.heat.withOpacity(0.1),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: BreedingColors.heat,
+                          const Text(
+                            'Record Heat Cycle',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Record heat cycle observations for female animals',
-                              style: theme.textTheme.bodyMedium,
+                          const SizedBox(height: 8),
+                          Text(
+                            'Track heat cycle observations for female animals',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
 
-                  // Animal Selection Dropdown
-                  _buildAnimalDropdownField(l10n, theme),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Observed Date Picker
-                  _buildDatePickerField(l10n, theme, formatter),
-                  const SizedBox(height: 16),
+                    // Form Fields
+                    _buildFormSection(l10n, theme, formatter, isSubmitting),
 
-                  // Intensity Dropdown
-                  _buildIntensityDropdownField(l10n, theme),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                  // Notes Field
-                  TextFormField(
-                    controller: _notesController,
-                    decoration: InputDecoration(
-                      labelText: l10n.notes,
-                      hintText: l10n.notesPlaceholder,
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.description),
-                    ),
-                    maxLines: 4,
-                    enabled: !isSubmitting,
-                  ),
-                  const SizedBox(height: 32),
+                    // Save Button
+                    _buildSaveButton(l10n, isSubmitting),
 
-                  // Save Button
-                  ElevatedButton.icon(
-                    onPressed: isSubmitting ? null : _saveHeatCycle,
-                    icon: isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Icon(Icons.save),
-                    label: Text(
-                      isSubmitting ? l10n.saving : l10n.save.toUpperCase(),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: BreedingColors.heat,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           },
@@ -301,168 +254,178 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
     );
   }
 
-  Widget _buildAnimalDropdownField(AppLocalizations l10n, ThemeData theme) {
+  Widget _buildFormSection(
+    AppLocalizations l10n,
+    ThemeData theme,
+    DateFormat formatter,
+    bool isSubmitting,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Heat Cycle Information',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Animal Selection
+          _buildAnimalDropdownField(l10n, theme, isSubmitting),
+          const SizedBox(height: 12),
+
+          // Date Picker
+          _buildDatePickerField(l10n, theme, formatter, isSubmitting),
+          const SizedBox(height: 12),
+
+          // Intensity
+          _buildIntensityDropdownField(l10n, theme, isSubmitting),
+          const SizedBox(height: 12),
+
+          // Notes
+          _buildNotesField(l10n, isSubmitting),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimalDropdownField(
+    AppLocalizations l10n,
+    ThemeData theme,
+    bool isSubmitting,
+  ) {
     return BlocBuilder<LivestockBloc, LivestockState>(
       builder: (context, state) {
-        // Filter for female animals only (dams)
         List<LivestockEntity> femaleAnimals = [];
 
-        // FIXED: Use LivestockListLoaded instead of LivestockLoaded
         if (state is LivestockListLoaded) {
-          // CHANGE: state.animals to state.livestock
           femaleAnimals = state.livestock
-              .where((animal) =>
-                  animal.sex.toLowerCase() ==
-                  'female') // Note: Using animal.sex from LivestockEntity
+              .where((animal) => animal.sex.toLowerCase() == 'female')
               .toList();
         }
 
         if (state is LivestockLoading) {
-          return DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: l10n.selectAnimal,
-              border: const OutlineInputBorder(),
-              prefixIcon: const Icon(Icons.pets, color: BreedingColors.heat),
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey[300]!, width: 1),
             ),
-            hint: const Row(
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                SizedBox(width: 8),
-                Text('Loading animals...'),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.female, color: BreedingColors.heat, size: 20),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Text('Loading animals...'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            items: const [],
-            onChanged: null,
           );
         }
 
         if (femaleAnimals.isEmpty) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: l10n.selectAnimal,
-                  border: const OutlineInputBorder(),
-                  prefixIcon: SvgPicture.string(
-                    '''<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM8 6L6 8V10L8 12V22H16V12L18 10V8L16 6C15.2 6 14.5 5.7 14 5.2C13.5 5.7 12.8 6 12 6C11.2 6 10.5 5.7 10 5.2C9.5 5.7 8.8 6 8 6Z" fill="currentColor"/>
-                      </svg>''',
-                    colorFilter: const ColorFilter.mode(
-                        BreedingColors.heat, BlendMode.srcIn),
-                    width: 24,
-                    height: 24,
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.orange[300]!, width: 1),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No female animals available. Please add female animals first.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange[700],
+                      ),
+                    ),
                   ),
-                ),
-                hint:
-                    Text(l10n.noFemaleAnimalsAvailable ?? 'No female animals'),
-                items: const [],
-                onChanged: null,
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Please add female animals to your livestock first.',
-                style:
-                    theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
-              ),
-            ],
+            ),
           );
         }
 
-        return DropdownButtonFormField<String>(
-          decoration: InputDecoration(
-            labelText: l10n.selectAnimal,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.pets, color: BreedingColors.heat),
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey[300]!, width: 1),
           ),
-          initialValue: _selectedAnimalId,
-          hint: Text(l10n.chooseAnimal),
-          items: femaleAnimals.map((animal) {
-            return DropdownMenuItem<String>(
-              // FIXED: Convert animalId to String
-              value: animal.animalId.toString(),
-              child: Text("${animal.name ?? 'Unknown'} (${animal.tagNumber})"),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedAnimalId = newValue;
-              _selectedAnimal = femaleAnimals.firstWhere(
-                (animal) => animal.animalId.toString() == newValue,
-              );
-            });
-          },
-          validator: (value) {
-            if (value == null) {
-              return l10n.animalRequired;
-            }
-            return null;
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildIntensityDropdownField(AppLocalizations l10n, ThemeData theme) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: l10n.heatIntensity,
-        border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.flash_on, color: BreedingColors.heat),
-      ),
-      initialValue: _selectedIntensity,
-      hint: Text(l10n.selectIntensity),
-      items: _intensityOptions.map((intensity) {
-        IconData icon;
-        Color color;
-
-        switch (intensity) {
-          case 'Weak':
-            icon = Icons.flash_on_outlined;
-            color = Colors.orange.shade300;
-            break;
-          case 'Moderate':
-            icon = Icons.flash_on;
-            color = Colors.orange.shade600;
-            break;
-          case 'Strong':
-            icon = Icons.bolt;
-            color = Colors.deepOrange;
-            break;
-          case 'Standing Heat':
-            icon = Icons.whatshot;
-            color = BreedingColors.heat;
-            break;
-          default:
-            icon = Icons.flash_on;
-            color = Colors.grey;
-        }
-
-        return DropdownMenuItem<String>(
-          value: intensity,
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(width: 8),
-              Text(intensity),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                Icon(Icons.female, color: BreedingColors.heat, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: l10n.selectAnimal,
+                      border: InputBorder.none,
+                      labelStyle: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    initialValue: _selectedAnimalId,
+                    hint: Text(l10n.chooseAnimal),
+                    items: femaleAnimals.map((animal) {
+                      return DropdownMenuItem<String>(
+                        value: animal.animalId.toString(),
+                        child: Text(
+                          "${animal.name ?? 'Unknown'} (${animal.tagNumber})",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: isSubmitting
+                        ? null
+                        : (String? newValue) {
+                            setState(() {
+                              _selectedAnimalId = newValue;
+                              _selectedAnimal = femaleAnimals.firstWhere(
+                                (animal) =>
+                                    animal.animalId.toString() == newValue,
+                              );
+                            });
+                          },
+                    validator: (value) {
+                      if (value == null) return l10n.animalRequired;
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
-      }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedIntensity = newValue;
-        });
-      },
-      validator: (value) {
-        if (value == null) {
-          return l10n.intensityRequired;
-        }
-        return null;
       },
     );
   }
@@ -471,24 +434,211 @@ class _AddHeatCyclePageState extends State<AddHeatCyclePage> {
     AppLocalizations l10n,
     ThemeData theme,
     DateFormat formatter,
+    bool isSubmitting,
   ) {
-    return InkWell(
-      onTap: () => _selectDate(context, l10n),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: l10n.observedDate,
-          border: const OutlineInputBorder(),
-          prefixIcon:
-              const Icon(Icons.calendar_today, color: BreedingColors.heat),
-          suffixIcon: const Icon(Icons.arrow_drop_down),
-        ),
-        child: Text(
-          _observedDate == null
-              ? l10n.selectDate
-              : formatter.format(_observedDate!),
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: _observedDate == null ? Colors.grey.shade600 : Colors.black,
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isSubmitting ? null : () => _selectDate(context, l10n),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(Icons.calendar_today, color: BreedingColors.heat, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.observedDate,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _observedDate == null
+                          ? l10n.selectDate
+                          : formatter.format(_observedDate!),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _observedDate == null
+                            ? Colors.grey[400]
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntensityDropdownField(
+    AppLocalizations l10n,
+    ThemeData theme,
+    bool isSubmitting,
+  ) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.bolt, color: BreedingColors.heat, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: l10n.heatIntensity,
+                  border: InputBorder.none,
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                initialValue: _selectedIntensity,
+                hint: Text(l10n.selectIntensity),
+                items: _intensityOptions.map((intensity) {
+                  IconData icon;
+                  Color color;
+
+                  switch (intensity) {
+                    case 'Weak':
+                      icon = Icons.flash_on_outlined;
+                      color = Colors.orange.shade300;
+                      break;
+                    case 'Moderate':
+                      icon = Icons.flash_on;
+                      color = Colors.orange.shade600;
+                      break;
+                    case 'Strong':
+                      icon = Icons.bolt;
+                      color = Colors.deepOrange;
+                      break;
+                    case 'Standing Heat':
+                      icon = Icons.whatshot;
+                      color = BreedingColors.heat;
+                      break;
+                    default:
+                      icon = Icons.flash_on;
+                      color = Colors.grey;
+                  }
+
+                  return DropdownMenuItem<String>(
+                    value: intensity,
+                    child: Row(
+                      children: [
+                        Icon(icon, size: 18, color: color),
+                        const SizedBox(width: 8),
+                        Text(
+                          intensity,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: isSubmitting
+                    ? null
+                    : (String? newValue) {
+                        setState(() => _selectedIntensity = newValue);
+                      },
+                validator: (value) {
+                  if (value == null) return l10n.intensityRequired;
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotesField(AppLocalizations l10n, bool isSubmitting) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: TextFormField(
+          controller: _notesController,
+          enabled: !isSubmitting,
+          maxLines: 4,
+          decoration: InputDecoration(
+            labelText: l10n.notes,
+            hintText: l10n.notesPlaceholder,
+            border: InputBorder.none,
+            labelStyle: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
+          ),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton(AppLocalizations l10n, bool isSubmitting) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isSubmitting ? null : _saveHeatCycle,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: BreedingColors.heat,
+            disabledBackgroundColor: BreedingColors.heat.withOpacity(0.6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
+          ),
+          child: isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Text(
+                  l10n.save.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ),
     );

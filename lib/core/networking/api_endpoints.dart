@@ -87,10 +87,50 @@ class ApiEndpoints {
       '/breeding/inseminations/$id'; // DELETE
 
 // Available resources for dropdowns (used in Flutter insemination form)
-  static const String availableAnimals = '/breeding/inseminations/animals/available';
+  static const String availableAnimals =
+      '/breeding/inseminations/animals/available';
   // static const String availableSemen = '/breeding/inseminations/semen/available';
   static const String availableDams = '/breeding/inseminations/dams/available';
-  static const String availableSires = '/breeding/inseminations/sires/available';
+  static const String availableSires =
+      '/breeding/inseminations/sires/available';
+
+  // ========================================
+  // PREGNANCY CHECK ENDPOINTS (under /breeding prefix) 🤰
+  // ========================================
+  static const String pregnancyChecks = '/breeding/pregnancy-checks';
+  static String pregnancyCheckDetails(dynamic id) =>
+      '/breeding/pregnancy-checks/$id';
+  static String updatePregnancyCheck(dynamic id) =>
+      '/breeding/pregnancy-checks/$id';
+  static String deletePregnancyCheck(dynamic id) =>
+      '/breeding/pregnancy-checks/$id';
+  static const String pregnancyCheckDropdowns =
+      '/breeding/pregnancy-checks/dropdowns';
+
+  // Optional: If you want to add PDF download support later
+  static String pregnancyCheckPdf(dynamic id) =>
+      '/breeding/pregnancy-checks/$id/pdf';
+
+  // ========================================
+  // DELIVERIES (Calving/Birth Events) 🐮🍼
+  // ========================================
+  static const String deliveries = '/breeding/deliveries';
+  static const String deliveryDropdowns = '/breeding/deliveries/dropdowns';
+  static String deliveryDetails(dynamic id) => '/breeding/deliveries/$id';
+  static String updateDelivery(dynamic id) => '/breeding/deliveries/$id';
+  static String deleteDelivery(dynamic id) => '/breeding/deliveries/$id';
+  static String deliveryPdf(dynamic id) => '/breeding/deliveries/$id/pdf';
+
+    // ========================================
+  // OFFSPRING ENDPOINTS 🐄👶
+  // ========================================
+  static const String offspring = '/breeding/offspring';
+  static const String offspringAvailableDeliveries = '/breeding/offspring/deliveries/available';
+  static String offspringDetails(dynamic id) => '/breeding/offspring/$id';
+  static String updateOffspring(dynamic id) => '/breeding/offspring/$id';
+  static String deleteOffspring(dynamic id) => '/breeding/offspring/$id';
+  static String registerOffspring(dynamic id) => '/breeding/offspring/$id/register';
+  static String offspringPdf(dynamic id) => '/breeding/offspring/$id/pdf';
 }
 
 class FarmerEndpoints {

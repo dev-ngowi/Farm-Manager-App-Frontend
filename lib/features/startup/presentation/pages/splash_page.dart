@@ -1,9 +1,10 @@
-// lib/features/startup/presentation/pages/splash_page.dart
 import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/startup/presentation/pages/onboarding_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+/// OPTIONAL: You can now REMOVE this page entirely and route directly to OnboardingPage
+/// OR keep it simplified without heavy animations
 class SplashPage extends StatefulWidget {
   static const String routeName = '/splash';
   const SplashPage({super.key});
@@ -12,33 +13,14 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
-
+class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
-
-    _controller.forward().then((_) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) context.go(OnboardingPage.routeName);
-      });
+    // ⚡ Navigate immediately (or add minimal 500ms delay if needed)
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) context.go(OnboardingPage.routeName);
     });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
@@ -46,42 +28,52 @@ class _SplashPageState extends State<SplashPage>
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Logo with rounded corners
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  'assets/images/app_logo.png',
-                  width: 140,
-                  height: 140,
-                  fit: BoxFit.cover,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset(
+                'assets/images/app_logo.png',
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Icon(
+                      Icons.agriculture,
+                      size: 60,
+                      color: Colors.white,
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Farm Manager',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.2,
-                ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Farm Bond App',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Meneja wa Shamba',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white70,
-                  fontStyle: FontStyle.italic,
-                ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Manage your farm with ease',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

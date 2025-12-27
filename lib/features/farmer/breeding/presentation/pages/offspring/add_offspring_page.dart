@@ -1,317 +1,205 @@
+// lib/features/farmer/breeding/presentation/pages/offspring/add_offspring_page.dart
+
 import 'package:farm_manager_app/core/config/app_theme.dart';
+import 'package:farm_manager_app/core/di/locator.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_event.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/widgets/offspring_form.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-// Added for input formatting, though not strictly used in current TextFields
 
-class AddOffspringPage extends StatefulWidget {
-  static const String routeName = '/farmer/breeding/offspring/store';
+class AddOffspringPage extends StatelessWidget {
+  static const String routeName = 'add';
 
   const AddOffspringPage({super.key});
-
-  @override
-  State<AddOffspringPage> createState() => _AddOffspringPageState();
-}
-
-class _AddOffspringPageState extends State<AddOffspringPage> {
-  final _formKey = GlobalKey<FormState>();
-  final Color primaryColor = BreedingColors.offspring;
-
-  // Form Field State
-  int? _selectedDeliveryId; // Corresponds to delivery_id
-  String? _temporaryTag;
-  String? _gender; // Required: Male, Female, Unknown
-  double? _birthWeightKg; // Required, numeric
-  String? _birthCondition; // Required: Vigorous, Weak, Stillborn
-  String? _colostrumIntake; // Required: Adequate, Partial, Insufficient, None
-  bool _navelTreated = false; // Required, boolean
-  String? _notes;
-
-  // Mock Delivery Options (In a real app, this would be fetched from /api/farmer/deliveries)
-  final List<Map<String, dynamic>> _mockDeliveries = [
-    {'id': 50, 'label': 'Delivery - COW-101 (2025-09-10)'},
-    {'id': 51, 'label': 'Delivery - EWE-203 (2025-12-05)'},
-    {'id': 52, 'label': 'Delivery - DOE-312 (2025-12-01)'},
-  ];
-
-  // Options for Dropdowns/Radio Buttons
-  final List<String> _genderOptions = ['Male', 'Female', 'Unknown'];
-  final List<String> _conditionOptions = ['Vigorous', 'Weak', 'Stillborn'];
-  final List<String> _colostrumOptions = ['Adequate', 'Partial', 'Insufficient', 'None'];
-
-  Future<void> _submitForm() async {
-    final l10n = AppLocalizations.of(context)!;
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      
-      // Data to be sent to OffspringController@store
-      final payload = {
-        'delivery_id': _selectedDeliveryId,
-        'temporary_tag': _temporaryTag,
-        'gender': _gender,
-        'birth_weight_kg': _birthWeightKg,
-        'birth_condition': _birthCondition,
-        'colostrum_intake': _colostrumIntake,
-        'navel_treated': _navelTreated,
-        'notes': _notes,
-      };
-
-      // --- Mock API Call ---
-      print('Submitting Offspring Data: $payload');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.savingOffspring)),
-      );
-      
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network latency
-
-      // On Success: Pop page and optionally show success message on previous screen
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.offspringRecordSuccess),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        context.pop();
-      }
-    }
-  }
-
-  // Helper function to translate static options (if l10n supports it)
-  String _translateOption(String key, AppLocalizations l10n) {
-    // This is a placeholder for actual l10n implementation
-    // For now, it just returns the key.
-    return key; 
-  }
-
-  // --- Widget Builders ---
-
-  Widget _buildDropdown<T>({
-    required String label, 
-    required T? value, 
-    required List<T> options, 
-    required String? Function(T?) validator, 
-    required void Function(T?) onSaved,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: DropdownButtonFormField<T>(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white, // Replaced AppColors.cardBackground
-        ),
-        initialValue: value,
-        hint: Text(l10n.select),
-        isExpanded: true,
-        items: options.map((T option) {
-          final displayLabel = option is String 
-              ? _translateOption(option, l10n) 
-              : option.toString();
-              
-          // Handle the delivery ID case separately to show the label
-          if (option is int && options == _mockDeliveries.map((e) => e['id'] as int).toList()) {
-            final delivery = _mockDeliveries.firstWhere((e) => e['id'] == option);
-            return DropdownMenuItem<T>(
-              value: option,
-              child: Text(delivery['label'] as String),
-            );
-          }
-
-          return DropdownMenuItem<T>(
-            value: option,
-            child: Text(displayLabel),
-          );
-        }).toList(),
-        onChanged: (T? newValue) {
-          setState(() {
-            onSaved(newValue); // Update the state immediately
-          });
-        },
-        validator: validator,
-        onSaved: onSaved,
-      ),
-    );
-  }
-
-  Widget _buildTextFormField({
-    required String label,
-    required void Function(String?) onSaved,
-    String? Function(String?)? validator,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    String? initialValue,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: TextFormField(
-        initialValue: initialValue,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white, // Replaced AppColors.cardBackground
-        ),
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        validator: validator,
-        onSaved: onSaved,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.recordOffspring),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 1,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Section: Link to Delivery ---
-              Text(
-                l10n.selectDeliveryContext,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor),
-              ),
-              const SizedBox(height: 12),
-              _buildDropdown<int>(
-                label: l10n.delivery,
-                value: _selectedDeliveryId,
-                options: _mockDeliveries.map((e) => e['id'] as int).toList(),
-                validator: (val) => val == null ? l10n.fieldRequired : null,
-                onSaved: (val) => _selectedDeliveryId = val,
-              ),
-
-              // --- Section: Offspring Identification ---
-              const SizedBox(height: 16),
-              Text(
-                l10n.identification,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor),
-              ),
-              const SizedBox(height: 12),
-              
-              _buildTextFormField(
-                label: l10n.temporaryTag,
-                onSaved: (val) => _temporaryTag = val,
-                validator: (val) => null, // Optional field
-                keyboardType: TextInputType.text,
-              ),
-
-              // --- Section: Birth Metrics ---
-              const SizedBox(height: 16),
-              Text(
-                l10n.birthMetrics,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor),
-              ),
-              const SizedBox(height: 12),
-
-              _buildDropdown<String>(
-                label: l10n.gender,
-                value: _gender,
-                options: _genderOptions,
-                validator: (val) => val == null ? l10n.fieldRequired : null,
-                onSaved: (val) => _gender = val,
-              ),
-
-              _buildTextFormField(
-                label: l10n.birthWeightKg,
-                onSaved: (val) {
-                  if (val != null && double.tryParse(val) != null) {
-                    _birthWeightKg = double.parse(val);
-                  }
-                },
-                validator: (val) {
-                  if (val == null || val.isEmpty) return l10n.fieldRequired;
-                  if (double.tryParse(val) == null || double.parse(val) <= 0) {
-                    return l10n.enterValidWeight;
-                  }
-                  return null;
-                },
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              ),
-
-              _buildDropdown<String>(
-                label: l10n.birthCondition,
-                value: _birthCondition,
-                options: _conditionOptions,
-                validator: (val) => val == null ? l10n.fieldRequired : null,
-                onSaved: (val) => _birthCondition = val,
-              ),
-
-              _buildDropdown<String>(
-                label: l10n.colostrumIntake,
-                value: _colostrumIntake,
-                options: _colostrumOptions,
-                validator: (val) => val == null ? l10n.fieldRequired : null,
-                onSaved: (val) => _colostrumIntake = val,
-              ),
-
-              // --- Navel Treatment Switch ---
-              Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                child: SwitchListTile(
-                  title: Text(l10n.navelTreated),
-                  value: _navelTreated,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _navelTreated = value;
-                    });
-                  },
-                  activeThumbColor: primaryColor,
-                  tileColor: Colors.grey.shade50, // Replaced AppColors.cardBackground
+    return BlocProvider(
+      create: (context) => getIt<OffspringBloc>(),
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: BreedingColors.offspring),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            l10n.recordOffspring ?? 'Record Offspring',
+            style: const TextStyle(
+              color: BreedingColors.offspring,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        body: BlocListener<OffspringBloc, OffspringState>(
+          listener: (context, state) {
+            if (state is OffspringAdded) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.offspringRecordSuccess ?? 'Offspring recorded successfully.',
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-              ),
-
-              // --- Section: Notes ---
-              const SizedBox(height: 16),
-              Text(
-                l10n.additionalNotes,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor),
-              ),
-              const SizedBox(height: 12),
-              
-              _buildTextFormField(
-                label: l10n.notes,
-                onSaved: (val) => _notes = val,
-                maxLines: 4,
-                keyboardType: TextInputType.multiline,
-              ),
-
-              // --- Save Button ---
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _submitForm,
-                    icon: const Icon(Icons.save),
-                    label: Text(l10n.saveOffspring),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              );
+              context.go('/farmer/breeding/offspring');
+            } else if (state is OffspringError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.submissionFailed ?? 'Submission Failed',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              state.message,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  duration: const Duration(seconds: 5),
+                ),
+              );
+            }
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER CARD
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: BreedingColors.offspring.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.child_care,
+                            color: BreedingColors.offspring,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.recordNewOffspring ?? 'Record New Offspring',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: BreedingColors.offspring,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                l10n.fillOffspringDetails ?? 'Fill out all required details to record an offspring.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 20),
+
+                // FORM CARD
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: OffspringForm(offspringToEdit: null),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // INFO BOX
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.requiredFieldsNote ?? 'All fields marked with * are required.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),

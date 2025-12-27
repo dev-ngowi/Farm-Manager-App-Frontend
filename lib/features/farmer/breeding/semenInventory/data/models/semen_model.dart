@@ -10,7 +10,7 @@ class SemenModel {
   final String? bullTag;
   final String bullName;
   final int breedId;
-  final String collectionDate; // String in Model, convert to DateTime for Entity
+  final String collectionDate; // Store as string, parse when converting to Entity
   final bool used;
   final double? costPerStraw;
   final double? doseMl;
@@ -22,7 +22,7 @@ class SemenModel {
   final BreedDto? breed; 
   final List<InseminationDto>? inseminations;
 
-  // ⭐ ADDED: Statistical fields (These typically come from the /show endpoint)
+  // Statistical fields
   final int? timesUsed;
   final String? successRate;
 
@@ -42,17 +42,18 @@ class SemenModel {
     this.bull,
     this.breed,
     this.inseminations,
-    // ⭐ ADDED to constructor
     this.timesUsed,
     this.successRate,
   });
 
-  // FROM JSON
+  // FROM JSON - Updated to match the exact API format
   factory SemenModel.fromJson(Map<String, dynamic> json) {
+    // Safe parsing helpers
     int? safeParseInt(dynamic value) {
       if (value == null) return null;
       if (value is String) return int.tryParse(value);
       if (value is int) return value;
+      if (value is double) return value.toInt();
       return null;
     }
 
@@ -63,28 +64,33 @@ class SemenModel {
       return null;
     }
 
-    final bool isUsed = (json['used'] is int) 
-        ? (json['used'] == 1) 
-        : (json['used'] as bool? ?? false); 
+    // Parse the 'used' field - API returns boolean directly
+    final bool isUsed = json['used'] == true || json['used'] == 1;
 
-    // The 'inseminations' list and 'stats' objects only appear on the /show endpoint
+    // Parse collection_date - API returns ISO timestamp, extract just the date part
+    String collectionDateStr = json['collection_date'] as String? ?? '';
+    if (collectionDateStr.contains('T')) {
+      // Extract date part from ISO timestamp (2025-12-15T00:00:00.000000Z -> 2025-12-15)
+      collectionDateStr = collectionDateStr.split('T').first;
+    }
+
+    // Parse relationships
+    final bullData = json['bull'];
+    final breedData = json['breed'];
     final List<InseminationDto>? inseminationsList = (json['inseminations'] as List?)
         ?.map((i) => InseminationDto.fromJson(i as Map<String, dynamic>))
         .toList();
         
-    final stats = json['stats'] as Map<String, dynamic>?; // Stats object from /show endpoint
-
-    final bullData = json['bull'];
-    final breedData = json['breed'];
+    final stats = json['stats'] as Map<String, dynamic>?;
 
     return SemenModel(
-      id: safeParseInt(json['id']) ?? 0, 
-      strawCode: json['straw_code'] as String,
+      id: safeParseInt(json['id']) ?? 0,
+      strawCode: json['straw_code'] as String? ?? '',
       bullId: safeParseInt(json['bull_id']),
       bullTag: json['bull_tag'] as String?,
-      bullName: json['bull_name'] as String,
-      breedId: safeParseInt(json['breed_id']) ?? 0, 
-      collectionDate: json['collection_date'] as String,
+      bullName: json['bull_name'] as String? ?? '',
+      breedId: safeParseInt(json['breed_id']) ?? 0,
+      collectionDate: collectionDateStr,
       used: isUsed,
       costPerStraw: safeParseDouble(json['cost_per_straw']),
       doseMl: safeParseDouble(json['dose_ml']),
@@ -97,8 +103,7 @@ class SemenModel {
           ? BreedDto.fromJson(breedData) 
           : null,
       inseminations: inseminationsList,
-      // ⭐ MAPPING STATS (Handles null if stats object is missing, e.g., on /index)
-      timesUsed: stats?['times_used'] as int?,
+      timesUsed: safeParseInt(stats?['times_used']),
       successRate: stats?['success_rate'] as String?,
     );
   }
@@ -107,8 +112,8 @@ class SemenModel {
   Map<String, dynamic> toJson() {
     return {
       'straw_code': strawCode,
-      'bull_id': bullId,
-      'bull_tag': bullTag,
+      if (bullId != null) 'bull_id': bullId,
+      if (bullTag != null) 'bull_tag': bullTag,
       'bull_name': bullName,
       'breed_id': breedId,
       'collection_date': collectionDate,
@@ -128,15 +133,12 @@ class SemenModel {
       bullTag: entity.bullTag,
       bullName: entity.bullName,
       breedId: entity.breedId,
-      // ⭐ UPDATED: Convert DateTime from Entity back to String for the Model
       collectionDate: entity.collectionDate.toIso8601String().split('T').first,
       used: entity.used,
       costPerStraw: entity.costPerStraw,
       doseMl: entity.doseMl,
       motilityPercentage: entity.motilityPercentage,
       sourceSupplier: entity.sourceSupplier,
-      // Relationships are not mapped from Entity to Model, as the Model is typically 
-      // used for creation/update requests or simple data mapping.
       bull: null,
       breed: null,
       inseminations: null,
@@ -154,18 +156,15 @@ class SemenModel {
       bullTag: bullTag,
       bullName: bullName,
       breedId: breedId,
-      // ⭐ UPDATED: Convert String from Model to DateTime for the Entity
       collectionDate: DateTime.parse(collectionDate),
       used: used,
-      // ⭐ ENFORCED: Use null-coalescing to ensure Entity receives non-nullable values
-      costPerStraw: costPerStraw ?? 0.0, 
+      costPerStraw: costPerStraw ?? 0.0,
       doseMl: doseMl ?? 0.0,
       motilityPercentage: motilityPercentage,
       sourceSupplier: sourceSupplier,
       bull: bull?.toEntity(),
       breed: breed?.toEntity(),
       inseminations: inseminations?.map((i) => i.toEntity()).toList(),
-      // ⭐ MAPPING STATS
       timesUsed: timesUsed ?? 0,
       successRate: successRate ?? '0%',
     );

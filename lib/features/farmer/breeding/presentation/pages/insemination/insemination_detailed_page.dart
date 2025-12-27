@@ -6,6 +6,7 @@ import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/en
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_bloc.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_event.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_state.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/pages/insemination/edit_insemination_page.dart';
 
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +20,15 @@ class InseminationDetailPage extends StatelessWidget {
   const InseminationDetailPage({super.key, required this.recordId});
 
   void _navigateToEditPage(BuildContext context, InseminationEntity record) {
-    context.push('/farmer/inseminations/edit/${record.id}', extra: record);
+    context.pushNamed(
+      EditInseminationPage.routeName,
+      pathParameters: {'id': record.id.toString()},
+      extra: record,
+    );
   }
 
-  Future<void> _showDeleteConfirmationDialog(BuildContext context, int id, String description) async {
+  Future<void> _showDeleteConfirmationDialog(
+      BuildContext context, int id, String description) async {
     final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
@@ -38,7 +44,8 @@ class InseminationDetailPage extends StatelessWidget {
               },
             ),
             TextButton(
-              child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+              child:
+                  Text(l10n.delete, style: const TextStyle(color: Colors.red)),
               onPressed: () {
                 context.read<InseminationBloc>().add(DeleteInsemination(id));
                 Navigator.of(dialogContext).pop();
@@ -50,7 +57,8 @@ class InseminationDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value, [String? secondaryValue]) {
+  Widget _buildDetailRow(BuildContext context, String label, String value,
+      [String? secondaryValue]) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -79,7 +87,7 @@ class InseminationDetailPage extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (secondaryValue != null && secondaryValue.isNotEmpty) 
+                if (secondaryValue != null && secondaryValue.isNotEmpty)
                   Text(
                     secondaryValue,
                     style: TextStyle(
@@ -133,8 +141,9 @@ class InseminationDetailPage extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildChip({required String label, required IconData icon, required Color color}) {
+
+  Widget _buildChip(
+      {required String label, required IconData icon, required Color color}) {
     return Chip(
       avatar: Icon(icon, size: 16, color: color),
       label: Text(
@@ -153,7 +162,7 @@ class InseminationDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final id = int.tryParse(recordId);
-    
+
     if (id == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.inseminationDetails)),
@@ -162,7 +171,8 @@ class InseminationDetailPage extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (context) => getIt<InseminationBloc>()..add(LoadInseminationDetail(id)),
+      create: (context) =>
+          getIt<InseminationBloc>()..add(LoadInseminationDetail(id)),
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
@@ -233,11 +243,13 @@ class InseminationDetailPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                      Icon(Icons.error_outline,
+                          size: 64, color: Colors.red[300]),
                       const SizedBox(height: 16),
                       Text(
                         l10n.failedLoadDetails,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -250,7 +262,9 @@ class InseminationDetailPage extends StatelessWidget {
                         icon: const Icon(Icons.refresh),
                         label: Text(l10n.retry),
                         onPressed: () {
-                          context.read<InseminationBloc>().add(LoadInseminationDetail(id));
+                          context
+                              .read<InseminationBloc>()
+                              .add(LoadInseminationDetail(id));
                         },
                       ),
                     ],
@@ -259,10 +273,12 @@ class InseminationDetailPage extends StatelessWidget {
               } else if (state is InseminationDetailLoaded) {
                 final record = state.record;
                 final DateFormat formatter = DateFormat('dd MMM yyyy');
-                
-                String formatNa(String? value) => value?.isNotEmpty == true ? value! : l10n.notApplicable;
-                String formatDate(DateTime? date) => date != null ? formatter.format(date) : l10n.notApplicable;
-                
+
+                String formatNa(String? value) =>
+                    value?.isNotEmpty == true ? value! : l10n.notApplicable;
+                String formatDate(DateTime? date) =>
+                    date != null ? formatter.format(date) : l10n.notApplicable;
+
                 Color statusColor;
                 switch (record.status.toLowerCase()) {
                   case 'confirmed pregnant':
@@ -275,7 +291,7 @@ class InseminationDetailPage extends StatelessWidget {
                     statusColor = Colors.amber;
                     break;
                 }
-                
+
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -284,12 +300,16 @@ class InseminationDetailPage extends StatelessWidget {
                       // HERO CARD - Primary Information
                       Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             gradient: LinearGradient(
-                              colors: [AppColors.primary.withOpacity(0.1), AppColors.surface],
+                              colors: [
+                                AppColors.primary.withOpacity(0.1),
+                                AppColors.surface
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -302,7 +322,8 @@ class InseminationDetailPage extends StatelessWidget {
                                 children: [
                                   CircleAvatar(
                                     radius: 30,
-                                    backgroundColor: statusColor.withOpacity(0.2),
+                                    backgroundColor:
+                                        statusColor.withOpacity(0.2),
                                     child: Icon(
                                       Icons.pregnant_woman,
                                       color: statusColor,
@@ -312,7 +333,8 @@ class InseminationDetailPage extends StatelessWidget {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           record.dam.tagNumber,
@@ -340,18 +362,21 @@ class InseminationDetailPage extends StatelessWidget {
                                 runSpacing: 8.0,
                                 children: [
                                   _buildChip(
-                                    label: record.status, 
+                                    label: record.status,
                                     icon: Icons.circle,
                                     color: statusColor,
                                   ),
                                   _buildChip(
                                     label: record.breedingMethod,
                                     icon: Icons.repeat,
-                                    color: record.breedingMethod == 'AI' ? AppColors.secondary : Colors.blueGrey,
+                                    color: record.breedingMethod == 'AI'
+                                        ? AppColors.secondary
+                                        : Colors.blueGrey,
                                   ),
                                   if (record.isPregnant)
                                     _buildChip(
-                                      label: '${record.daysToDue} ${l10n.daysToDue}',
+                                      label:
+                                          '${record.daysToDue} ${l10n.daysToDue}',
                                       icon: Icons.timer,
                                       color: Colors.orange,
                                     ),
@@ -370,18 +395,18 @@ class InseminationDetailPage extends StatelessWidget {
                         icon: Icons.date_range,
                         children: [
                           _buildDetailRow(
-                            context, 
-                            l10n.inseminationDate, 
+                            context,
+                            l10n.inseminationDate,
                             formatDate(record.inseminationDate),
                           ),
                           _buildDetailRow(
-                            context, 
-                            l10n.expectedDelivery, 
+                            context,
+                            l10n.expectedDelivery,
                             formatDate(record.expectedDeliveryDate),
                           ),
                           _buildDetailRow(
-                            context, 
-                            l10n.breedingMethod, 
+                            context,
+                            l10n.breedingMethod,
                             record.breedingMethod,
                           ),
                           if (record.notes?.isNotEmpty == true)
@@ -407,13 +432,13 @@ class InseminationDetailPage extends StatelessWidget {
                             context,
                             l10n.isPregnant,
                             record.isPregnant ? l10n.yes : l10n.no,
-                            record.isPregnant 
+                            record.isPregnant
                                 ? '${l10n.daysToDue}: ${record.daysToDue}'
                                 : null,
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
 
                       // DELETE BUTTON
@@ -424,7 +449,8 @@ class InseminationDetailPage extends StatelessWidget {
                           color: Colors.red[50],
                         ),
                         child: ListTile(
-                          leading: const Icon(Icons.delete_forever, color: Colors.red, size: 32),
+                          leading: const Icon(Icons.delete_forever,
+                              color: Colors.red, size: 32),
                           title: Text(
                             l10n.deleteRecord,
                             style: const TextStyle(
@@ -437,7 +463,8 @@ class InseminationDetailPage extends StatelessWidget {
                             'This action cannot be undone',
                             style: TextStyle(fontSize: 12),
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios, color: Colors.red, size: 16),
+                          trailing: const Icon(Icons.arrow_forward_ios,
+                              color: Colors.red, size: 16),
                           onTap: () => _showDeleteConfirmationDialog(
                             context,
                             record.id,
@@ -460,49 +487,51 @@ class InseminationDetailPage extends StatelessWidget {
   }
 
   // ⭐ NEW: Helper method to build sire info children
-  List<Widget> _buildSireInfoChildren(BuildContext context, InseminationEntity record, AppLocalizations l10n) {
+  List<Widget> _buildSireInfoChildren(
+      BuildContext context, InseminationEntity record, AppLocalizations l10n) {
     // AI with semen
     if (record.breedingMethod == 'AI' && record.semen != null) {
       return [
         _buildDetailRow(
-          context, 
-          l10n.bullName, 
+          context,
+          l10n.bullName,
           record.semen!.bullName,
         ),
         _buildDetailRow(
-          context, 
-          l10n.strawCode, 
+          context,
+          l10n.strawCode,
           record.semen!.strawCode,
           '${l10n.semenId}: ${record.semenId}',
         ),
       ];
     }
-    
+
     // Natural with sire
     if (record.breedingMethod == 'Natural' && record.sire != null) {
       return [
         _buildDetailRow(
-          context, 
-          l10n.sireTag, 
+          context,
+          l10n.sireTag,
           record.sire!.tagNumber,
         ),
         _buildDetailRow(
-          context, 
-          l10n.sireName, 
+          context,
+          l10n.sireName,
           record.sire!.name,
           '${l10n.sireId}: ${record.sireId}',
         ),
       ];
     }
-    
+
     // No sire info available
-    final bool noSireDataAtAll = record.sireId == null && record.semenId == null;
+    final bool noSireDataAtAll =
+        record.sireId == null && record.semenId == null;
     return [
       Center(
         child: Text(
           noSireDataAtAll ? l10n.noSireInfo : l10n.sireInfoMissing,
           style: TextStyle(
-            fontStyle: FontStyle.italic, 
+            fontStyle: FontStyle.italic,
             color: noSireDataAtAll ? Colors.grey[600] : Colors.red[400],
           ),
         ),

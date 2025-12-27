@@ -9,14 +9,14 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get app_name => 'Farm Manager';
+  String get app_name => 'Farm Bond App';
 
   @override
-  String get welcomeTitle => 'Welcome to Farm Manager';
+  String get welcomeTitle => 'Welcome to Farm Bond App';
 
   @override
   String get welcomeSubtitle =>
-      'Keep livestock records, request vet services, and manage your farm offline.';
+      'Keep livestock records, request vet services, and manage your farm ease.';
 
   @override
   String get selectLanguage => 'Select Language';
@@ -1203,16 +1203,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete the check record? This action cannot be undone.';
 
   @override
-  String get fetusCount => '';
+  String get fetusCount => 'Fetus Count';
 
   @override
-  String get checkDetails => '';
+  String get checkDetails => 'Check Details';
 
   @override
-  String get relatedInsemination => '';
+  String get relatedInsemination => 'Related Insemination';
 
   @override
-  String get viewInseminationDetails => '';
+  String get viewInseminationDetails => 'View Insemination Details';
 
   @override
   String get addPregnancyCheck => 'Add Pregnancy Check';
@@ -1822,4 +1822,158 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requiredFieldsMissing => 'Required fields missing';
+
+  @override
+  String get semenInfoHint => 'Semen Info Hints';
+
+  @override
+  String get selectASemen => 'Select a semen straw';
+
+  @override
+  String get semenDetails => 'Semen Details';
+
+  @override
+  String get pregnancyCheckAddedSuccess =>
+      'Pregnancy check added successfully.';
+
+  @override
+  String get registerNewCheck => 'Register New Pregnancy Check';
+
+  @override
+  String get fillCheckDetails =>
+      'Fill out all required details to record a pregnancy check.';
+
+  @override
+  String get deleteWarning => 'This action cannot be undone';
+
+  @override
+  String get invalidCheckId => 'Invalid Check ID';
+
+  @override
+  String get pregnancyCheckDeletedSuccess =>
+      'Pregnancy check deleted successfully';
+
+  @override
+  String get pregnancyCheckDetails => 'Pregnancy Check Details';
+
+  @override
+  String get pregnancyCheckUpdatedSuccess =>
+      'Pregnancy check updated successfully';
+
+  @override
+  String get editCheckDetails => 'Edit Pregnancy Check Details';
+
+  @override
+  String get updateCheckNote => 'Update information for this pregnancy check.';
+
+  @override
+  String get pregnancyChecksOverview => 'Pregnancy Checks Overview';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get pregnant => 'Pregnant';
+
+  @override
+  String get notPregnant => 'Not Pregnant';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get errorLoadingData => 'Error Loading Data';
+
+  @override
+  String get damInformation => 'Dam Information';
+
+  @override
+  String get veterinarian => 'Veterinarian';
+
+  @override
+  String get deliveryUpdatedSuccess => 'Updated successfully';
+
+  @override
+  String get editDeliveryDetails => 'Edit Delivery Details';
+
+  @override
+  String get addDelivery => 'Add Delivery';
+
+  @override
+  String get deliveryAddedSuccess => 'Added successfully';
+
+  @override
+  String get registerNewDelivery => 'Register New Delivery';
+
+  @override
+  String get fillDeliveryDetails =>
+      'Fill out all required details to record a delivery.';
+
+  @override
+  String get deliveryDeletedSuccess => 'Deleted successfully';
+
+  @override
+  String get deliveryError => 'Error loading deliveries';
+
+  @override
+  String get deliveriesOverview => 'Deliveries Overview';
+
+  @override
+  String get totalOffspring => 'Total Offspring';
+
+  @override
+  String get liveOffspring => 'Live Offspring';
+
+  @override
+  String get normalCount => 'Normal Count';
+
+  @override
+  String get normal => 'Normal';
+
+  @override
+  String get assisted => 'Assisted';
+
+  @override
+  String get selectADelivery => 'Select a delivery';
+
+  @override
+  String get tapToView => 'Tap to view details';
+
+  @override
+  String get noTag => 'No Tag';
+
+  @override
+  String get recordNewOffspring => 'Record New Offspring';
+
+  @override
+  String get fillOffspringDetails =>
+      'Fill out all required details to record an offspring.';
+
+  @override
+  String get weight => 'Weight';
+
+  @override
+  String get birthDetails => 'Birth Details';
+
+  @override
+  String get registerAsLivestock => 'Register as Livestock';
+
+  @override
+  String get searchOffspring => 'Search Offspring';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get critical => 'Critical';
+
+  @override
+  String get selectAnOffspring => 'Select an offspring';
+
+  @override
+  String get offspringDeletedSuccess => 'Offspring deleted successfully';
+
+  @override
+  String get deleteOffspringConfirmation =>
+      'Are you sure you want to delete this offspring record? This action cannot be undone.';
 }

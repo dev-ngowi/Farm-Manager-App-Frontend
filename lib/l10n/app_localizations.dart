@@ -101,19 +101,19 @@ abstract class AppLocalizations {
   /// No description provided for @app_name.
   ///
   /// In en, this message translates to:
-  /// **'Farm Manager'**
+  /// **'Farm Bond App'**
   String get app_name;
 
   /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Farm Manager'**
+  /// **'Welcome to Farm Bond App'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Keep livestock records, request vet services, and manage your farm offline.'**
+  /// **'Keep livestock records, request vet services, and manage your farm ease.'**
   String get welcomeSubtitle;
 
   /// No description provided for @selectLanguage.
@@ -2429,25 +2429,25 @@ abstract class AppLocalizations {
   /// No description provided for @fetusCount.
   ///
   /// In en, this message translates to:
-  /// **''**
+  /// **'Fetus Count'**
   String get fetusCount;
 
   /// No description provided for @checkDetails.
   ///
   /// In en, this message translates to:
-  /// **''**
+  /// **'Check Details'**
   String get checkDetails;
 
   /// No description provided for @relatedInsemination.
   ///
   /// In en, this message translates to:
-  /// **''**
+  /// **'Related Insemination'**
   String get relatedInsemination;
 
   /// No description provided for @viewInseminationDetails.
   ///
   /// In en, this message translates to:
-  /// **''**
+  /// **'View Insemination Details'**
   String get viewInseminationDetails;
 
   /// No description provided for @addPregnancyCheck.
@@ -3625,6 +3625,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Required fields missing'**
   String get requiredFieldsMissing;
+
+  /// No description provided for @semenInfoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Semen Info Hints'**
+  String get semenInfoHint;
+
+  /// No description provided for @selectASemen.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a semen straw'**
+  String get selectASemen;
+
+  /// No description provided for @semenDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Semen Details'**
+  String get semenDetails;
+
+  /// No description provided for @pregnancyCheckAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy check added successfully.'**
+  String get pregnancyCheckAddedSuccess;
+
+  /// No description provided for @registerNewCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Register New Pregnancy Check'**
+  String get registerNewCheck;
+
+  /// No description provided for @fillCheckDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill out all required details to record a pregnancy check.'**
+  String get fillCheckDetails;
+
+  /// No description provided for @deleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone'**
+  String get deleteWarning;
+
+  /// No description provided for @invalidCheckId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Check ID'**
+  String get invalidCheckId;
+
+  /// No description provided for @pregnancyCheckDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy check deleted successfully'**
+  String get pregnancyCheckDeletedSuccess;
+
+  /// No description provided for @pregnancyCheckDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy Check Details'**
+  String get pregnancyCheckDetails;
+
+  /// No description provided for @pregnancyCheckUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy check updated successfully'**
+  String get pregnancyCheckUpdatedSuccess;
+
+  /// No description provided for @editCheckDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Pregnancy Check Details'**
+  String get editCheckDetails;
+
+  /// No description provided for @updateCheckNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Update information for this pregnancy check.'**
+  String get updateCheckNote;
+
+  /// No description provided for @pregnancyChecksOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy Checks Overview'**
+  String get pregnancyChecksOverview;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @pregnant.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnant'**
+  String get pregnant;
+
+  /// No description provided for @notPregnant.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Pregnant'**
+  String get notPregnant;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @errorLoadingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error Loading Data'**
+  String get errorLoadingData;
+
+  /// No description provided for @damInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dam Information'**
+  String get damInformation;
+
+  /// No description provided for @veterinarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Veterinarian'**
+  String get veterinarian;
+
+  /// No description provided for @deliveryUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated successfully'**
+  String get deliveryUpdatedSuccess;
+
+  /// No description provided for @editDeliveryDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Delivery Details'**
+  String get editDeliveryDetails;
+
+  /// No description provided for @addDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Delivery'**
+  String get addDelivery;
+
+  /// No description provided for @deliveryAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Added successfully'**
+  String get deliveryAddedSuccess;
+
+  /// No description provided for @registerNewDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Register New Delivery'**
+  String get registerNewDelivery;
+
+  /// No description provided for @fillDeliveryDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill out all required details to record a delivery.'**
+  String get fillDeliveryDetails;
+
+  /// No description provided for @deliveryDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted successfully'**
+  String get deliveryDeletedSuccess;
+
+  /// No description provided for @deliveryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading deliveries'**
+  String get deliveryError;
+
+  /// No description provided for @deliveriesOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliveries Overview'**
+  String get deliveriesOverview;
+
+  /// No description provided for @totalOffspring.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Offspring'**
+  String get totalOffspring;
+
+  /// No description provided for @liveOffspring.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Offspring'**
+  String get liveOffspring;
+
+  /// No description provided for @normalCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal Count'**
+  String get normalCount;
+
+  /// No description provided for @normal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get normal;
+
+  /// No description provided for @assisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Assisted'**
+  String get assisted;
+
+  /// No description provided for @selectADelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a delivery'**
+  String get selectADelivery;
+
+  /// No description provided for @tapToView.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to view details'**
+  String get tapToView;
+
+  /// No description provided for @noTag.
+  ///
+  /// In en, this message translates to:
+  /// **'No Tag'**
+  String get noTag;
+
+  /// No description provided for @recordNewOffspring.
+  ///
+  /// In en, this message translates to:
+  /// **'Record New Offspring'**
+  String get recordNewOffspring;
+
+  /// No description provided for @fillOffspringDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill out all required details to record an offspring.'**
+  String get fillOffspringDetails;
+
+  /// No description provided for @weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weight;
+
+  /// No description provided for @birthDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth Details'**
+  String get birthDetails;
+
+  /// No description provided for @registerAsLivestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Register as Livestock'**
+  String get registerAsLivestock;
+
+  /// No description provided for @searchOffspring.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Offspring'**
+  String get searchOffspring;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @critical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get critical;
+
+  /// No description provided for @selectAnOffspring.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an offspring'**
+  String get selectAnOffspring;
+
+  /// No description provided for @offspringDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Offspring deleted successfully'**
+  String get offspringDeletedSuccess;
+
+  /// No description provided for @deleteOffspringConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this offspring record? This action cannot be undone.'**
+  String get deleteOffspringConfirmation;
 }
 
 class _AppLocalizationsDelegate

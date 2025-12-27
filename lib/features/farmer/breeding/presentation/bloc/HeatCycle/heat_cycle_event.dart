@@ -3,15 +3,14 @@ import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/domain/entit
 
 abstract class HeatCycleEvent extends Equatable {
   const HeatCycleEvent();
-
+  
   @override
   List<Object> get props => [];
 }
 
 /// Event to trigger fetching all heat cycles for the farmer
-/// RENAMED: GetHeatCyclesEvent -> LoadHeatCycles to match BLoC handler
 class LoadHeatCycles extends HeatCycleEvent {
-  final String token; // ADDED: token parameter required by BLoC
+  final String token;
   
   const LoadHeatCycles({required this.token});
   
@@ -20,10 +19,9 @@ class LoadHeatCycles extends HeatCycleEvent {
 }
 
 /// Event to fetch details for a single heat cycle
-/// RENAMED: GetHeatCycleDetailsEvent -> LoadHeatCycleDetails to match BLoC handler
 class LoadHeatCycleDetails extends HeatCycleEvent {
   final String id;
-  final String token; // ADDED: token parameter required by BLoC
+  final String token;
   
   const LoadHeatCycleDetails({required this.id, required this.token});
   
@@ -33,11 +31,11 @@ class LoadHeatCycleDetails extends HeatCycleEvent {
 
 /// Event to create a new heat cycle record
 class CreateHeatCycleEvent extends HeatCycleEvent {
-  final HeatCycleEntity cycle; // CHANGED: from Map<String, dynamic> to HeatCycleEntity
+  final HeatCycleEntity cycle;
   final String token;
   
   const CreateHeatCycleEvent({required this.cycle, required this.token});
-
+  
   @override
   List<Object> get props => [cycle, token];
 }
@@ -45,7 +43,7 @@ class CreateHeatCycleEvent extends HeatCycleEvent {
 /// Event to update an existing heat cycle record
 class UpdateHeatCycleEvent extends HeatCycleEvent {
   final String id;
-  final HeatCycleEntity cycle; // CHANGED: from Map<String, dynamic> to HeatCycleEntity
+  final HeatCycleEntity cycle;
   final String token;
   
   const UpdateHeatCycleEvent({
@@ -56,4 +54,15 @@ class UpdateHeatCycleEvent extends HeatCycleEvent {
   
   @override
   List<Object> get props => [id, cycle, token];
+}
+
+/// Event to delete a heat cycle record
+class DeleteHeatCycleEvent extends HeatCycleEvent {
+  final String id;
+  final String token;
+  
+  const DeleteHeatCycleEvent(this.id, this.token);
+  
+  @override
+  List<Object> get props => [id, token];
 }

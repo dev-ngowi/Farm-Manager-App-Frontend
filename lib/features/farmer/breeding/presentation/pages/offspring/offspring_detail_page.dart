@@ -1,58 +1,20 @@
+// lib/features/farmer/breeding/presentation/pages/offspring/offspring_detail_page.dart
+
 import 'package:farm_manager_app/core/config/app_theme.dart';
+import 'package:farm_manager_app/core/di/locator.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_event.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-// --- Offspring Detail Model (Simplified for UI display) ---
-class OffspringDetail {
-  final int id;
-  final String temporaryTag;
-  final String gender;
-  final double birthWeightKg;
-  final String birthCondition;
-  final String colostrumIntake;
-  final bool navelTreated;
-  final String notes;
-  final int? livestockId;
-
-  // Delivery/Parental Data
-  final String deliveryDate;
-  final String deliveryType;
-  final int calvingEaseScore;
-  final String damTag;
-  final String damSpecies;
-  final String? sireTag;
-  final String? registeredTag; // Tag if registered as Livestock
-
-  OffspringDetail.fromJson(Map<String, dynamic> json)
-      : id = json['id'] as int,
-        temporaryTag = json['temporary_tag'] as String? ?? 'N/A',
-        gender = json['gender'] as String,
-        birthWeightKg = (json['birth_weight_kg'] as num).toDouble(),
-        birthCondition = json['birth_condition'] as String,
-        colostrumIntake = json['colostrum_intake'] as String,
-        navelTreated = json['navel_treated'] as bool,
-        notes = json['notes'] as String? ?? '',
-        livestockId = json['livestock_id'] as int?,
-        
-        // Nested Delivery/Parental Info
-        deliveryDate = json['delivery']['actual_delivery_date'] as String,
-        deliveryType = json['delivery']['delivery_type'] as String,
-        calvingEaseScore = json['delivery']['calving_ease_score'] as int,
-        damTag = json['delivery']['insemination']['dam']['tag_number'] as String,
-        damSpecies = json['delivery']['insemination']['dam']['species']['name'] as String,
-        sireTag = json['delivery']['insemination']['sire']['tag_number'] as String?,
-        
-        // Livestock Registration Info (if available)
-        registeredTag = json['livestock']?['tag_number'] as String?;
-}
-
-
 class OffspringDetailPage extends StatefulWidget {
-  static const String routeName = '/farmer/breeding/offspring/:id';
-  final int offspringId;
+  static const String routeName = 'offspring_detail';
+  final dynamic offspringId;
 
   const OffspringDetailPage({super.key, required this.offspringId});
 
@@ -61,165 +23,85 @@ class OffspringDetailPage extends StatefulWidget {
 }
 
 class _OffspringDetailPageState extends State<OffspringDetailPage> {
-  OffspringDetail? _offspring;
-  bool _isLoading = true;
-  final Color primaryColor = BreedingColors.offspring;
+  dynamic _cachedOffspring;
 
   @override
-  void initState() {
-    super.initState();
-    _loadOffspringDetails();
-  }
-
-  // --- Mock Data Fetching (Simulates API call to OffspringController@show) ---
-  Future<void> _loadOffspringDetails() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    try {
-      final data = _fetchOffspringDetails(widget.offspringId);
-      setState(() {
-        _offspring = OffspringDetail.fromJson(data);
-        _isLoading = false;
-      });
-    } catch (e) {
-      // Handle error (e.g., show a snackbar or error state)
-      print("Error fetching offspring details: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Mock data generator for specific ID
-  Map<String, dynamic> _fetchOffspringDetails(int id) {
-    // Example data for ID 1 (Unregistered)
-    if (id == 1) {
-      return {
-        'id': 1,
-        'temporary_tag': 'CALF-001',
-        'gender': 'Female',
-        'birth_weight_kg': 32.5,
-        'birth_condition': 'Vigorous',
-        'colostrum_intake': 'Adequate',
-        'navel_treated': true,
-        'notes': 'No complications. Healthy and active.',
-        'livestock_id': null,
-        'delivery': {
-          'id': 50,
-          'actual_delivery_date': '2025-09-10',
-          'delivery_type': 'Normal',
-          'calving_ease_score': 1,
-          'insemination': {
-            'id': 101,
-            'dam': {
-              'id': 10,
-              'tag_number': 'COW-101',
-              'name': 'Bessie',
-              'species': {'name': 'Cattle'}
-            },
-            'sire': {
-              'id': 20,
-              'tag_number': 'BULL-05',
-              'name': 'Apollo'
-            }
-          }
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<OffspringBloc>()..add(LoadOffspringDetail(widget.offspringId)),
+      child: OffspringDetailView(
+        offspringId: widget.offspringId,
+        cachedOffspring: _cachedOffspring,
+        onOffspringLoaded: (offspring) {
+          setState(() {
+            _cachedOffspring = offspring;
+          });
         },
-        'livestock': null
-      };
-    } 
-    // Example data for ID 2 (Registered)
-    else if (id == 2) {
-      return {
-        'id': 2,
-        'temporary_tag': 'LAMB-005',
-        'gender': 'Male',
-        'birth_weight_kg': 4.1,
-        'birth_condition': 'Weak',
-        'colostrum_intake': 'Partial',
-        'navel_treated': true,
-        'notes': 'Required bottle feeding for first 12 hours.',
-        'livestock_id': 55,
-        'delivery': {
-          'id': 51,
-          'actual_delivery_date': '2025-12-05',
-          'delivery_type': 'Assisted',
-          'calving_ease_score': 3,
-          'insemination': {
-            'id': 102,
-            'dam': {
-              'id': 11,
-              'tag_number': 'EWE-203',
-              'name': 'Dolly',
-              'species': {'name': 'Sheep'}
-            },
-            'sire': null // Sire might be unknown/null
-          }
-        },
-        'livestock': {
-          'id': 55,
-          'tag_number': 'SHEEP-55',
-          'name': 'BaaBaa',
-          'species_id': 2,
-          // ... more livestock details
-        }
-      };
-    } 
-    // Default or error case
-    else {
-      throw Exception("Offspring ID not found");
-    }
-  }
-
-  // Helper to format the date from YYYY-MM-DD
-  String _formatDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('dd MMM yyyy').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
-
-  // --- Widget Builders ---
-
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: primaryColor),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
-          ),
-        ],
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
+class OffspringDetailView extends StatelessWidget {
+  final dynamic offspringId;
+  final dynamic cachedOffspring;
+  final Function(dynamic) onOffspringLoaded;
+
+  const OffspringDetailView({
+    super.key,
+    required this.offspringId,
+    required this.cachedOffspring,
+    required this.onOffspringLoaded,
+  });
+
+  void _loadDetails(BuildContext context) {
+    context.read<OffspringBloc>().add(LoadOffspringDetail(offspringId));
+  }
+
+  void _showDeleteDialog(BuildContext context, AppLocalizations l10n, dynamic id) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l10n.confirmDelete ?? 'Confirm Delete',
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          l10n.deleteOffspringConfirmation ?? 'Are you sure you want to delete this offspring record? This action cannot be undone.',
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              l10n.cancel ?? 'Cancel',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          Expanded(
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<OffspringBloc>().add(DeleteOffspring(id));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             child: Text(
-              value,
-              style: TextStyle(fontWeight: FontWeight.w500, color: valueColor ?? AppColors.textPrimary),
+              l10n.delete ?? 'Delete',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -230,168 +112,462 @@ class _OffspringDetailPageState extends State<OffspringDetailPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.loading),
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_offspring == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.error),
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-        ),
-        body: Center(child: Text(l10n.offspringNotFound)),
-      );
-    }
-    
-    final offspring = _offspring!;
-    final isRegistered = offspring.livestockId != null;
+    final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text('${l10n.offspring} #${offspring.id}'),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 1,
-        actions: [
-          // Edit Button
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: l10n.edit,
-            onPressed: () {
-              // Navigate to the edit page for this offspring ID
-              context.push('/farmer/breeding/offspring/${offspring.id}/edit');
-            },
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: BreedingColors.offspring),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          l10n.offspringDetails ?? 'Offspring Details',
+          style: const TextStyle(
+            color: BreedingColors.offspring,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+        actions: [
+          if (cachedOffspring != null)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: BreedingColors.offspring),
+              onSelected: (value) {
+                if (value == 'edit') {
+                  context.push('/farmer/breeding/offspring/${offspringId}/edit');
+                } else if (value == 'delete') {
+                  _showDeleteDialog(context, l10n, offspringId);
+                } else if (value == 'register') {
+                  context.push('/farmer/breeding/offspring/${offspringId}/register');
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20),
+                      SizedBox(width: 12),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'register',
+                  child: Row(
+                    children: [
+                      Icon(Icons.badge, size: 20),
+                      SizedBox(width: 12),
+                      Text('Register as Livestock'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, size: 20, color: AppColors.error),
+                      SizedBox(width: 12),
+                      Text('Delete', style: TextStyle(color: AppColors.error)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(width: 8),
         ],
       ),
-      
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Registration Status Card ---
-            Card(
-              elevation: 4,
-              color: isRegistered ? AppColors.success.withOpacity(0.1) : AppColors.warning.withOpacity(0.1),
-              margin: const EdgeInsets.only(bottom: 20),
+      body: BlocConsumer<OffspringBloc, OffspringState>(
+        listener: (context, state) {
+          if (state is OffspringDeleted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.offspringDeletedSuccess ?? 'Offspring deleted successfully'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            context.go('/farmer/breeding/offspring');
+          } else if (state is OffspringError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                action: SnackBarAction(
+                  label: l10n.retry ?? 'Retry',
+                  textColor: Colors.white,
+                  onPressed: () => _loadDetails(context),
+                ),
+              ),
+            );
+          } else if (state is OffspringDetailLoaded) {
+            onOffspringLoaded(state.offspring);
+          }
+        },
+        builder: (context, state) {
+          if ((state is OffspringLoading || state is OffspringInitial) && cachedOffspring == null) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading offspring details...'),
+                ],
+              ),
+            );
+          }
+
+          if (state is OffspringError && cachedOffspring == null) {
+            return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(32.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                    const SizedBox(height: 16),
                     Text(
-                      isRegistered ? l10n.registrationStatusRegistered : l10n.registrationStatusPending,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isRegistered ? AppColors.success : AppColors.warning,
+                      'Error Loading Details',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (isRegistered) ...[
-                      const SizedBox(height: 8),
-                      _buildInfoRow(l10n.registeredAs, offspring.registeredTag ?? l10n.unknownTag, valueColor: AppColors.success),
-                      _buildInfoRow(l10n.livestockId, offspring.livestockId.toString()),
-                      // Optionally, add a button to view the full livestock profile
-                    ] else ...[
-                      const SizedBox(height: 12),
-                      Text(l10n.registerOffspringMessage, style: TextStyle(color: AppColors.textSecondary)),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Navigate to the Offspring Registration form
-                          context.push('/farmer/breeding/offspring/${offspring.id}/register');
-                        },
-                        icon: const Icon(Icons.badge),
-                        label: Text(l10n.registerOffspring),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
-                          foregroundColor: Colors.white,
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _loadDetails(context),
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.retry ?? 'Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: BreedingColors.offspring,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (cachedOffspring != null) {
+            return _buildDetailsContent(context, l10n, theme);
+          }
+
+          return Center(child: Text(l10n.selectAnOffspring ?? 'Select an offspring'));
+        },
+      ),
+    );
+  }
+
+  Widget _buildDetailsContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    ThemeData theme,
+  ) {
+    // TODO: Replace with actual entity data
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+
+          // Header Card
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      BreedingColors.offspring,
+                      BreedingColors.offspring.withOpacity(0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.child_care,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'TEMP-TAG-001',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.temporaryTag ?? 'Temporary Tag',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Pending Registration',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
-                    ]
+                    ),
                   ],
                 ),
               ),
             ),
+          ),
 
-            // --- 1. Core Offspring Details ---
-            _buildSectionHeader(l10n.offspringDetails, Icons.child_care),
-            Card(
-              elevation: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildInfoRow(l10n.temporaryTag, offspring.temporaryTag),
-                    _buildInfoRow(l10n.gender, offspring.gender),
-                    _buildInfoRow(l10n.birthWeight, '${offspring.birthWeightKg.toStringAsFixed(1)} kg'),
-                    _buildInfoRow(l10n.birthCondition, offspring.birthCondition, 
-                      valueColor: offspring.birthCondition != 'Vigorous' ? AppColors.warning : AppColors.success),
-                    _buildInfoRow(l10n.colostrumIntake, offspring.colostrumIntake),
-                    _buildInfoRow(l10n.navelTreated, offspring.navelTreated ? l10n.yes : l10n.no),
-                  ],
-                ),
-              ),
-            ),
-            
-            // --- 2. Delivery & Birth Event Details ---
-            _buildSectionHeader(l10n.birthEvent, Icons.event),
-            Card(
-              elevation: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildInfoRow(l10n.deliveryDate, _formatDate(offspring.deliveryDate)),
-                    _buildInfoRow(l10n.deliveryType, offspring.deliveryType),
-                    _buildInfoRow(l10n.calvingEaseScore, offspring.calvingEaseScore.toString()),
-                  ],
-                ),
-              ),
-            ),
+          const SizedBox(height: 16),
 
-            // --- 3. Genetic Lineage ---
-            _buildSectionHeader(l10n.lineage, Icons.pets),
-            Card(
-              elevation: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+          // Stats Cards
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    l10n.gender ?? 'Gender',
+                    'Female',
+                    Icons.female,
+                    Colors.pink,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    l10n.weight ?? 'Weight',
+                    '32.5 kg',
+                    Icons.fitness_center,
+                    BreedingColors.offspring,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Details Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.birthDetails ?? 'Birth Details',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildInfoCard(
+                  icon: Icons.calendar_today,
+                  title: l10n.birthDate ?? 'Birth Date',
+                  value: 'Data from API',
+                  color: BreedingColors.offspring,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      context.push('/farmer/breeding/offspring/${offspringId}/register');
+                    },
+                    icon: const Icon(Icons.badge),
+                    label: Text(l10n.registerAsLivestock ?? 'Register as Livestock'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
                   children: [
-                    _buildInfoRow(l10n.damTag, offspring.damTag),
-                    _buildInfoRow(l10n.species, offspring.damSpecies),
-                    _buildInfoRow(l10n.sireTag, offspring.sireTag ?? l10n.unknown),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            context.push('/farmer/breeding/offspring/${offspringId}/edit');
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: Text(l10n.edit ?? 'Edit'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: BreedingColors.offspring,
+                            side: const BorderSide(color: BreedingColors.offspring),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showDeleteDialog(context, l10n, offspringId),
+                          icon: const Icon(Icons.delete),
+                          label: Text(l10n.delete ?? 'Delete'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.error,
+                            side: const BorderSide(color: AppColors.error),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: color,
               ),
             ),
-
-            // --- 4. Notes ---
-            if (offspring.notes.isNotEmpty) ...[
-              _buildSectionHeader(l10n.notes, Icons.description),
-              Card(
-                elevation: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(offspring.notes, style: Theme.of(context).textTheme.bodyLarge),
-                ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
               ),
-            ]
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

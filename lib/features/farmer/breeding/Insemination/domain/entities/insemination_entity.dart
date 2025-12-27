@@ -8,15 +8,17 @@ class InseminationAnimalEntity extends Equatable {
   final int id; // animal_id
   final String tagNumber;
   final String name;
+  final String sex; // ✅ Added sex field for filtering
 
   const InseminationAnimalEntity({
     required this.id,
     required this.tagNumber,
     required this.name,
+    required this.sex, // ✅ Required field
   });
 
   @override
-  List<Object?> get props => [id, tagNumber, name];
+  List<Object?> get props => [id, tagNumber, name, sex];
 }
 
 class InseminationSemenEntity extends Equatable {

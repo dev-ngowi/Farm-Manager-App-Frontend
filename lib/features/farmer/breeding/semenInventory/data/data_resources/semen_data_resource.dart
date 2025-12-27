@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:farm_manager_app/core/networking/api_endpoints.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
 import 'dart:convert';
-import 'package:farm_manager_app/features/farmer/breeding/semenInventory/data/models/semen_model.dart'; // ✅ CORRECT IMPORT
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/data/models/semen_model.dart';
 
 abstract class SemenRemoteDataSource {
   Future<List<SemenModel>> getSemenInventory(
@@ -81,13 +81,30 @@ class SemenRemoteDataSourceImpl implements SemenRemoteDataSource {
       );
 
       print('← ${response.statusCode} $endpoint');
+      print('📦 Response data: ${jsonEncode(response.data)}');
 
       if (response.statusCode == 200) {
         final data = response.data['data'] as List<dynamic>;
         
-        return data
-            .map((json) => SemenModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        print('✅ Parsing ${data.length} semen records...');
+        
+        final List<SemenModel> models = [];
+        for (var i = 0; i < data.length; i++) {
+          try {
+            final json = data[i] as Map<String, dynamic>;
+            print('  → Parsing record $i: ${json['straw_code']}');
+            final model = SemenModel.fromJson(json);
+            models.add(model);
+            print('  ✅ Successfully parsed record $i');
+          } catch (e, stackTrace) {
+            print('  ❌ Error parsing record $i: $e');
+            print('  Stack trace: $stackTrace');
+            print('  Raw data: ${jsonEncode(data[i])}');
+            rethrow;
+          }
+        }
+        
+        return models;
       }
 
       throw ServerException(
@@ -95,13 +112,17 @@ class SemenRemoteDataSourceImpl implements SemenRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
+      print('❌ DioException: ${e.message}');
       throw _handleDioException(e, 'Failed to fetch semen inventory');
+    } catch (e, stackTrace) {
+      print('❌ Unexpected error: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
   @override
   Future<List<Map<String, dynamic>>> getSemenDropdownData(String token) async {
-    // 🛑 CORRECT ENDPOINT
     final endpoint = ApiEndpoints.semenDropdowns; 
     try {
       print('→ GET $endpoint');
@@ -114,7 +135,6 @@ class SemenRemoteDataSourceImpl implements SemenRemoteDataSource {
       print('← ${response.statusCode} $endpoint');
 
       if (response.statusCode == 200) {
-        // The data is a combined list of bulls and breeds, which we return as a list of maps.
         final data = response.data['data'] as List<dynamic>; 
         return data.cast<Map<String, dynamic>>(); 
       }
@@ -167,6 +187,7 @@ class SemenRemoteDataSourceImpl implements SemenRemoteDataSource {
       );
 
       print('← ${response.statusCode} $endpoint');
+      print('📦 Response data: ${jsonEncode(response.data)}');
 
       if (response.statusCode == 200) {
         final data = response.data['data'] as Map<String, dynamic>?;

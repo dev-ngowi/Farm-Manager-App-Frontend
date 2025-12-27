@@ -22,12 +22,10 @@ class InseminationRemoteDataSourceImpl implements InseminationRemoteDataSource {
 
   InseminationRemoteDataSourceImpl({required this.dio});
 
-  // Helper method to handle common Dio exceptions and return custom failures
   Exception _handleDioException(DioException e, String defaultMessage) {
     final statusCode = e.response?.statusCode;
     final data = e.response?.data;
 
-    // Extract error message from response
     final String errorMessage = (data is Map<String, dynamic> && data.containsKey('message')) 
         ? data['message'].toString() 
         : defaultMessage;
@@ -226,12 +224,30 @@ class InseminationRemoteDataSourceImpl implements InseminationRemoteDataSource {
       final response = await dio.get(endpoint);
 
       print('← ${response.statusCode} $endpoint');
+      print('📦 Response data: ${jsonEncode(response.data)}');
 
       if (response.statusCode == 200) {
         final List data = response.data['data'] as List;
-        return data
-            .map((json) => InseminationAnimalModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        
+        print('✅ Parsing ${data.length} animal records...');
+        
+        final List<InseminationAnimalModel> animals = [];
+        for (var i = 0; i < data.length; i++) {
+          try {
+            final json = data[i] as Map<String, dynamic>;
+            print('  → Parsing animal $i: ${json['tag_number']}');
+            final animal = InseminationAnimalModel.fromJson(json);
+            animals.add(animal);
+            print('  ✅ Successfully parsed animal $i');
+          } catch (e, stackTrace) {
+            print('  ❌ Error parsing animal $i: $e');
+            print('  Stack trace: $stackTrace');
+            print('  Raw data: ${jsonEncode(data[i])}');
+            // Don't rethrow - skip this animal and continue
+          }
+        }
+        
+        return animals;
       }
 
       throw ServerException(
@@ -240,13 +256,17 @@ class InseminationRemoteDataSourceImpl implements InseminationRemoteDataSource {
       );
     } on DioException catch (e) {
       print('❌ DioException: ${e.response?.statusCode} - ${e.message}');
+      print('❌ Response data: ${e.response?.data}');
       throw _handleDioException(e, 'Failed to load available animals');
     } catch (e, stackTrace) {
-      print('❌ Unexpected error: $e\n$stackTrace');
+      print('❌ Unexpected error: $e');
+      print('Stack trace: $stackTrace');
       throw const ServerException(message: 'An unexpected error occurred.');
     }
   }
 
+
+ 
   @override
   Future<List<InseminationSemenModel>> getAvailableSemen() async {
     final endpoint = ApiEndpoints.availableSemen;
@@ -256,12 +276,30 @@ class InseminationRemoteDataSourceImpl implements InseminationRemoteDataSource {
       final response = await dio.get(endpoint);
 
       print('← ${response.statusCode} $endpoint');
+      print('📦 Response data: ${jsonEncode(response.data)}');
 
       if (response.statusCode == 200) {
         final List data = response.data['data'] as List;
-        return data
-            .map((json) => InseminationSemenModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        
+        print('✅ Parsing ${data.length} semen records...');
+        
+        final List<InseminationSemenModel> semens = [];
+        for (var i = 0; i < data.length; i++) {
+          try {
+            final json = data[i] as Map<String, dynamic>;
+            print('  → Parsing semen $i: ${json['straw_code']}');
+            final semen = InseminationSemenModel.fromJson(json);
+            semens.add(semen);
+            print('  ✅ Successfully parsed semen $i');
+          } catch (e, stackTrace) {
+            print('  ❌ Error parsing semen $i: $e');
+            print('  Stack trace: $stackTrace');
+            print('  Raw data: ${jsonEncode(data[i])}');
+            // Don't rethrow - skip this semen and continue
+          }
+        }
+        
+        return semens;
       }
 
       throw ServerException(
@@ -270,9 +308,11 @@ class InseminationRemoteDataSourceImpl implements InseminationRemoteDataSource {
       );
     } on DioException catch (e) {
       print('❌ DioException: ${e.response?.statusCode} - ${e.message}');
+      print('❌ Response data: ${e.response?.data}');
       throw _handleDioException(e, 'Failed to load semen straws');
     } catch (e, stackTrace) {
-      print('❌ Unexpected error: $e\n$stackTrace');
+      print('❌ Unexpected error: $e');
+      print('Stack trace: $stackTrace');
       throw const ServerException(message: 'An unexpected error occurred.');
     }
   }

@@ -19,8 +19,6 @@ class SemenRepositoryImpl implements SemenRepository {
 
   // Helper method for common exception handling
   Future<Either<Failure, T>> _handleException<T>(Future<T> Function() call) async {
-    // Note: Add network check here if needed: if (!await networkInfo.isConnected) return Left(NetworkFailure());
-    
     try {
       final result = await call();
       return Right(result);
@@ -29,21 +27,14 @@ class SemenRepositoryImpl implements SemenRepository {
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } on ValidationException catch (e) {
-      // Pass the map of errors for the Bloc to handle
       return Left(ValidationFailure(e.message, errors: e.errors)); 
     } on DioException {
-      // NOTE: DioException is caught for network failure (like timeout, dns issues)
       return Left(ServerFailure('Network error occurred.'));
     } catch (e) {
       return Left(ServerFailure('An unknown error occurred: ${e.toString()}'));
     }
   }
 
-  /**
-   * Helper to convert SemenModel (Data Layer) to SemenEntity (Domain Layer).
-   * This handles required type conversions (String date to DateTime) and 
-   * null-coalescing for non-nullable Entity fields.
-   */
   SemenEntity _toEntity(SemenModel model) {
     return SemenEntity(
       id: model.id,
@@ -52,10 +43,8 @@ class SemenRepositoryImpl implements SemenRepository {
       bullTag: model.bullTag,
       bullName: model.bullName,
       breedId: model.breedId,
-      // ✅ FIX: Convert String date from Model to non-nullable DateTime for Entity
       collectionDate: DateTime.parse(model.collectionDate), 
       used: model.used,
-      // ✅ FIX: Ensure non-nullable Entity fields have null-coalescing from the nullable Model fields
       costPerStraw: model.costPerStraw ?? 0.0,
       doseMl: model.doseMl ?? 0.0,
       motilityPercentage: model.motilityPercentage,
@@ -63,8 +52,6 @@ class SemenRepositoryImpl implements SemenRepository {
       bull: model.bull?.toEntity(),
       breed: model.breed?.toEntity(),
       inseminations: model.inseminations?.map((m) => m.toEntity()).toList(),
-      
-      // ✅ FIX: Mapping the newly added statistical fields (using 0 or '0%' default)
       timesUsed: model.timesUsed ?? 0,
       successRate: model.successRate ?? '0%',
     );
@@ -81,7 +68,6 @@ class SemenRepositoryImpl implements SemenRepository {
         availableOnly: availableOnly,
         breedId: breedId,
       );
-      // Maps the list of models to entities using the robust helper
       return semenModels.map((model) => _toEntity(model)).toList();
     });
   }
@@ -98,12 +84,48 @@ class SemenRepositoryImpl implements SemenRepository {
     });
   }
 
+  // ⭐ NEW: Implementation for getting dropdown data
+  @override
+  Future<Either<Failure, Map<String, List<DropdownEntity>>>> getSemenDropdownData() {
+    return _handleException(() async {
+      final rawData = await remoteDataSource.getSemenDropdownData('TODO_PASS_TOKEN');
+      
+      print('📊 Raw dropdown data received: ${rawData.length} items');
+      
+      // Separate bulls and breeds from the response
+      final List<DropdownEntity> bulls = [];
+      final List<DropdownEntity> breeds = [];
+      
+      for (final json in rawData) {
+        final type = json['type']?.toString().toLowerCase() ?? '';
+        final dropdown = DropdownEntity(
+          value: json['value'].toString(),
+          label: json['label'].toString(),
+          type: json['type'].toString(),
+        );
+        
+        print('📌 Processing dropdown: type=$type, label=${dropdown.label}');
+        
+        if (type == 'bull') {
+          bulls.add(dropdown);
+        } else if (type == 'breed') {
+          breeds.add(dropdown);
+        }
+      }
+      
+      print('✅ Separated: ${bulls.length} bulls, ${breeds.length} breeds');
+      
+      return {
+        'bulls': bulls,
+        'breeds': breeds,
+      };
+    });
+  }
+
   @override
   Future<Either<Failure, SemenEntity>> getSemenDetails(String id) {
     return _handleException(() async {
-      // This call returns the full model, including nested relationships and stats.
       final semenModel = await remoteDataSource.getSemenDetails(id, 'TODO_PASS_TOKEN');
-      // The _toEntity helper is correctly configured to map these stats and nested objects.
       return _toEntity(semenModel); 
     });
   }
@@ -111,7 +133,6 @@ class SemenRepositoryImpl implements SemenRepository {
   @override
   Future<Either<Failure, SemenEntity>> createSemen(SemenEntity semen) {
     return _handleException(() async {
-      // Converts Entity to Model for the API request payload
       final semenModel = SemenModel.fromEntity(semen);
       final createdModel = await remoteDataSource.createSemen(semenModel, 'TODO_PASS_TOKEN');
       return _toEntity(createdModel);

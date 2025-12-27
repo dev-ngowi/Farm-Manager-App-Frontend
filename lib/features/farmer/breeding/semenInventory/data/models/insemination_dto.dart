@@ -31,7 +31,7 @@ class InseminationAnimalDto {
     return InseminationAnimalEntity(
       id: animalId, 
       tagNumber: tagNumber,
-      name: name,
+      name: name, sex: 'Unknown',
     );
   }
 }

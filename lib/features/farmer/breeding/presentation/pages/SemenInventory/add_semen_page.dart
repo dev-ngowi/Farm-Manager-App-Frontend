@@ -1,13 +1,13 @@
-import 'package:farm_manager_app/core/config/app_theme.dart'; // For AppColors/Theme styling
+import 'package:farm_manager_app/core/config/app_theme.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_bloc.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_event.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/semenInventory/semen_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
-import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/dropdown_entity.dart'; // For DropdownEntity
-import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/semen_entity.dart'; // For SemenEntity
-import 'package:farm_manager_app/l10n/app_localizations.dart'; // For localization (l10n)
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/dropdown_entity.dart';
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/entities/semen_entity.dart';
+import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // For BLoC
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -23,28 +23,29 @@ class AddSemenPage extends StatefulWidget {
 class _AddSemenPageState extends State<AddSemenPage> {
   final _formKey = GlobalKey<FormState>();
   
-  // --- Text Controllers (Matching Backend Fields) ---
-  final TextEditingController _strawCodeController = TextEditingController(); // straw_code (required)
-  final TextEditingController _bullNameController = TextEditingController(); // bull_name (required)
-  final TextEditingController _bullTagController = TextEditingController(); // bull_tag (optional)
-  final TextEditingController _doseMlController = TextEditingController(); // dose_ml (optional)
-  final TextEditingController _motilityController = TextEditingController(); // motility_percentage (optional)
-  final TextEditingController _costController = TextEditingController(); // cost_per_straw (optional)
-  final TextEditingController _sourceController = TextEditingController(); // source_supplier (optional)
+  // Text Controllers
+  final TextEditingController _strawCodeController = TextEditingController();
+  final TextEditingController _bullNameController = TextEditingController();
+  final TextEditingController _bullTagController = TextEditingController();
+  final TextEditingController _doseMlController = TextEditingController();
+  final TextEditingController _motilityController = TextEditingController();
+  final TextEditingController _costController = TextEditingController();
+  final TextEditingController _sourceController = TextEditingController();
 
-  // --- Dropdown/Date Values (Matching Backend Fields) ---
-  DropdownEntity? _selectedBull; // Matches bull_id (optional, maps to Livestock.animal_id)
-  DropdownEntity? _selectedBreed; // Matches breed_id (required, maps to breeds.id)
-  DateTime? _collectionDate; // Matches collection_date (required)
+  // Dropdown/Date Values
+  DropdownEntity? _selectedBull;
+  DropdownEntity? _selectedBreed;
+  DateTime? _collectionDate;
 
-  // --- Dropdown Data Storage ---
+  // Dropdown Data Storage
   List<DropdownEntity> _bulls = [];
   List<DropdownEntity> _breeds = [];
+  
+  bool _dropdownsLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // 💡 Dispatch event to load necessary dropdown data (Bulls and Breeds)
     context.read<SemenInventoryBloc>().add(const SemenLoadDropdowns());
   }
 
@@ -87,7 +88,6 @@ class _AddSemenPageState extends State<AddSemenPage> {
     }
   }
 
-  // ⭐ CORE UPDATE: Form submission now dispatches the BLoC event
   void _submitForm(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) {
@@ -96,26 +96,32 @@ class _AddSemenPageState extends State<AddSemenPage> {
 
     if (_collectionDate == null || _selectedBreed == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.fillAllRequiredFields), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(l10n.fillAllRequiredFields),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
-    // 1. Build the SemenEntity from form data
     final newSemen = SemenEntity(
-      id: 0, // ID is ignored for creation
+      id: 0,
       strawCode: _strawCodeController.text.trim(),
       bullId: _selectedBull != null ? int.tryParse(_selectedBull!.value) : null,
       bullName: _bullNameController.text.trim(),
-      bullTag: _bullTagController.text.trim().isEmpty ? null : _bullTagController.text.trim(),
-      breedId: int.tryParse(_selectedBreed!.value) ?? 0, // Ensure breedId is int
-      collectionDate: _collectionDate!, // Non-nullable DateTime
-      used: false, // Default for new straw
-      costPerStraw: double.tryParse(_costController.text.trim()) ?? 0.0, // Non-nullable
-      doseMl: double.tryParse(_doseMlController.text.trim()) ?? 0.0,     // Non-nullable
+      bullTag: _bullTagController.text.trim().isEmpty 
+          ? null 
+          : _bullTagController.text.trim(),
+      breedId: int.tryParse(_selectedBreed!.value) ?? 0,
+      collectionDate: _collectionDate!,
+      used: false,
+      costPerStraw: double.tryParse(_costController.text.trim()) ?? 0.0,
+      doseMl: double.tryParse(_doseMlController.text.trim()) ?? 0.0,
       motilityPercentage: int.tryParse(_motilityController.text.trim()),
-      sourceSupplier: _sourceController.text.trim().isEmpty ? null : _sourceController.text.trim(),
-      // Default values for list/stats fields
+      sourceSupplier: _sourceController.text.trim().isEmpty 
+          ? null 
+          : _sourceController.text.trim(),
       bull: null,
       breed: null,
       inseminations: null,
@@ -123,7 +129,6 @@ class _AddSemenPageState extends State<AddSemenPage> {
       successRate: '0%',
     );
     
-    // 2. Dispatch the Create event
     context.read<SemenInventoryBloc>().add(SemenCreate(newSemen));
   }
 
@@ -131,332 +136,552 @@ class _AddSemenPageState extends State<AddSemenPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat.yMMMd(Localizations.localeOf(context).toString());
-    final primaryColor = BreedingColors.semen;
+    final DateFormat formatter = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString()
+    );
     
-    return BlocListener<SemenInventoryBloc, SemenState>(
+    return BlocConsumer<SemenInventoryBloc, SemenState>(
       listener: (context, state) {
-        // Handle submission success
         if (state is SemenActionSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
             ),
           );
-          // Navigate back to the inventory list
-          context.go('/farmer/breeding/semen'); 
-        }
-        // Handle submission error
-        else if (state is SemenError) {
+          context.go('/farmer/breeding/semen');
+        } else if (state is SemenError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
             ),
           );
+        } else if (state is SemenLoadedDropdowns) {
+          setState(() {
+            _bulls = state.bulls;
+            _breeds = state.breeds;
+            _dropdownsLoaded = true;
+          });
         }
-        // Handle dropdown loading errors (e.g., if SemenLoadDropdowns fails)
-         else if (state is SemenLoadedDropdowns) {
-            _bulls = state.bulls;
-            _breeds = state.breeds;
-          }
-        
       },
-      child: BlocBuilder<SemenInventoryBloc, SemenState>(
-        builder: (context, state) {
-          final isSubmitting = state is SemenLoading;
-          
-          if (state is SemenLoadedDropdowns) {
-            _bulls = state.bulls;
-            _breeds = state.breeds;
-          }
-          return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: true,
-              title: Text(l10n.addSemen),
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 1,
+      builder: (context, state) {
+        final isSubmitting = state is SemenLoading && _dropdownsLoaded;
+        final isLoadingDropdowns = state is SemenLoading && !_dropdownsLoaded;
+        
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+              onPressed: () => context.pop(),
             ),
-            body: Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: <Widget>[
-                  // Info Card (omitted for brevity, assume localization works)
-                  // ...
-
-                  // 1. Straw Code (required, unique)
-                  TextFormField(
-                    controller: _strawCodeController,
-                    decoration: InputDecoration(
-                      labelText: '${l10n.strawCode} *',
-                      hintText: 'e.g., HOL-001',
-                      prefixIcon: Icon(Icons.qr_code, color: primaryColor),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return l10n.fieldRequired;
-                      }
-                      return null;
-                    },
-                    enabled: !isSubmitting,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 2. Bull Name (required)
-                  TextFormField(
-                    controller: _bullNameController,
-                    decoration: InputDecoration(
-                      labelText: '${l10n.bullName} *',
-                      hintText: 'e.g., Black Legend',
-                      prefixIcon: Icon(Icons.pets, color: primaryColor),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return l10n.fieldRequired;
-                      }
-                      return null;
-                    },
-                    enabled: !isSubmitting,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 3. Breed Selection (required) - Uses loaded data
-                  _buildBreedDropdownField(l10n, primaryColor, isSubmitting),
-                  const SizedBox(height: 16),
-
-                  // 4. Collection Date (required, date picker)
-                  _buildDatePickerField(l10n, theme, formatter, primaryColor, isSubmitting),
-                  const SizedBox(height: 16),
-                  
-                  Divider(height: 32, color: primaryColor.withOpacity(0.5)),
-                  Text(l10n.optionalDetails, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 16),
-
-                  // 5. Bull ID Selection (Optional) - Uses loaded data
-                  _buildBullIdAndTagSection(l10n, primaryColor, isSubmitting),
-                  const SizedBox(height: 16),
-
-                  // 6. Dose and Motility (TextFields omitted for brevity, logic remains same)
-                  // ... (Keep the Row for dose and motility from original code)
-                  Row(
-                    children: [
-                      // Dose (dose_ml)
-                      Expanded(
-                        child: TextFormField(
-                          controller: _doseMlController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: '${l10n.dose} (ml)',
-                            hintText: 'e.g., 0.25',
-                            prefixIcon: Icon(Icons.water_drop, color: primaryColor),
-                          ),
-                          validator: (value) {
-                            if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
-                              return l10n.invalidNumber;
-                            }
-                            return null;
-                          },
-                          enabled: !isSubmitting,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Motility (motility_percentage)
-                      Expanded(
-                        child: TextFormField(
-                          controller: _motilityController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: '${l10n.motility} (%)',
-                            hintText: 'e.g., 75',
-                            prefixIcon: Icon(Icons.insights, color: primaryColor),
-                          ),
-                          validator: (value) {
-                            final int? motility = int.tryParse(value ?? '');
-                            if (value != null && value.isNotEmpty && (motility == null || motility < 0 || motility > 100)) {
-                              return l10n.invalidPercentage;
-                            }
-                            return null;
-                          },
-                          enabled: !isSubmitting,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 7. Cost per Straw
-                  TextFormField(
-                    controller: _costController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: l10n.costPerStraw,
-                      hintText: 'e.g., 1500',
-                      prefixIcon: Icon(Icons.attach_money, color: primaryColor),
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
-                        return l10n.invalidNumber;
-                      }
-                      return null;
-                    },
-                    enabled: !isSubmitting,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 8. Source/Supplier
-                  TextFormField(
-                    controller: _sourceController,
-                    decoration: InputDecoration(
-                      labelText: l10n.sourceSupplier,
-                      hintText: l10n.sourceSupplierHint ?? 'Source/Supplier (e.g., Kenya Genetics)',
-                      prefixIcon: Icon(Icons.business, color: primaryColor),
-                    ),
-                    enabled: !isSubmitting,
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Save Button
-                  ElevatedButton.icon(
-                    onPressed: isSubmitting ? null : () => _submitForm(context),
-                    icon: isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-                          )
-                        : const Icon(Icons.save),
-                    label: Text(
-                      isSubmitting ? l10n.saving : l10n.save.toUpperCase(),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+            title: Text(
+              l10n.addSemen,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          );
-        },
+          ),
+          body: isLoadingDropdowns
+              ? const Center(child: CircularProgressIndicator())
+              : Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const SizedBox(height: 8),
+
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Add Semen Straw',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Add a new semen straw to your inventory',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Required Information Section
+                        _buildRequiredSection(l10n, formatter, isSubmitting),
+
+                        const SizedBox(height: 16),
+
+                        // Optional Information Section
+                        _buildOptionalSection(l10n, isSubmitting),
+
+                        const SizedBox(height: 24),
+
+                        // Save Button
+                        _buildSaveButton(l10n, isSubmitting),
+
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRequiredSection(
+    AppLocalizations l10n,
+    DateFormat formatter,
+    bool isSubmitting,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Required Information',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Straw Code
+          _buildTextFieldCard(
+            controller: _strawCodeController,
+            label: l10n.strawCode,
+            hint: 'e.g., HOL-001',
+            icon: Icons.qr_code,
+            color: BreedingColors.semen,
+            isSubmitting: isSubmitting,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return l10n.fieldRequired;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Bull Name
+          _buildTextFieldCard(
+            controller: _bullNameController,
+            label: l10n.bullName,
+            hint: 'e.g., Black Legend',
+            icon: Icons.pets,
+            color: BreedingColors.semen,
+            isSubmitting: isSubmitting,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return l10n.fieldRequired;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Breed Selection
+          _buildBreedDropdownField(l10n, isSubmitting),
+          const SizedBox(height: 12),
+
+          // Collection Date
+          _buildDatePickerField(l10n, formatter, isSubmitting),
+        ],
       ),
     );
   }
 
-  // --- Widget Builders ---
+  Widget _buildOptionalSection(AppLocalizations l10n, bool isSubmitting) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Optional Details',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Bull ID Selection
+          _buildBullDropdownField(l10n, isSubmitting),
+          const SizedBox(height: 12),
+
+          // Bull Tag
+          _buildTextFieldCard(
+            controller: _bullTagController,
+            label: l10n.bullTag,
+            hint: 'e.g., 9005',
+            icon: Icons.tag,
+            color: BreedingColors.semen,
+            isSubmitting: isSubmitting,
+          ),
+          const SizedBox(height: 12),
+
+          // Dose and Motility Row
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextFieldCard(
+                  controller: _doseMlController,
+                  label: '${l10n.dose} (ml)',
+                  hint: 'e.g., 0.25',
+                  icon: Icons.water_drop,
+                  color: BreedingColors.semen,
+                  keyboardType: TextInputType.number,
+                  isSubmitting: isSubmitting,
+                  validator: (value) {
+                    if (value != null && 
+                        value.isNotEmpty && 
+                        double.tryParse(value) == null) {
+                      return l10n.invalidNumber;
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTextFieldCard(
+                  controller: _motilityController,
+                  label: '${l10n.motility} (%)',
+                  hint: 'e.g., 75',
+                  icon: Icons.insights,
+                  color: BreedingColors.semen,
+                  keyboardType: TextInputType.number,
+                  isSubmitting: isSubmitting,
+                  validator: (value) {
+                    final int? motility = int.tryParse(value ?? '');
+                    if (value != null && 
+                        value.isNotEmpty && 
+                        (motility == null || 
+                         motility < 0 || 
+                         motility > 100)) {
+                      return l10n.invalidPercentage;
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Cost per Straw
+          _buildTextFieldCard(
+            controller: _costController,
+            label: l10n.costPerStraw,
+            hint: 'e.g., 1500',
+            icon: Icons.attach_money,
+            color: BreedingColors.semen,
+            keyboardType: TextInputType.number,
+            isSubmitting: isSubmitting,
+            validator: (value) {
+              if (value != null && 
+                  value.isNotEmpty && 
+                  double.tryParse(value) == null) {
+                return l10n.invalidNumber;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Source/Supplier
+          _buildTextFieldCard(
+            controller: _sourceController,
+            label: l10n.sourceSupplier,
+            hint: l10n.sourceSupplierHint ?? 'Source/Supplier',
+            icon: Icons.business,
+            color: BreedingColors.semen,
+            isSubmitting: isSubmitting,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextFieldCard({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Color color,
+    required bool isSubmitting,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                enabled: !isSubmitting,
+                keyboardType: keyboardType,
+                decoration: InputDecoration(
+                  labelText: label,
+                  hintText: hint,
+                  border: InputBorder.none,
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                validator: validator,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildDatePickerField(
     AppLocalizations l10n,
-    ThemeData theme,
     DateFormat formatter,
-    Color primaryColor,
     bool isSubmitting,
   ) {
-    return InkWell(
-      onTap: isSubmitting ? null : () => _selectDate(context, l10n),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: '${l10n.collectionDate} *',
-          border: const OutlineInputBorder(),
-          prefixIcon: Icon(Icons.calendar_today, color: primaryColor),
-          suffixIcon: const Icon(Icons.arrow_drop_down),
-        ),
-        child: Text(
-          _collectionDate == null
-              ? l10n.selectDate 
-              : formatter.format(_collectionDate!),
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: _collectionDate == null ? Colors.grey.shade600 : Colors.black,
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isSubmitting ? null : () => _selectDate(context, l10n),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(Icons.calendar_today, color: BreedingColors.semen, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.collectionDate,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _collectionDate == null
+                          ? l10n.selectDate
+                          : formatter.format(_collectionDate!),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _collectionDate == null
+                            ? Colors.grey[400]
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ⭐ UPDATED: Uses the loaded _breeds list
   Widget _buildBreedDropdownField(
     AppLocalizations l10n,
-    Color primaryColor,
     bool isSubmitting,
   ) {
-    return DropdownButtonFormField<DropdownEntity>(
-      initialValue: _selectedBreed,
-      decoration: InputDecoration(
-        labelText: '${l10n.breed} *',
-        prefixIcon: Icon(Icons.catching_pokemon, color: primaryColor),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
       ),
-      hint: Text(l10n.selectBreed),
-      isExpanded: true,
-      items: _breeds.map((breed) {
-        return DropdownMenuItem(
-          value: breed,
-          child: Text(breed.label),
-        );
-      }).toList(),
-      onChanged: isSubmitting ? null : (DropdownEntity? newValue) {
-        setState(() {
-          _selectedBreed = newValue;
-        });
-      },
-      validator: (value) {
-        if (value == null) {
-          return l10n.fieldRequired;
-        }
-        return null;
-      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.catching_pokemon, color: BreedingColors.semen, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DropdownButtonFormField<DropdownEntity>(
+                initialValue: _selectedBreed,
+                decoration: InputDecoration(
+                  labelText: l10n.breed,
+                  border: InputBorder.none,
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                hint: Text(l10n.selectBreed),
+                isExpanded: true,
+                items: _breeds.map((breed) {
+                  return DropdownMenuItem(
+                    value: breed,
+                    child: Text(
+                      breed.label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: isSubmitting ? null : (DropdownEntity? newValue) {
+                  setState(() {
+                    _selectedBreed = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return l10n.fieldRequired;
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  // ⭐ UPDATED: Uses the loaded _bulls list
-  Widget _buildBullIdAndTagSection(
+  Widget _buildBullDropdownField(
     AppLocalizations l10n,
-    Color primaryColor,
     bool isSubmitting,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Dropdown for selecting owned bull (bull_id)
-        DropdownButtonFormField<DropdownEntity>(
-          initialValue: _selectedBull,
-          decoration: InputDecoration(
-            labelText: l10n.internalBullId,
-            prefixIcon: Icon(Icons.male, color: primaryColor),
-          ),
-          hint: Text(l10n.selectOwnedBull),
-          isExpanded: true,
-          items: _bulls.map((bull) {
-            return DropdownMenuItem(
-              value: bull,
-              child: Text(bull.label),
-            );
-          }).toList(),
-          onChanged: isSubmitting ? null : (DropdownEntity? newValue) {
-            setState(() {
-              _selectedBull = newValue;
-            });
-          },
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.male, color: BreedingColors.semen, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DropdownButtonFormField<DropdownEntity>(
+                initialValue: _selectedBull,
+                decoration: InputDecoration(
+                  labelText: l10n.internalBullId,
+                  border: InputBorder.none,
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                hint: Text(l10n.selectOwnedBull),
+                isExpanded: true,
+                items: _bulls.map((bull) {
+                  return DropdownMenuItem(
+                    value: bull,
+                    child: Text(
+                      bull.label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: isSubmitting ? null : (DropdownEntity? newValue) {
+                  setState(() {
+                    _selectedBull = newValue;
+                  });
+                },
+              ),
+            ),
+          ],
         ),
-        
-        const SizedBox(height: 16),
+      ),
+    );
+  }
 
-        // Bull Tag (bull_tag)
-        TextFormField(
-          controller: _bullTagController,
-          decoration: InputDecoration(
-            labelText: l10n.bullTag,
-            hintText: 'e.g., 9005',
-            prefixIcon: Icon(Icons.tag, color: primaryColor),
+  Widget _buildSaveButton(AppLocalizations l10n, bool isSubmitting) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isSubmitting ? null : () => _submitForm(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: BreedingColors.semen,
+            disabledBackgroundColor: BreedingColors.semen.withOpacity(0.6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
           ),
-          enabled: !isSubmitting,
+          child: isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Text(
+                  l10n.save.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
         ),
-      ],
+      ),
     );
   }
 }

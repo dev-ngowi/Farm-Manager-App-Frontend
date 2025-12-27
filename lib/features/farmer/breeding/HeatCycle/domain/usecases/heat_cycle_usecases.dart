@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:farm_manager_app/core/error/failure.dart';
@@ -131,4 +130,33 @@ class UpdateHeatCycleParams extends Equatable {
 
   @override
   List<Object?> get props => [id, cycle, token];
+}
+
+// ------------------------------------------------------------------
+// 5. DELETE HEAT CYCLE ⬅️ NEW USE CASE
+// ------------------------------------------------------------------
+
+/// Deletes a specific heat cycle record. Returns [Unit] on success.
+class DeleteHeatCycle implements UseCase<Unit, DeleteHeatCycleParams> {
+  final HeatCycleRepository repository;
+
+  DeleteHeatCycle(this.repository);
+
+  @override
+  Future<Either<Failure, Unit>> call(DeleteHeatCycleParams params) async {
+    return await repository.deleteHeatCycle(
+      id: params.id,
+      token: params.token,
+    );
+  }
+}
+
+class DeleteHeatCycleParams extends Equatable {
+  final String id; // The ID of the cycle to delete
+  final String token;
+
+  const DeleteHeatCycleParams({required this.id, required this.token});
+
+  @override
+  List<Object?> get props => [id, token];
 }

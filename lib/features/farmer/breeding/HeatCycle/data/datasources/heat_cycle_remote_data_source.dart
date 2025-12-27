@@ -1,3 +1,5 @@
+// heat_cycle_remote_data_source.dart (in /data/datasources)
+
 import 'package:dio/dio.dart';
 import 'package:farm_manager_app/core/networking/api_endpoints.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/models/heat_cycle_model.dart';
@@ -5,7 +7,7 @@ import 'package:farm_manager_app/core/error/failure.dart';
 import 'dart:convert'; // Required for JSON encoding/decoding
 
 // ------------------------------------------------------------------
-// ABSTRACT CONTRACT (Already defined, included here for context)
+// ABSTRACT CONTRACT
 // ------------------------------------------------------------------
 
 abstract class HeatCycleRemoteDataSource {
@@ -13,7 +15,9 @@ abstract class HeatCycleRemoteDataSource {
   Future<HeatCycleModel> getHeatCycleDetails(String id, String token);
   Future<HeatCycleModel> createHeatCycle(HeatCycleModel cycle, String token);
   Future<HeatCycleModel> updateHeatCycle(String id, HeatCycleModel cycle, String token);
-  // Add more methods like recordInsemination later if needed
+  
+  /// Deletes a heat cycle by ID. Returns nothing on success. ⬅️ NEW METHOD
+  Future<void> deleteHeatCycle(String id, String token); 
 }
 
 // ------------------------------------------------------------------
@@ -221,6 +225,44 @@ class HeatCycleRemoteDataSourceImpl implements HeatCycleRemoteDataSource {
       );
     } on DioException catch (e) {
       throw _handleDioException(e, 'Failed to update heat cycle');
+    } catch (e, stackTrace) {
+      print('❌ Unexpected error: $e\n$stackTrace');
+      throw const ServerException(message: 'An unexpected error occurred.');
+    }
+  }
+
+  // ========================================
+  // 5. DELETE HEAT CYCLE ⬅️ NEW METHOD
+  // ========================================
+  
+  @override
+  Future<void> deleteHeatCycle(String id, String token) async {
+    final endpoint = '${ApiEndpoints.heatCycles}/$id';
+    try {
+      print('→ DELETE $endpoint');
+
+      // Use dio.delete for deletion
+      final response = await dio.delete(
+        endpoint,
+        options: _authOptions(token),
+      );
+
+      print('← ${response.statusCode} $endpoint');
+      
+      // The status code for a successful deletion with no body is typically 204 No Content.
+      // Sometimes 200 OK or 202 Accepted might be used, so we check for success codes.
+      if (response.statusCode == 200 || 
+          response.statusCode == 202 || 
+          response.statusCode == 204) {
+        return; // Success, operation complete.
+      }
+      
+      throw ServerException(
+        message: 'Failed to delete heat cycle',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to delete heat cycle');
     } catch (e, stackTrace) {
       print('❌ Unexpected error: $e\n$stackTrace');
       throw const ServerException(message: 'An unexpected error occurred.');

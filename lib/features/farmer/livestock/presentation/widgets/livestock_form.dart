@@ -1,8 +1,9 @@
 // lib/features/farmer/livestock/presentation/widgets/livestock_form.dart
 
-import 'package:farm_manager_app/core/error/failure.dart'; 
+import 'package:farm_manager_app/core/error/failure.dart';
+import 'package:farm_manager_app/core/routes/app_router.dart'; 
 import 'package:farm_manager_app/core/utils/validators.dart';
-// Note: Removed unused HeatCycle import
+// NOTE: Assuming this file exists and contains your route constants.
 import 'package:farm_manager_app/features/farmer/livestock/data/models/livestock_model.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/breed.dart';
 import 'package:farm_manager_app/features/farmer/livestock/domain/entities/species.dart';
@@ -15,6 +16,7 @@ import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart'; // <-- IMPORT GO_ROUTER
 
 class LivestockForm extends StatefulWidget {
   final LivestockRepository livestockRepository; 
@@ -289,14 +291,36 @@ class _LivestockFormState extends State<LivestockForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.animalUpdatedSuccess), backgroundColor: Colors.green),
           );
-          // Navigate back after successful update
-          Navigator.of(context).pop(state.animal);
+          
+          // ⭐ FIX: Safely navigate back after successful update
+          // This uses go_router.pop() wrapped in a post-frame callback to prevent the !_debugLocked error.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            // Pop the edit screen, returning the updated animal to the detail page (if one exists).
+            GoRouter.of(context).pop(state.animal); 
+          });
+          
         } else if (state is LivestockAdded) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.livestockRegisteredSuccess), backgroundColor: Colors.green),
           );
-          // Navigate back after successful add
-          Navigator.of(context).pop();
+          
+          // ⭐ FIX: Safely navigate after successful add.
+          // Problem: If the 'Add' screen was navigated to with `go()`, `pop()` will fail.
+          // Solution 1 (Safest): Use `go()` to replace the current route with the list view.
+          // Solution 2 (If pushed): Use `pop()` safely (only if you are sure it was pushed).
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            
+            // OPTION 1 (Recommended for Add flow): Navigate back to the list screen (clears the 'Add' screen from history)
+            // Assuming your livestock list route is available via a constant, e.g., AppRoutes.livestock
+            GoRouter.of(context).go(AppRoutes.livestock); // Use the base list route: '/farmer/livestock'
+            
+            // OPTION 2 (If you used `push` to reach the 'add' page):
+            // GoRouter.of(context).pop(); 
+          });
+
         } else if (state is LivestockError) {
           final failure = state.failure;
           

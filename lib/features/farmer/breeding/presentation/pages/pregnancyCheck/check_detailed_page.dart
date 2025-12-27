@@ -1,360 +1,396 @@
+// lib/features/farmer/breeding/presentation/pages/pregnancyCheck/check_detailed_page.dart
+
 import 'package:farm_manager_app/core/config/app_theme.dart';
-import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
+import 'package:farm_manager_app/core/di/locator.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/pregnancyCheck/pregnancy_check_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/pregnancyCheck/pregnancy_check_event.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/pregnancyCheck/pregnancy_check_state.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/pages/pregnancyCheck/edit_pregnancy_check_page.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-// --- Data Model reflecting Backend JSON (PregnancyCheckController::show) ---
+class PregnancyCheckDetailPage extends StatelessWidget {
+  static const String routeName = 'pregnancyCheckDetail';
+  final String checkId;
 
-class DetailedPregnancyCheck {
-  final int id;
-  final String checkDate;
-  final String method;
-  final String result; // Pregnant, Not Pregnant, Reabsorbed
-  final int? fetusCount;
-  final String? expectedDeliveryDate;
-  final String notes;
-
-  // Nested Insemination/Dam details
-  final int inseminationId;
-  final String damName;
-  final String damTagNumber;
-  final String damSpecies;
-  
-  // Nested Vet details
-  final String? vetName;
-
-  DetailedPregnancyCheck({
-    required this.id,
-    required this.checkDate,
-    required this.method,
-    required this.result,
-    this.fetusCount,
-    this.expectedDeliveryDate,
-    this.notes = '',
-    required this.inseminationId,
-    required this.damName,
-    required this.damTagNumber,
-    this.damSpecies = 'Cattle', // Mocked species for display
-    this.vetName,
+  const PregnancyCheckDetailPage({
+    super.key,
+    required this.checkId,
   });
 
-  // Factory to create from a JSON-like map (simulating API response)
-  factory DetailedPregnancyCheck.fromJson(Map<String, dynamic> json) {
-    String formatDate(String? dateString) {
-      if (dateString == null || dateString.isEmpty) return 'N/A';
-      try {
-        return DateFormat('dd MMM yyyy').format(DateTime.parse(dateString));
-      } catch (e) {
-        return dateString ?? 'N/A';
-      }
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final id = int.tryParse(checkId) ?? 0;
+
+    if (id == 0) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.pregnancyCheckDetails ?? 'Pregnancy Check Details'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                l10n.invalidCheckId ?? 'Invalid Check ID',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.pop(),
+                child: Text(l10n.goBack ?? 'Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
-    final insemination = json['insemination'] as Map<String, dynamic>?;
-    final dam = insemination?['dam'] as Map<String, dynamic>?;
-    final vet = json['vet'] as Map<String, dynamic>?;
+    return BlocProvider(
+      create: (context) => getIt<PregnancyCheckBloc>()
+        ..add(LoadPregnancyCheckDetail(id)),
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            l10n.pregnancyCheckDetails ?? 'Pregnancy Check Details',
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            BlocBuilder<PregnancyCheckBloc, PregnancyCheckState>(
+              builder: (context, state) {
+                if (state is PregnancyCheckDetailLoaded) {
+                  return PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: AppColors.primary),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        context.pushNamed(
+                          EditPregnancyCheckPage.routeName,
+                          pathParameters: {'id': checkId},
+                        );
+                      } else if (value == 'delete') {
+                        _showDeleteDialog(context, id);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.edit ?? 'Edit'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete, size: 20, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Text(
+                              l10n.delete ?? 'Delete',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
+        body: BlocConsumer<PregnancyCheckBloc, PregnancyCheckState>(
+          listener: (context, state) {
+            if (state is PregnancyCheckDeleted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    l10n.pregnancyCheckDeletedSuccess ?? 'Pregnancy check deleted successfully',
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              context.pop(true);
+            } else if (state is PregnancyCheckError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is PregnancyCheckLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-    return DetailedPregnancyCheck(
-      id: json['id'] as int,
-      checkDate: formatDate(json['check_date'] as String?),
-      method: json['method'] as String,
-      result: json['result'] as String,
-      fetusCount: json['fetus_count'] as int?,
-      expectedDeliveryDate: formatDate(json['expected_delivery_date'] as String?),
-      notes: json['notes'] as String? ?? '',
-      
-      inseminationId: insemination?['id'] as int? ?? 0,
-      damName: dam?['name'] ?? 'N/A',
-      damTagNumber: dam?['tag_number'] ?? 'N/A',
-      vetName: vet?['name'],
+            if (state is PregnancyCheckError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.errorLoadingData ?? 'Error Loading Data',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => context.read<PregnancyCheckBloc>()
+                          .add(LoadPregnancyCheckDetail(id)),
+                      child: Text(l10n.retry ?? 'Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is PregnancyCheckDetailLoaded) {
+              return _buildDetailContent(context, state.check, l10n);
+            }
+
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
     );
   }
-}
 
-class PregnancyCheckDetailPage extends StatelessWidget {
-  static const String routeName = '/farmer/breeding/pregnancy-checks/:id';
-  final int checkId;
+  Widget _buildDetailContent(BuildContext context, dynamic check, AppLocalizations l10n) {
+    final dateFormatter = DateFormat.yMMMd(Localizations.localeOf(context).toString());
+    final resultColor = _getResultColor(check.result);
 
-  const PregnancyCheckDetailPage({super.key, required this.checkId});
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Result Status Card
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [resultColor.withOpacity(0.1), resultColor.withOpacity(0.05)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    check.result.toLowerCase() == 'pregnant'
+                        ? Icons.favorite
+                        : Icons.heart_broken,
+                    size: 48,
+                    color: resultColor,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    check.result,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: resultColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-  // Mock data function to simulate fetching a single item
-  DetailedPregnancyCheck _fetchMockData(int id) {
-    // Mock response for a Positive check
-    if (id == 1) {
-      return DetailedPregnancyCheck.fromJson({
-        'id': 1,
-        'insemination_id': 101,
-        'check_date': '2025-12-05',
-        'method': 'Ultrasound',
-        'result': 'Pregnant',
-        'fetus_count': 1,
-        'expected_delivery_date': '2026-09-11',
-        'notes': 'Single fetus confirmed in the left horn.',
-        'insemination': {
-          'id': 101,
-          'dam_id': 1,
-          'dam': {'id': 1, 'tag_number': '101', 'name': 'Cow'},
-        },
-        'vet': {'id': 5, 'name': 'Dr. Mfumo'},
-      });
-    }
-    // Mock response for a Negative check
-    return DetailedPregnancyCheck.fromJson({
-      'id': 2,
-      'insemination_id': 102,
-      'check_date': '2025-11-20',
-      'method': 'Palpation',
-      'result': 'Not Pregnant',
-      'fetus_count': null,
-      'expected_delivery_date': null,
-      'notes': 'No signs of pregnancy. Advised next insemination.',
-      'insemination': {
-        'id': 102,
-        'dam_id': 2,
-        'dam': {'id': 2, 'tag_number': '115', 'name': 'Cow'},
-      },
-      'vet': null,
-    });
+          const SizedBox(height: 16),
+
+          // Dam Information
+          _buildInfoCard(
+            l10n.damInformation ?? 'Dam Information',
+            Icons.pets,
+            [
+              _buildInfoRow(l10n.name ?? 'Name', check.damName),
+              _buildInfoRow(l10n.tagNumber ?? 'Tag Number', check.damTagNumber),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Check Details
+          _buildInfoCard(
+            l10n.checkDetails ?? 'Check Details',
+            Icons.monitor_heart,
+            [
+              _buildInfoRow(l10n.checkDate ?? 'Check Date', dateFormatter.format(check.checkDate)),
+              _buildInfoRow(l10n.method ?? 'Method', check.method),
+              _buildInfoRow(l10n.result ?? 'Result', check.result),
+              if (check.fetusCount != null)
+                _buildInfoRow(l10n.fetusCount ?? 'Fetus Count', check.fetusCount.toString()),
+              if (check.expectedDeliveryDate != null)
+                _buildInfoRow(
+                  l10n.expectedDeliveryDate ?? 'Expected Delivery',
+                  dateFormatter.format(check.expectedDeliveryDate),
+                ),
+              if (check.vetName != null)
+                _buildInfoRow(l10n.veterinarian ?? 'Veterinarian', check.vetName!),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Notes
+          if (check.notes.isNotEmpty)
+            _buildInfoCard(
+              l10n.notes ?? 'Notes',
+              Icons.note_alt_outlined,
+              [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    check.notes,
+                    style: const TextStyle(fontSize: 14, height: 1.5),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
   }
 
-  // Helper method updated to map check results to colors
+  Widget _buildInfoCard(String title, IconData icon, List<Widget> children) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 20, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Color _getResultColor(String result) {
-    switch (result) {
-      case 'Pregnant':
+    switch (result.toLowerCase()) {
+      case 'pregnant':
         return AppColors.success;
-      case 'Not Pregnant':
-      case 'Reabsorbed':
+      case 'not pregnant':
+      case 'reabsorbed':
         return AppColors.error;
       default:
         return AppColors.secondary;
     }
   }
-  
-  // Action to navigate to the Edit Page
-  void _handleEdit(BuildContext context, int id) {
-    // Navigation to the edit route (e.g., /pregnancy-checks/1/edit)
-    context.push('/farmer/breeding/pregnancy-checks/$id/edit');
-  }
 
-  // Action to show Delete Confirmation Dialog
-  void _handleDelete(BuildContext context, AppLocalizations l10n, int id) {
+  void _showDeleteDialog(BuildContext context, int id) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteCheck), // Assuming you define this key
-        content: Text(l10n.deleteCheckConfirmation),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.confirmDelete ?? 'Confirm Delete'),
+        content: Text(
+          l10n.deleteCheckConfirmation ?? 'Are you sure you want to delete this pregnancy check? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel ?? 'Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              // TODO: Implement API call to your backend 'destroy' endpoint
-              print('Deleting Pregnancy Check ID: $id');
-              Navigator.pop(context); // Close dialog
-              context.pop(); // Go back to the list page
+              Navigator.pop(dialogContext);
+              context.read<PregnancyCheckBloc>().add(DeletePregnancyCheck(id));
             },
-            child:
-                Text(l10n.delete, style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.delete ?? 'Delete'),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final primaryColor = BreedingColors.pregnancy;
-
-    // Fetch mock data based on ID
-    final data = _fetchMockData(checkId);
-    final resultColor = _getResultColor(data.result);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${l10n.pregnancyCheck} #${data.id}'), // Assuming singular key
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: l10n.edit,
-            onPressed: () => _handleEdit(context, data.id),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Header: Result and Dam Info ---
-            _buildHeaderCard(l10n, theme, data, resultColor),
-
-            const SizedBox(height: 20),
-
-            // --- Check Details Section ---
-            _buildSectionHeader(l10n.checkDetails, Icons.checklist),
-            _buildDetailCard(
-              l10n,
-              {
-                l10n.checkDate: data.checkDate,
-                l10n.method: data.method,
-                l10n.technician: data.vetName ?? l10n.unknown,
-                
-                // Only show fetus count and due date if pregnant
-                if (data.result == 'Pregnant') ...{
-                  l10n.fetusCount: data.fetusCount.toString(),
-                  l10n.dueDate: data.expectedDeliveryDate ?? l10n.unknown,
-                },
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            // --- Notes ---
-            _buildSectionHeader(l10n.notes, Icons.description),
-            Text(
-              data.notes.isNotEmpty ? data.notes : l10n.noNotes,
-              style: theme.textTheme.bodyLarge,
-            ),
-            
-            const SizedBox(height: 20),
-
-            // --- Insemination Link ---
-            _buildSectionHeader(l10n.relatedInsemination, Icons.vaccines),
-            _buildInseminationLinkCard(context, l10n, data.inseminationId, primaryColor),
-          ],
-        ),
-      ),
-      bottomNavigationBar:
-          _buildDeleteButton(context, l10n, AppColors.error, data.id),
-    );
-  }
-
-  // --- Widget Builders ---
-
-  Widget _buildHeaderCard(AppLocalizations l10n, ThemeData theme,
-      DetailedPregnancyCheck data, Color resultColor) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Chip(
-              label: Text(data.result),
-              backgroundColor: resultColor.withOpacity(0.2),
-              side: BorderSide(color: resultColor, width: 1),
-              labelStyle: theme.textTheme.titleSmall
-                  ?.copyWith(color: resultColor, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${data.damName} #${data.damTagNumber}',
-              style: theme.textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '${data.damSpecies} - ${l10n.dam}',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: BreedingColors.pregnancy, size: 24),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: BreedingColors.pregnancy,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailCard(AppLocalizations l10n, Map<String, String?> details) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: details.entries
-              .map(
-                (entry) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: Text('${entry.key}:',
-                            style: TextStyle(color: Colors.grey[700])),
-                      ),
-                      Expanded(
-                        flex: 6,
-                        child: Text(entry.value ?? l10n.unknown,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInseminationLinkCard(BuildContext context, AppLocalizations l10n, int inseminationId, Color primaryColor) {
-    return Card(
-      child: ListTile(
-        leading: Icon(Icons.link, color: primaryColor),
-        title: Text('${l10n.inseminations}'),
-        subtitle: Text(l10n.viewInseminationDetails), 
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          // Navigate to the Insemination Detail Page
-          context.push('/farmer/breeding/inseminations/$inseminationId');
-        },
-      ),
-    );
-  }
-
-  Widget _buildDeleteButton(
-      BuildContext context, AppLocalizations l10n, Color deleteColor, int id) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
-      ),
-      child: OutlinedButton.icon(
-        icon: const Icon(Icons.delete_forever),
-        label: Text(l10n.delete),
-        onPressed: () => _handleDelete(context, l10n, id),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: deleteColor,
-          side: BorderSide(color: deleteColor),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-        ),
       ),
     );
   }

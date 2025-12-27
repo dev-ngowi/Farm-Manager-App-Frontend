@@ -7,6 +7,8 @@ import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/models/
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/domain/entities/heat_cycle_entity.dart';
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/domain/repositories/heat_cycle_repository.dart';
 import 'package:farm_manager_app/core/error/failure.dart'; 
+// NOTE: Make sure you also import your exception classes (AuthException, ServerException, ValidationException)
+// which are used in the catch blocks, although they are not shown in the provided imports.
 
 class HeatCycleRepositoryImpl implements HeatCycleRepository {
   final HeatCycleRemoteDataSource remoteDataSource;
@@ -176,6 +178,41 @@ class HeatCycleRepositoryImpl implements HeatCycleRepository {
       return Left(ServerFailure(e.message, e.statusCode));
     } catch (e) {
       return Left(ServerFailure('Failed to update heat cycle: $e'));
+    }
+  }
+
+  // ========================================
+  // DELETE HEAT CYCLE ⬅️ NEW METHOD
+  // ========================================
+
+  @override
+  Future<Either<Failure, Unit>> deleteHeatCycle({
+    required String id,
+    required String token,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(
+        'No internet connection. Please check your network.',
+      ));
+    }
+
+    try {
+      print('🔄 HeatCycleRepository: Deleting heat cycle $id...');
+
+      // Assuming remoteDataSource has a corresponding method
+      await remoteDataSource.deleteHeatCycle(id, token);
+
+      print('✅ HeatCycleRepository: Cycle $id deleted successfully.');
+      
+      // Use const Right(unit) to signify successful operation with no return value
+      return const Right(unit); 
+      
+    } on AuthException catch (e) {
+      return Left(AuthFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure('Failed to delete heat cycle: $e'));
     }
   }
 }

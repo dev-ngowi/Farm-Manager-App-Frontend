@@ -1,8 +1,30 @@
-// injection.dart
+// injection.dart - OPTIMIZED FOR FAST BOOT
 
 // --- CORE IMPORTS ---
 import 'package:dio/dio.dart';
 import 'package:farm_manager_app/core/localization/language_provider.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/data/datasources/delivery_remote_datasource.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/data/repositories/delivery_repository_impl.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/repositories/delivery_repository.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/add_delivery_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/delete_delivery_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/get_available_inseminations_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/get_deliveries_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/get_delivery_by_id_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/delivery/domain/usecases/update_delivery_usecase.dart';
+import 'package:farm_manager_app/features/farmer/breeding/offspring/data/datasources/offspring_remote_datasource.dart';
+import 'package:farm_manager_app/features/farmer/breeding/offspring/data/repositories/offspring_repository_impl.dart';
+import 'package:farm_manager_app/features/farmer/breeding/offspring/domain/repositories/offspring_repository.dart';
+import 'package:farm_manager_app/features/farmer/breeding/offspring/domain/usecases/offspring_usecases.dart';
+import 'package:farm_manager_app/features/farmer/breeding/pregnancyCheck/data/datasources/pregnancy_check_remote_datasource.dart';
+import 'package:farm_manager_app/features/farmer/breeding/pregnancyCheck/data/repositories/pregnancy_check_repository_impl.dart';
+import 'package:farm_manager_app/features/farmer/breeding/pregnancyCheck/domain/repositories/pregnancy_check_repository.dart';
+import 'package:farm_manager_app/features/farmer/breeding/pregnancyCheck/domain/usecases/get_pregnancy_checks.dart';
+import 'package:farm_manager_app/features/farmer/breeding/pregnancyCheck/domain/usecases/pregnancy_check_usecases.dart' hide GetPregnancyChecks;
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/delivery/delivery_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/pregnancyCheck/pregnancy_check_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/semenInventory/domain/usecases/get_semen_dropdowns.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:farm_manager_app/core/networking/api_client.dart';
@@ -46,23 +68,16 @@ import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/updat
 import 'package:farm_manager_app/features/farmer/livestock/domain/usecases/delete_livestock.dart'; 
 import 'package:farm_manager_app/features/farmer/livestock/presentation/bloc/livestock_bloc.dart';
 
-// ========================================
-// ⭐ INSEMINATION IMPORTS (CORRECTED)
-// ========================================
-// Data
+// --- INSEMINATION IMPORTS ---
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/data/datasources/insemination_remote_datasource.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/data/repositories/insemination_repository_impl.dart';
-// Domain
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/repositories/insemination_repository.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/add_insemination.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/delete_insemination.dart';
-// ⭐ Corrected Use Case Names
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/fetch_insemination_detail.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/fetch_insemination_list.dart';
 import 'package:farm_manager_app/features/farmer/breeding/Insemination/domain/usecases/update_insemination.dart';
-// Presentation
 import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/insemination/insemination_bloc.dart';
-// ========================================
 
 // --- HEAT CYCLE IMPORTS ---
 import 'package:farm_manager_app/features/farmer/breeding/HeatCycle/data/datasources/heat_cycle_remote_data_source.dart';
@@ -86,77 +101,79 @@ import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/seme
 
 final getIt = GetIt.instance;
 
-/// ⚡ OPTIMIZED: Setup all dependency injection
+/// ⚡ OPTIMIZED: Fast setup with lazy loading
 Future<void> setupLocator() async {
   
   // ========================================
-  // CORE LAYER - Only essential init here
+  // CORE LAYER - Register but DON'T initialize
   // ========================================
   
-  // Register Dio instance LAZILY
-  getIt.registerLazySingleton<Dio>(() {
-    ApiClient.init(); 
-    return ApiClient.dio;
-  });
+  // ⚡ CRITICAL: Initialize Dio FIRST (needed for network calls)
+  ApiClient.init();
+  getIt.registerLazySingleton<Dio>(() => ApiClient.dio);
   
-  // Register Secure Storage LAZILY
+  // ⚡ Secure Storage - Lazy
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
   
-  // Register Network Info LAZILY
-  getIt.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
+  // ⚡ Network Info - Singleton (created immediately for startup check)
+  getIt.registerSingleton<NetworkInfo>(NetworkInfoImpl());
 
   // ========================================
   // DATA SOURCES LAYER - All LAZY
   // ========================================
   
-  // Auth Data Sources
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(
       dio: getIt<Dio>(),
       storage: getIt<FlutterSecureStorage>(),
     ),
   );
+  
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(getIt<FlutterSecureStorage>()),
   );
   
-  // Location Data Sources
   getIt.registerLazySingleton<LocationDataSource>(
     () => LocationDataSourceImpl(dio: getIt<Dio>()),
   );
   
-  // Farmer Data Sources
   getIt.registerLazySingleton<FarmerRemoteDataSource>(
     () => FarmerRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
 
-  // Researcher Data Source
   getIt.registerLazySingleton<ResearcherRemoteDataSource>(
     () => ResearcherRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
   
-  // Livestock Data Sources
   getIt.registerLazySingleton<LivestockRemoteDataSource>(
     () => LivestockRemoteDataSourceImpl(endpoints: ApiEndpoints.farmer),
   );
   
-  // Heat Cycle Data Sources
   getIt.registerLazySingleton<HeatCycleRemoteDataSource>(
     () => HeatCycleRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
   
-  // Semen Data Source
   getIt.registerLazySingleton<SemenRemoteDataSource>(
     () => SemenRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
 
-  // ⭐ INSEMINATION DATA SOURCE
   getIt.registerLazySingleton<InseminationRemoteDataSource>(
     () => InseminationRemoteDataSourceImpl(dio: getIt<Dio>()),
   );
 
+  getIt.registerLazySingleton<PregnancyCheckRemoteDataSource>(
+    () => PregnancyCheckRemoteDataSourceImpl(dio: getIt<Dio>()),
+  );
+
+   getIt.registerLazySingleton<DeliveryRemoteDataSource>(
+    () => DeliveryRemoteDataSourceImpl(dio: getIt<Dio>()),
+  );
+
+  getIt.registerLazySingleton<OffspringRemoteDataSource>(
+    () => OffspringRemoteDataSourceImpl(dio: getIt<Dio>()),
+  );
 
   // ========================================
   // REPOSITORIES LAYER - All LAZY
@@ -185,7 +202,6 @@ Future<void> setupLocator() async {
     ),
   );
 
-  // Researcher Repository
   getIt.registerLazySingleton<ResearcherRepository>(
     () => ResearcherRepositoryImpl(
       remoteDataSource: getIt<ResearcherRemoteDataSource>(),
@@ -213,10 +229,27 @@ Future<void> setupLocator() async {
     ),
   );
   
-  // ⭐ INSEMINATION REPOSITORY
   getIt.registerLazySingleton<InseminationRepository>(
     () => InseminationRepositoryImpl(
       remoteDataSource: getIt<InseminationRemoteDataSource>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<PregnancyCheckRepository>(
+    () => PregnancyCheckRepositoryImpl(
+      remoteDataSource: getIt<PregnancyCheckRemoteDataSource>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<DeliveryRepository>(
+    () => DeliveryRepositoryImpl(
+      remoteDataSource: getIt<DeliveryRemoteDataSource>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<OffspringRepository>(
+    () => OffspringRepositoryImpl(
+      remoteDataSource: getIt<OffspringRemoteDataSource>(),
     ),
   );
 
@@ -224,17 +257,14 @@ Future<void> setupLocator() async {
   // USE CASES LAYER - All LAZY
   // ========================================
 
-  // Researcher Use Cases
   getIt.registerLazySingleton( 
     () => GetResearcherApprovalStatusUseCase(getIt<ResearcherRepository>()),
   );
   
-  // Auth Use Cases
   getIt.registerLazySingleton(() => LoginUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => AssignRoleUseCase(getIt<AuthRepository>()));
   
-  // Farmer/Vet Use Cases
   getIt.registerLazySingleton(
     () => RegisterFarmerUseCase(repository: getIt<FarmerRepository>()),
   );
@@ -242,45 +272,64 @@ Future<void> setupLocator() async {
     () => SubmitVetDetailsUseCase(getIt<AuthRepository>()),
   );
   
-  // Researcher Use Case
   getIt.registerLazySingleton(
     () => SubmitResearcherDetailsUseCase(getIt<ResearcherRepository>()),
   );
   
-  // Livestock Use Cases
   getIt.registerLazySingleton(() => GetAllLivestock(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => GetLivestockById(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => AddLivestock(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => UpdateLivestock(getIt<LivestockRepository>()));
   getIt.registerLazySingleton(() => DeleteLivestock(getIt<LivestockRepository>()));
   
-  // Heat Cycle Use Cases
   getIt.registerLazySingleton(() => GetHeatCycles(getIt<HeatCycleRepository>()));
   getIt.registerLazySingleton(() => GetHeatCycleDetails(getIt<HeatCycleRepository>())); 
   getIt.registerLazySingleton(() => CreateHeatCycle(getIt<HeatCycleRepository>()));
   getIt.registerLazySingleton(() => UpdateHeatCycle(getIt<HeatCycleRepository>()));
+  getIt.registerLazySingleton(() => DeleteHeatCycle(getIt<HeatCycleRepository>()));
   
-  // Semen Use Cases
   getIt.registerLazySingleton(() => GetAllSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => GetSemenDetails(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => CreateSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => UpdateSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => DeleteSemen(getIt<SemenRepository>()));
   getIt.registerLazySingleton(() => GetAvailableSemen(getIt<SemenRepository>()));
+  getIt.registerLazySingleton(() => GetSemenDropdowns(getIt())); 
   
-  // ⭐ INSEMINATION USE CASES (CORRECTED NAMES)
   getIt.registerLazySingleton(() => FetchInseminationList(repository: getIt<InseminationRepository>()));
   getIt.registerLazySingleton(() => FetchInseminationDetail(repository: getIt<InseminationRepository>()));
   getIt.registerLazySingleton(() => AddInsemination(repository: getIt<InseminationRepository>()));
   getIt.registerLazySingleton(() => UpdateInsemination(repository: getIt<InseminationRepository>()));
   getIt.registerLazySingleton(() => DeleteInsemination(repository: getIt<InseminationRepository>()));
 
+  getIt.registerLazySingleton(() => GetPregnancyChecks(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => GetPregnancyCheckById(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => AddPregnancyCheck(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => UpdatePregnancyCheck(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => DeletePregnancyCheck(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => GetAvailableInseminations(getIt<PregnancyCheckRepository>()));
+  getIt.registerLazySingleton(() => GetAvailableVets(getIt<PregnancyCheckRepository>()));
+
+  getIt.registerLazySingleton(() => GetDeliveriesUseCase(getIt<DeliveryRepository>()));
+  getIt.registerLazySingleton(() => GetDeliveryByIdUseCase(getIt<DeliveryRepository>()));
+  getIt.registerLazySingleton(() => AddDeliveryUseCase(getIt<DeliveryRepository>()));
+  getIt.registerLazySingleton(() => UpdateDeliveryUseCase(getIt<DeliveryRepository>()));
+  getIt.registerLazySingleton(() => DeleteDeliveryUseCase(getIt<DeliveryRepository>()));
+  getIt.registerLazySingleton(() => GetAvailableInseminationsUseCase(getIt<DeliveryRepository>()));
+
+
+  getIt.registerLazySingleton(() => GetOffspringListUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => GetOffspringByIdUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => AddOffspringUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => UpdateOffspringUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => DeleteOffspringUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => RegisterOffspringUseCase(getIt<OffspringRepository>()));
+  getIt.registerLazySingleton(() => GetAvailableDeliveriesUseCase(getIt<OffspringRepository>()));
 
   // ========================================
   // PRESENTATION LAYER (BLoCs) - FACTORY
   // ========================================
 
-  // ResearcherBloc - Factory
   getIt.registerFactory<ResearcherBloc>(
     () => ResearcherBloc(
       submitResearcherDetailsUseCase: getIt<SubmitResearcherDetailsUseCase>(),
@@ -288,7 +337,6 @@ Future<void> setupLocator() async {
     ),
   );
   
-  // AuthBloc - Factory
   getIt.registerFactory(
     () => AuthBloc(
       loginUseCase: getIt<LoginUseCase>(),
@@ -299,7 +347,6 @@ Future<void> setupLocator() async {
     ),
   );
   
-  // LivestockBloc - Factory
   getIt.registerFactory(
     () => LivestockBloc(
       getAllLivestock: getIt<GetAllLivestock>(),
@@ -310,17 +357,16 @@ Future<void> setupLocator() async {
     ),
   );
   
-  // HeatCycleBloc - Factory
   getIt.registerFactory(
     () => HeatCycleBloc(
       getHeatCycles: getIt<GetHeatCycles>(),
       getHeatCycleDetails: getIt<GetHeatCycleDetails>(),
       createHeatCycle: getIt<CreateHeatCycle>(),
       updateHeatCycle: getIt<UpdateHeatCycle>(),
+      deleteHeatCycle: getIt<DeleteHeatCycle>(),
     ),
   );
   
-  // SemenInventoryBloc - Factory
   getIt.registerFactory(
     () => SemenInventoryBloc(
       getAllSemen: getIt<GetAllSemen>(),
@@ -329,6 +375,7 @@ Future<void> setupLocator() async {
       updateSemen: getIt<UpdateSemen>(),
       deleteSemen: getIt<DeleteSemen>(),
       getAvailableSemen: getIt<GetAvailableSemen>(),
+      getSemenDropdowns: getIt(),
     ),
   );
 
@@ -336,8 +383,25 @@ Future<void> setupLocator() async {
     () => InseminationBloc(
       repository: getIt<InseminationRepository>(),
     ),
-);
+  );
 
+  getIt.registerFactory(
+    () => PregnancyCheckBloc(
+      repository: getIt<PregnancyCheckRepository>(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => DeliveryBloc(
+      repository: getIt<DeliveryRepository>(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => OffspringBloc(
+      repository: getIt<OffspringRepository>(),
+    ),
+  );
 
   // ========================================
   // UTILITIES & PROVIDERS
@@ -345,17 +409,18 @@ Future<void> setupLocator() async {
   
   getIt.registerLazySingleton<LanguageProvider>(() => LanguageProvider());
   
+  // ⚡ Load locale in background (don't await)
   getIt<LanguageProvider>().loadSavedLocale().catchError((e) {
     // Silently handle errors
   });
 }
 
-/// Optional: Helper function to reset all dependencies (useful for testing)
+/// Reset all dependencies (useful for testing)
 Future<void> resetLocator() async {
   await getIt.reset();
 }
 
-/// Optional: Check if a dependency is registered
+/// Check if a dependency is registered
 bool isDependencyRegistered<T extends Object>() {
   return getIt.isRegistered<T>();
 }

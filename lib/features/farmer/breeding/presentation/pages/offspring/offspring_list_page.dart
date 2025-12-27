@@ -1,8 +1,15 @@
-import 'package:farm_manager_app/core/config/app_theme.dart'; // Assumed correct theme path
+// lib/features/farmer/breeding/presentation/pages/offspring/offspring_list_page.dart
+
+import 'package:farm_manager_app/core/config/app_theme.dart';
+import 'package:farm_manager_app/core/di/locator.dart';
+import 'package:farm_manager_app/features/farmer/breeding/offspring/domain/entities/offspring_entity.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_bloc.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_event.dart';
+import 'package:farm_manager_app/features/farmer/breeding/presentation/bloc/offspring/offspring_state.dart';
 import 'package:farm_manager_app/features/farmer/breeding/presentation/utils/breeding_colors.dart';
-import 'package:farm_manager_app/features/farmer/breeding/presentation/widgets/empty_state.dart';
 import 'package:farm_manager_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -11,184 +18,422 @@ class OffspringPage extends StatelessWidget {
 
   const OffspringPage({super.key});
 
-  // --- Mock Data Definition (Matching OffspringController@index output) ---
-  List<Map<String, dynamic>> get _mockOffspring => [
-    // 1. Ready to Register (livestock_id is null)
-    _mockOffspringItem(1, "CALF-001", "Female", 32.5, '2025-09-10', null, "COW-101"),
-    
-    // 2. Registered (livestock_id is set)
-    _mockOffspringItem(2, "LAMB-005", "Male", 4.1, '2025-12-05', 55, "EWE-203"),
-    
-    // 3. Registered (livestock_id is set)
-    _mockOffspringItem(3, "KID-012", "Male", 3.8, '2025-12-01', 56, "DOE-312"),
-    
-    // 4. Ready to Register (livestock_id is null)
-    _mockOffspringItem(4, "CALF-002", "Female", 35.0, '2025-09-15', null, "COW-115"),
-    
-    // 5. Stillborn/Critical Condition (may need review)
-    _mockOffspringItem(5, "STILLBORN", "Male", 3.0, '2025-09-16', null, "COW-116", condition: "Stillborn"),
-  ];
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<OffspringBloc>()..add(const LoadOffspringList()),
+      child: const OffspringView(),
+    );
+  }
+}
 
-  // Helper to format the date from YYYY-MM-DD
-  String _formatDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('dd MMM yyyy').format(date);
-    } catch (e) {
-      return dateString; // Return original if parsing fails
+class OffspringView extends StatefulWidget {
+  const OffspringView({super.key});
+
+  @override
+  State<OffspringView> createState() => _OffspringViewState();
+}
+
+class _OffspringViewState extends State<OffspringView> {
+  final TextEditingController _searchController = TextEditingController();
+  Map<String, dynamic> _currentFilters = {};
+  bool _isSearching = false;
+  String _selectedFilter = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _reloadList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _reloadList() {
+    print('🔄 Reloading offspring list...');
+    context.read<OffspringBloc>().add(LoadOffspringList(filters: _currentFilters));
+  }
+
+  void _applySearch(String value) {
+    final searchText = value.trim();
+    setState(() {
+      _currentFilters = searchText.isEmpty ? {} : {'search': searchText};
+    });
+    _reloadList();
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'registered':
+        return AppColors.success;
+      case 'ready':
+        return AppColors.secondary;
+      case 'critical':
+        return AppColors.error;
+      default:
+        return AppColors.warning;
     }
   }
 
-  // Helper to determine the status text and color
-  (String status, Color statusColor) _getStatus(AppLocalizations l10n, Map<String, dynamic> item) {
-    final bool isRegistered = item['livestock_id'] != null;
-    final String condition = item['birth_condition'] ?? 'Vigorous';
+  Future<void> _navigateToAdd() async {
+    await context.pushNamed('add-offspring');
+    _reloadList();
+  }
 
-    if (isRegistered) {
-      return (l10n.registered, Colors.green[700]!);
-    }
-    
-    if (condition == 'Stillborn' || condition == 'Weak') {
-      return (l10n.condition, AppColors.warning);
-    }
-    
-    return (l10n.readyToRegister, AppColors.secondary);
+  Future<void> _navigateToDetail(dynamic id) async {
+    await context.pushNamed('offspring_detail', pathParameters: {'id': id.toString()});
+    _reloadList();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final offspring = _mockOffspring;
-    final primaryColor = BreedingColors.offspring;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(l10n.offspring),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: BreedingColors.offspring),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchController.clear();
+                    _applySearch('');
+                  });
+                },
+              )
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: BreedingColors.offspring),
+                onPressed: () => context.canPop() ? context.pop() : context.go('/farmer/dashboard'),
+              ),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: l10n.searchOffspring ?? 'Search Tag or Dam...',
+                  border: InputBorder.none,
+                ),
+                onChanged: _applySearch,
+              )
+            : Text(
+                l10n.offspring ?? 'Offspring',
+                style: const TextStyle(color: BreedingColors.offspring, fontWeight: FontWeight.bold),
+              ),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.clear : Icons.search, color: BreedingColors.offspring),
+            onPressed: () {
+              if (_isSearching) {
+                _searchController.clear();
+                _applySearch('');
+              }
+              setState(() => _isSearching = !_isSearching);
+            },
+          ),
+        ],
       ),
-      body: offspring.isEmpty
-          ? EmptyState(
-              icon: Icons.child_friendly,
-              message: "${l10n.noOffspringYet}\n${l10n.recordFirstOffspring}",
-              iconColor: AppColors.iconPrimary,
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: offspring.length,
-              itemBuilder: (context, i) {
-                final item = offspring[i];
-                final bool isRegistered = item['livestock_id'] != null;
-                final (statusText, statusColor) = _getStatus(l10n, item);
-                final String damTag = item['delivery']['insemination']['dam']['tag_number'] ?? l10n.unknown;
-                
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    leading: CircleAvatar(
-                      backgroundColor: primaryColor.withOpacity(0.1),
-                      child: Icon(Icons.child_care, color: primaryColor),
-                    ),
-                    title: Text(
-                      item['temporary_tag'] ?? l10n.noTemporaryTag,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          "${item['gender']} • ${item['birth_weight_kg'].toStringAsFixed(1)} kg • Dam: $damTag",
-                          style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text("${l10n.born}: ${_formatDate(item['delivery']['actual_delivery_date'])}", style: theme.textTheme.bodySmall),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                statusText,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: !isRegistered
-                        ? SizedBox(
-                            width: 100, // Fixed width for consistent alignment
-                            child: ElevatedButton(
-                              onPressed: () => context.push('$routeName/${item['id']}/register'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.secondary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                textStyle: theme.textTheme.labelLarge,
-                                elevation: 0,
-                              ),
-                              child: Text(l10n.register),
-                            ),
-                          )
-                        : const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
-                    onTap: () => context.push('$routeName/${item['id']}'),
-                  ),
-                );
-              },
-            ),
+      body: BlocConsumer<OffspringBloc, OffspringState>(
+        listener: (context, state) {
+          if (state is OffspringError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                action: SnackBarAction(
+                  label: l10n.retry ?? 'Retry',
+                  textColor: Colors.white,
+                  onPressed: _reloadList,
+                ),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is OffspringLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is OffspringListLoaded) {
+            final offspring = state.offspringList;
+
+            return Column(
+              children: [
+                _buildHeader(l10n, offspring),
+                _buildFilterChips(l10n),
+                Expanded(
+                  child: offspring.isEmpty
+                      ? _buildEmptyState(l10n)
+                      : _buildOffspringList(offspring, l10n),
+                ),
+              ],
+            );
+          }
+
+          if (state is OffspringError) {
+            return _buildErrorState(l10n, state.message);
+          }
+
+          return _buildEmptyState(l10n);
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text(l10n.recordOffspring),
-        // Navigate to a generic "Add Offspring" page, or you might link to the 
-        // "Add Delivery" page if you only want to add offspring via a delivery.
-        // Assuming this means "Add Offspring to an existing Delivery":
-        onPressed: () => context.push('$routeName/store'), 
+        backgroundColor: BreedingColors.offspring,
+        onPressed: _navigateToAdd,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+          l10n.recordOffspring ?? 'Record Offspring',
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
 
-  // Mock data generator function matching backend model keys
-  Map<String, dynamic> _mockOffspringItem(
-    int id, 
-    String temporaryTag, 
-    String gender, 
-    double birthWeightKg, 
-    String deliveryDate, 
-    int? livestockId,
-    String damTagNumber,
-    {String condition = 'Vigorous'}
-  ) {
-    return {
-      'id': id,
-      'temporary_tag': temporaryTag,
-      'gender': gender,
-      'birth_weight_kg': birthWeightKg,
-      'birth_condition': condition,
-      'livestock_id': livestockId,
-      'delivery': {
-        'actual_delivery_date': deliveryDate,
-        'insemination': {
-          'dam': {'tag_number': damTagNumber}
-        }
-      }
-    };
+  Widget _buildHeader(AppLocalizations l10n, List<OffspringEntity> offspring) {
+    final total = offspring.length;
+    final registered = offspring.where((o) => o.isRegistered).length;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              l10n.total ?? 'Total',
+              total.toString(),
+              Icons.child_care,
+              BreedingColors.offspring,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildStatCard(
+              l10n.registered ?? 'Registered',
+              registered.toString(),
+              Icons.badge,
+              AppColors.success,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          ),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChips(AppLocalizations l10n) {
+    final filters = [
+      {'id': 'all', 'label': l10n.all ?? 'All'},
+      {'id': 'registered', 'label': l10n.registered ?? 'Registered'},
+      {'id': 'pending', 'label': l10n.pending ?? 'Pending'},
+      {'id': 'critical', 'label': l10n.critical ?? 'Critical'},
+    ];
+
+    return SizedBox(
+      height: 50,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: filters.map((f) {
+          final isSelected = _selectedFilter == f['id'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(f['label']!),
+              selected: isSelected,
+              onSelected: (_) => setState(() => _selectedFilter = f['id']!),
+              selectedColor: BreedingColors.offspring,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textPrimary,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildOffspringList(List<OffspringEntity> offspring, AppLocalizations l10n) {
+    final df = DateFormat('dd MMM yyyy');
+
+    return RefreshIndicator(
+      onRefresh: () async => _reloadList(),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: offspring.length,
+        itemBuilder: (context, index) {
+          final item = offspring[index];
+          final statusColor = item.isRegistered ? AppColors.success : AppColors.secondary;
+          final statusText = item.isRegistered ? l10n.registered : l10n.pending;
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              onTap: () => _navigateToDetail(item.id),
+              leading: CircleAvatar(
+                backgroundColor: BreedingColors.offspring.withOpacity(0.1),
+                child: const Icon(Icons.child_care, color: BreedingColors.offspring, size: 20),
+              ),
+              title: Text(
+                item.temporaryTag ?? l10n.noTemporaryTag ?? 'No Tag',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item.gender} • ${item.birthWeightKg.toStringAsFixed(1)} kg • Dam: ${item.damTag}',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '${l10n.born ?? "Born"}: ${df.format(DateTime.parse(item.deliveryDate))}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          statusText ?? '',
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              trailing: !item.isRegistered
+                  ? SizedBox(
+                      width: 90,
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/farmer/breeding/offspring/${item.id}/register'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          elevation: 0,
+                        ),
+                        child: Text(l10n.register ?? 'Register', style: const TextStyle(fontSize: 11)),
+                      ),
+                    )
+                  : const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.child_friendly, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              l10n.noOffspringYet ?? 'No offspring records found',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap the + button below to record your first offspring',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(AppLocalizations l10n, String msg) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              'Error Loading Offspring',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.red[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              msg,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _reloadList,
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.retry ?? 'Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: BreedingColors.offspring,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
-

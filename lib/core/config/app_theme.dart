@@ -26,6 +26,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: 'Roboto',
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.surface,
       colorScheme: const ColorScheme.light(

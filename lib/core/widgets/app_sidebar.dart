@@ -26,69 +26,7 @@ class AppSidebar extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // App Title
-                    Text(
-                      "Farm Manager",
-                      style: textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // User Info Row
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorScheme.onPrimary.withOpacity(0.2),
-                          child: Icon(
-                            Icons.person,
-                            size: 28,
-                            color: colorScheme.onPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Jackson Ngowi",
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: colorScheme.onPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "Farmer • Arusha, TZ",
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimary.withOpacity(0.85),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ),
-          ),
 
           // Navigation Items
           Expanded(
@@ -113,12 +51,7 @@ class AppSidebar extends StatelessWidget {
                   title: "Breeds",
                   route: AppRoutes.breeding,
                 ),
-                _SidebarItem(
-                  currentRoute: currentRoute,
-                  icon: Icons.medical_services,
-                  title: "Vet Services",
-                  route: AppRoutes.vetServices,
-                ),
+               
                 _SidebarItem(
                   currentRoute: currentRoute,
                   icon: Icons.health_and_safety,
